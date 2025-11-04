@@ -15,8 +15,8 @@ import type { Match } from '@/lib/types'
 
 function App() {
   const [currentUserId, setCurrentUserId] = useKV<string | null>('current-user-id', null)
-  const [matches, setMatches] = useUserData<Match[]>('matches', [])
-  const [ownedSets, setOwnedSets] = useUserData<string[]>('owned-sets', [])
+  const [matches, setMatches] = useUserData<Match[]>('matches', [], currentUserId)
+  const [ownedSets, setOwnedSets] = useUserData<string[]>('owned-sets', [], currentUserId)
 
   const matchesData = matches || []
   const ownedSetsData = ownedSets || []
