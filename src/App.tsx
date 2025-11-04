@@ -8,7 +8,6 @@ import { CollectionTab } from '@/components/collection/CollectionTab'
 import { RandomizerTab } from '@/components/randomizer/RandomizerTab'
 import { UserProfile } from '@/components/auth/UserProfile'
 import { SignInPrompt } from '@/components/auth/SignInPrompt'
-import { DataDiagnostic } from '@/components/auth/DataDiagnostic'
 import { DataCleanup } from '@/components/auth/DataCleanup'
 import { Toaster } from '@/components/ui/sonner'
 import type { Match } from '@/lib/types'
@@ -51,7 +50,6 @@ function App() {
           <SignInPrompt onUserChange={handleUserChange} />
         ) : (
           <>
-            <DataDiagnostic />
             <Tabs defaultValue="matches" className="w-full">
               <TabsList className="grid w-full grid-cols-5 mb-6">
                 <TabsTrigger value="matches">Matches</TabsTrigger>
