@@ -9,6 +9,7 @@ import { RandomizerTab } from '@/components/randomizer/RandomizerTab'
 import { UserProfile } from '@/components/auth/UserProfile'
 import { SignInPrompt } from '@/components/auth/SignInPrompt'
 import { DataDiagnostic } from '@/components/auth/DataDiagnostic'
+import { DataCleanup } from '@/components/auth/DataCleanup'
 import { Toaster } from '@/components/ui/sonner'
 import type { Match } from '@/lib/types'
 
@@ -20,9 +21,6 @@ function App() {
   const matchesData = matches || []
   const ownedSetsData = ownedSets || []
 
-  console.log(`App: Current user ID: ${currentUserId}`)
-  console.log(`App: Matches count: ${matchesData.length}`)
-
   const handleUserChange = async (userId: string) => {
     setCurrentUserId(userId)
   }
@@ -30,6 +28,7 @@ function App() {
   return (
     <div className="min-h-screen bg-background">
       <Toaster />
+      <DataCleanup />
       
       <header className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-10">
         <div className="container mx-auto px-4 py-4">
@@ -66,10 +65,6 @@ function App() {
               <MatchesTab 
                 matches={matchesData} 
                 setMatches={setMatches}
-                onClearAllData={() => {
-                  setMatches(() => [])
-                  setOwnedSets(() => [])
-                }}
               />
             </TabsContent>
 

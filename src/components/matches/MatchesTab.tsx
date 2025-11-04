@@ -2,21 +2,18 @@ import { useState } from 'react'
 import type { Match } from '@/lib/types'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
-import { Plus, Trophy, Upload } from '@phosphor-icons/react'
+import { Plus, Trophy } from '@phosphor-icons/react'
 import { LogMatchDialog } from './LogMatchDialog'
 import { MatchCard } from './MatchCard'
-import { CsvImportDialog } from './CsvImportDialog'
 import { useKV } from '@github/spark/hooks'
 
 type MatchesTabProps = {
   matches: Match[]
   setMatches: (updater: (matches: Match[]) => Match[]) => void
-  onClearAllData: () => void
 }
 
-export function MatchesTab({ matches, setMatches, onClearAllData }: MatchesTabProps) {
+export function MatchesTab({ matches, setMatches }: MatchesTabProps) {
   const [dialogOpen, setDialogOpen] = useState(false)
-  const [importDialogOpen, setImportDialogOpen] = useState(false)
   const [currentUserId] = useKV<string | null>('current-user-id', null)
 
   const sortedMatches = [...matches].sort((a, b) => {
@@ -25,19 +22,6 @@ export function MatchesTab({ matches, setMatches, onClearAllData }: MatchesTabPr
     
     return dateB - dateA
   })
-
-  const handleImport = async (importedMatches: Match[]) => {
-    console.log(`MatchesTab: Importing ${importedMatches.length} matches`)
-    await new Promise(resolve => setTimeout(resolve, 150))
-    setMatches(() => {
-      console.log(`MatchesTab: Setting matches to ${importedMatches.length} items`)
-      return importedMatches
-    })
-  }
-
-  const handleClearData = () => {
-    onClearAllData()
-  }
 
   if (!currentUserId) {
     return null
@@ -52,16 +36,10 @@ export function MatchesTab({ matches, setMatches, onClearAllData }: MatchesTabPr
             {matches.length} {matches.length === 1 ? 'match' : 'matches'} logged
           </p>
         </div>
-        <div className="flex gap-2">
-          <Button onClick={() => setImportDialogOpen(true)} size="lg" variant="outline">
-            <Upload className="mr-2" />
-            Import CSV
-          </Button>
-          <Button onClick={() => setDialogOpen(true)} size="lg">
-            <Plus className="mr-2" />
-            Log Match
-          </Button>
-        </div>
+        <Button onClick={() => setDialogOpen(true)} size="lg">
+          <Plus className="mr-2" />
+          Log Match
+        </Button>
       </div>
 
       {matches.length === 0 ? (
@@ -98,14 +76,6 @@ export function MatchesTab({ matches, setMatches, onClearAllData }: MatchesTabPr
         open={dialogOpen} 
         onOpenChange={setDialogOpen}
         onSave={(match) => setMatches(current => [...current, match])}
-      />
-
-      <CsvImportDialog
-        open={importDialogOpen}
-        onOpenChange={setImportDialogOpen}
-        onImport={handleImport}
-        onClearData={handleClearData}
-        currentUserId={currentUserId || ''}
       />
     </div>
   )
