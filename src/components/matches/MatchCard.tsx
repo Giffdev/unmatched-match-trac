@@ -48,7 +48,7 @@ export function MatchCard({ match, onDelete }: MatchCardProps) {
               )}
             </div>
             <span className="text-sm text-muted-foreground whitespace-nowrap">
-              {format(new Date(match.date), 'MMM d, yyyy')}
+              {format(new Date(match.date + 'T00:00:00'), 'MMM d, yyyy')}
             </span>
           </div>
 

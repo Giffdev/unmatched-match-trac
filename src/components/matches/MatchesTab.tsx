@@ -30,7 +30,7 @@ export function MatchesTab({ matches, setMatches }: MatchesTabProps) {
   }, [currentUserId, users])
 
   const sortedMatches = [...matches].sort((a, b) => 
-    new Date(b.date).getTime() - new Date(a.date).getTime()
+    new Date(b.date + 'T00:00:00').getTime() - new Date(a.date + 'T00:00:00').getTime()
   )
 
   const showImportButton = userEmail === 'giffdev@gmail.com'
