@@ -37,7 +37,7 @@ export function PlayersTab({ matches }: PlayersTabProps) {
 
   const stats = calculatePlayerStats(matches, selectedPlayer)
   const heroesPlayedEntries = Object.entries(stats.heroesPlayed).sort((a, b) => b[1] - a[1])
-  const neverPlayedHeroes = HEROES.filter(h => !stats.heroesPlayed[h.id])
+  const neverPlayedHeroes = HEROES.filter(h => !stats.heroesPlayed[h.id]).sort((a, b) => a.name.localeCompare(b.name))
   const mapsPlayedEntries = Object.entries(stats.mapsPlayed).sort((a, b) => b[1] - a[1])
   const neverPlayedMaps = MAPS.filter(m => !stats.mapsPlayed[m.id])
   const vsPlayersEntries = Object.entries(stats.vsPlayers).sort((a, b) => b[1].total - a[1].total)
@@ -136,16 +136,32 @@ export function PlayersTab({ matches }: PlayersTabProps) {
 
         <Card className="p-6">
           <h3 className="text-lg font-semibold mb-4">Never Played Heroes</h3>
-          <div className="flex flex-wrap gap-2 max-h-[400px] overflow-y-auto">
-            {neverPlayedHeroes.map((hero) => (
-              <Badge key={hero.id} variant="outline">
-                {hero.name}
-              </Badge>
-            ))}
-            {neverPlayedHeroes.length === 0 && (
-              <p className="text-sm text-muted-foreground text-center py-4 w-full">
+          <div className="max-h-[400px] overflow-y-auto">
+            {neverPlayedHeroes.length === 0 ? (
+              <p className="text-sm text-muted-foreground text-center py-4">
                 You've played all heroes! 🎉
               </p>
+            ) : (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Hero</TableHead>
+                    <TableHead>Set</TableHead>
+                    <TableHead>Sidekick</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {neverPlayedHeroes.map((hero) => (
+                    <TableRow key={hero.id}>
+                      <TableCell className="font-medium">{hero.name}</TableCell>
+                      <TableCell className="text-sm text-muted-foreground">{hero.set}</TableCell>
+                      <TableCell className="text-sm text-muted-foreground">
+                        {hero.sidekick || '—'}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
             )}
           </div>
         </Card>
