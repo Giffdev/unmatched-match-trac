@@ -2,9 +2,10 @@ import { Card } from '@/components/ui/card'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
-import { UNMATCHED_SETS, getHeroesBySet } from '@/lib/data'
+import { UNMATCHED_SETS, getHeroesBySet, BRANDS, getSetsByBrand } from '@/lib/data'
 import { Badge } from '@/components/ui/badge'
-import { Package, CheckSquare, Square } from '@phosphor-icons/react'
+import { Package, CheckSquare, Square, Funnel } from '@phosphor-icons/react'
+import { useState } from 'react'
 
 type CollectionTabProps = {
   ownedSets: string[]
@@ -12,27 +13,33 @@ type CollectionTabProps = {
 }
 
 export function CollectionTab({ ownedSets, setOwnedSets }: CollectionTabProps) {
-  const toggleSet = (set: string) => {
+  const [selectedBrand, setSelectedBrand] = useState<string | null>(null)
+
+  const toggleSet = (setName: string) => {
     setOwnedSets((current) => {
-      if (current.includes(set)) {
-        return current.filter(s => s !== set)
+      if (current.includes(setName)) {
+        return current.filter(s => s !== setName)
       } else {
-        return [...current, set]
+        return [...current, setName]
       }
     })
   }
 
   const selectAll = () => {
-    setOwnedSets(() => [...UNMATCHED_SETS])
+    setOwnedSets(() => UNMATCHED_SETS.map(s => s.name))
   }
 
   const clearAll = () => {
     setOwnedSets(() => [])
   }
 
-  const totalHeroes = ownedSets.reduce((acc, set) => {
-    return acc + getHeroesBySet(set).length
+  const totalHeroes = ownedSets.reduce((acc, setName) => {
+    return acc + getHeroesBySet(setName).length
   }, 0)
+
+  const filteredSets = selectedBrand 
+    ? getSetsByBrand(selectedBrand)
+    : UNMATCHED_SETS
 
   const allSelected = ownedSets.length === UNMATCHED_SETS.length
 
@@ -72,30 +79,57 @@ export function CollectionTab({ ownedSets, setOwnedSets }: CollectionTabProps) {
         </div>
       </div>
 
+      <div className="flex items-center gap-2 flex-wrap">
+        <Funnel className="text-muted-foreground" />
+        <span className="text-sm font-medium">Filter by Brand:</span>
+        <Button
+          variant={selectedBrand === null ? 'default' : 'outline'}
+          size="sm"
+          onClick={() => setSelectedBrand(null)}
+        >
+          All Brands
+        </Button>
+        {BRANDS.map((brand) => (
+          <Button
+            key={brand}
+            variant={selectedBrand === brand ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => setSelectedBrand(brand)}
+          >
+            {brand}
+          </Button>
+        ))}
+      </div>
+
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {UNMATCHED_SETS.map((set) => {
-          const isOwned = ownedSets.includes(set)
-          const heroes = getHeroesBySet(set)
+        {filteredSets.map((setInfo) => {
+          const isOwned = ownedSets.includes(setInfo.name)
+          const heroes = getHeroesBySet(setInfo.name)
 
           return (
             <Card 
-              key={set} 
+              key={setInfo.name} 
               className={`p-6 cursor-pointer transition-all ${
                 isOwned ? 'ring-2 ring-primary bg-primary/5' : 'hover:bg-muted/50'
               }`}
-              onClick={() => toggleSet(set)}
+              onClick={() => toggleSet(setInfo.name)}
             >
               <div className="flex items-start gap-3">
                 <Checkbox 
-                  id={set} 
+                  id={setInfo.name} 
                   checked={isOwned}
-                  onCheckedChange={() => toggleSet(set)}
+                  onCheckedChange={() => toggleSet(setInfo.name)}
                   onClick={(e) => e.stopPropagation()}
                 />
                 <div className="flex-1">
-                  <Label htmlFor={set} className="cursor-pointer font-semibold text-base">
-                    {set}
-                  </Label>
+                  <div className="flex items-start justify-between gap-2">
+                    <Label htmlFor={setInfo.name} className="cursor-pointer font-semibold text-base">
+                      {setInfo.name}
+                    </Label>
+                    <Badge variant="outline" className="text-xs shrink-0">
+                      {setInfo.brand}
+                    </Badge>
+                  </div>
                   <div className="mt-2 flex flex-wrap gap-1">
                     {heroes.map((hero) => (
                       <Badge key={hero.id} variant="secondary" className="text-xs">

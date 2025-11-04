@@ -21,6 +21,11 @@ export type Map = {
   imageUrl?: string
 }
 
+export type SetInfo = {
+  name: string
+  brand: string
+}
+
 export type PlayerAssignment = {
   playerName: string
   heroId: string

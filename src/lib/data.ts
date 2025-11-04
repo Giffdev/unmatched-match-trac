@@ -1,29 +1,35 @@
-import type { Hero, Map } from './types'
+import type { Hero, Map, SetInfo } from './types'
 
-export const UNMATCHED_SETS = [
-  'Battle of Legends, Volume One',
-  'Bruce Lee',
-  'Robin Hood vs. Bigfoot',
-  'Jurassic Park – InGen vs. Raptors',
-  'Cobble & Fog',
-  'Buffy the Vampire Slayer',
-  'Little Red Riding Hood vs. Beowulf',
-  'Deadpool',
-  'Battle of Legends, Volume Two',
-  'Redemption Row',
-  'Hell\'s Kitchen',
-  'Jurassic Park – Sattler vs. T‑Rex',
-  'Houdini vs. The Genie',
-  'Teen Spirit',
-  'For King and Country',
-  'Brains & Brawn',
-  'Unmatched Adventures – Tales to Amaze',
-  'Sun\'s Origin',
-  'Slings & Arrows',
-  'Realm\'s Fall',
-  'Steel & Silver',
-  'Muhammad Ali vs. Bruce Lee',
+export const UNMATCHED_SETS: SetInfo[] = [
+  { name: 'Battle of Legends, Volume One', brand: 'Unmatched' },
+  { name: 'Bruce Lee', brand: 'Unmatched' },
+  { name: 'Robin Hood vs. Bigfoot', brand: 'Unmatched' },
+  { name: 'Jurassic Park – InGen vs. Raptors', brand: 'Jurassic Park' },
+  { name: 'Cobble & Fog', brand: 'Unmatched' },
+  { name: 'Buffy the Vampire Slayer', brand: 'Buffy' },
+  { name: 'Little Red Riding Hood vs. Beowulf', brand: 'Unmatched' },
+  { name: 'Deadpool', brand: 'Marvel' },
+  { name: 'Battle of Legends, Volume Two', brand: 'Unmatched' },
+  { name: 'Redemption Row', brand: 'Marvel' },
+  { name: 'Hell\'s Kitchen', brand: 'Marvel' },
+  { name: 'Jurassic Park – Sattler vs. T‑Rex', brand: 'Jurassic Park' },
+  { name: 'Houdini vs. The Genie', brand: 'Unmatched' },
+  { name: 'Teen Spirit', brand: 'Marvel' },
+  { name: 'For King and Country', brand: 'Marvel' },
+  { name: 'Brains & Brawn', brand: 'Marvel' },
+  { name: 'Unmatched Adventures – Tales to Amaze', brand: 'Unmatched' },
+  { name: 'Sun\'s Origin', brand: 'Unmatched' },
+  { name: 'Slings & Arrows', brand: 'Unmatched' },
+  { name: 'Realm\'s Fall', brand: 'The Witcher' },
+  { name: 'Steel & Silver', brand: 'The Witcher' },
+  { name: 'Muhammad Ali vs. Bruce Lee', brand: 'Unmatched' },
 ]
+
+export const BRANDS = Array.from(new Set(UNMATCHED_SETS.map(s => s.brand))).sort()
+
+export function getSetsByBrand(brand: string): SetInfo[] {
+  return UNMATCHED_SETS.filter(s => s.brand === brand)
+}
 
 export const HEROES: Hero[] = [
   { id: 'alice', name: 'Alice', set: 'Battle of Legends, Volume One' },
