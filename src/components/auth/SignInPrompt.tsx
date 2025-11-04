@@ -17,7 +17,6 @@ type SignInPromptProps = {
 export function SignInPrompt({ onUserChange }: SignInPromptProps) {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const [name, setName] = useState('')
   const [users, setUsers] = useKV<User[]>('users', [])
 
   const handleSignIn = async (e: React.FormEvent) => {
@@ -49,15 +48,13 @@ export function SignInPrompt({ onUserChange }: SignInPromptProps) {
       return
     }
 
-    if (!name.trim()) {
-      toast.error('Please enter your name')
-      return
-    }
+    const emailName = email.split('@')[0]
+    const displayName = emailName.charAt(0).toUpperCase() + emailName.slice(1)
 
     const newUser: User = {
       id: crypto.randomUUID(),
       email: email.toLowerCase(),
-      name: name.trim(),
+      name: displayName,
       createdAt: new Date().toISOString()
     }
 
@@ -119,17 +116,6 @@ export function SignInPrompt({ onUserChange }: SignInPromptProps) {
             
             <TabsContent value="signup">
               <form onSubmit={handleSignUp} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="signup-name">Name</Label>
-                  <Input
-                    id="signup-name"
-                    type="text"
-                    placeholder="Your name"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    required
-                  />
-                </div>
                 <div className="space-y-2">
                   <Label htmlFor="signup-email">Email</Label>
                   <Input
