@@ -1,0 +1,151 @@
+import { useState } from 'react'
+import type { Match } from '@/lib/types'
+import { Card } from '@/components/ui/card'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { getAllPlayerNames, calculatePlayerStats } from '@/lib/stats'
+import { getHeroById, HEROES } from '@/lib/data'
+import { Trophy, Target, Sword } from '@phosphor-icons/react'
+import { Progress } from '@/components/ui/progress'
+import { Badge } from '@/components/ui/badge'
+
+type PlayersTabProps = {
+  matches: Match[]
+}
+
+export function PlayersTab({ matches }: PlayersTabProps) {
+  const playerNames = getAllPlayerNames(matches)
+  const [selectedPlayer, setSelectedPlayer] = useState(playerNames[0] || '')
+
+  if (playerNames.length === 0) {
+    return (
+      <Card className="p-12 text-center">
+        <div className="flex flex-col items-center gap-4">
+          <div className="rounded-full bg-primary/10 p-6">
+            <Target className="w-12 h-12 text-primary" />
+          </div>
+          <div>
+            <h3 className="text-lg font-semibold mb-2">No player data</h3>
+            <p className="text-muted-foreground">
+              Log some matches to see player statistics
+            </p>
+          </div>
+        </div>
+      </Card>
+    )
+  }
+
+  const stats = calculatePlayerStats(matches, selectedPlayer)
+  const heroesPlayedEntries = Object.entries(stats.heroesPlayed).sort((a, b) => b[1] - a[1])
+  const neverPlayedHeroes = HEROES.filter(h => !stats.heroesPlayed[h.id])
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <h2 className="text-2xl font-semibold mb-4">Player Statistics</h2>
+        <Select value={selectedPlayer} onValueChange={setSelectedPlayer}>
+          <SelectTrigger className="max-w-xs">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {playerNames.map((name) => (
+              <SelectItem key={name} value={name}>
+                {name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
+      <div className="grid gap-4 md:grid-cols-4">
+        <Card className="p-6">
+          <div className="flex items-center gap-3 mb-2">
+            <div className="rounded-full bg-primary/10 p-2">
+              <Sword className="w-5 h-5 text-primary" />
+            </div>
+            <span className="text-sm text-muted-foreground">Total Games</span>
+          </div>
+          <p className="text-3xl font-bold">{stats.totalGames}</p>
+        </Card>
+
+        <Card className="p-6">
+          <div className="flex items-center gap-3 mb-2">
+            <div className="rounded-full bg-accent/10 p-2">
+              <Trophy className="w-5 h-5 text-accent" />
+            </div>
+            <span className="text-sm text-muted-foreground">Wins</span>
+          </div>
+          <p className="text-3xl font-bold text-accent">{stats.wins}</p>
+        </Card>
+
+        <Card className="p-6">
+          <div className="flex items-center gap-3 mb-2">
+            <div className="rounded-full bg-destructive/10 p-2">
+              <Target className="w-5 h-5 text-destructive" />
+            </div>
+            <span className="text-sm text-muted-foreground">Losses</span>
+          </div>
+          <p className="text-3xl font-bold text-destructive">{stats.losses}</p>
+        </Card>
+
+        <Card className="p-6">
+          <div className="flex items-center gap-3 mb-2">
+            <span className="text-sm text-muted-foreground">Win Rate</span>
+          </div>
+          <p className="text-3xl font-bold">{stats.winRate.toFixed(1)}%</p>
+          <Progress value={stats.winRate} className="mt-2" />
+        </Card>
+      </div>
+
+      <div className="grid gap-6 md:grid-cols-2">
+        <Card className="p-6">
+          <h3 className="text-lg font-semibold mb-4">Most Played Heroes</h3>
+          <div className="space-y-3">
+            {heroesPlayedEntries.slice(0, 10).map(([heroId, count]) => {
+              const hero = getHeroById(heroId)
+              const winRate = stats.heroWinRates[heroId]
+              const winPercentage = winRate ? (winRate.wins / winRate.total) * 100 : 0
+
+              return (
+                <div key={heroId} className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium">{hero?.name}</span>
+                    <div className="flex items-center gap-2">
+                      <Badge variant="secondary" className="text-xs">
+                        {count} {count === 1 ? 'game' : 'games'}
+                      </Badge>
+                      <span className="text-sm text-muted-foreground">
+                        {winPercentage.toFixed(0)}% WR
+                      </span>
+                    </div>
+                  </div>
+                  <Progress value={winPercentage} className="h-2" />
+                </div>
+              )
+            })}
+            {heroesPlayedEntries.length === 0 && (
+              <p className="text-sm text-muted-foreground text-center py-4">
+                No heroes played yet
+              </p>
+            )}
+          </div>
+        </Card>
+
+        <Card className="p-6">
+          <h3 className="text-lg font-semibold mb-4">Never Played Heroes</h3>
+          <div className="flex flex-wrap gap-2 max-h-[400px] overflow-y-auto">
+            {neverPlayedHeroes.map((hero) => (
+              <Badge key={hero.id} variant="outline">
+                {hero.name}
+              </Badge>
+            ))}
+            {neverPlayedHeroes.length === 0 && (
+              <p className="text-sm text-muted-foreground text-center py-4 w-full">
+                You've played all heroes! 🎉
+              </p>
+            )}
+          </div>
+        </Card>
+      </div>
+    </div>
+  )
+}
