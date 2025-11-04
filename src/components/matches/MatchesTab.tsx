@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react'
-import type { Match } from '@/lib/types'
+import type { Match, User } from '@/lib/types'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Plus, Trophy, CalendarDots, Upload } from '@phosphor-icons/react'
 import { LogMatchDialog } from './LogMatchDialog'
 import { MatchCard } from './MatchCard'
 import { CsvImportDialog } from './CsvImportDialog'
+import { useKV } from '@github/spark/hooks'
 
 type MatchesTabProps = {
   matches: Match[]
@@ -16,18 +17,17 @@ export function MatchesTab({ matches, setMatches }: MatchesTabProps) {
   const [dialogOpen, setDialogOpen] = useState(false)
   const [importDialogOpen, setImportDialogOpen] = useState(false)
   const [userEmail, setUserEmail] = useState<string | null>(null)
-  const [currentUserId, setCurrentUserId] = useState<string>('')
+  const [currentUserId] = useKV<string | null>('current-user-id', null)
+  const [users] = useKV<User[]>('users', [])
 
   useEffect(() => {
-    const fetchUser = async () => {
-      const user = await window.spark.user()
+    if (currentUserId && users) {
+      const user = users.find(u => u.id === currentUserId)
       if (user) {
-        setUserEmail(user.email || null)
-        setCurrentUserId(String(user.id))
+        setUserEmail(user.email)
       }
     }
-    fetchUser()
-  }, [])
+  }, [currentUserId, users])
 
   const sortedMatches = [...matches].sort((a, b) => 
     new Date(b.date).getTime() - new Date(a.date).getTime()
@@ -37,6 +37,10 @@ export function MatchesTab({ matches, setMatches }: MatchesTabProps) {
 
   const handleImport = (importedMatches: Match[]) => {
     setMatches(current => [...current, ...importedMatches])
+  }
+
+  if (!currentUserId) {
+    return null
   }
 
   return (
@@ -102,7 +106,7 @@ export function MatchesTab({ matches, setMatches }: MatchesTabProps) {
         open={importDialogOpen}
         onOpenChange={setImportDialogOpen}
         onImport={handleImport}
-        currentUserId={currentUserId}
+        currentUserId={currentUserId || ''}
       />
     </div>
   )
