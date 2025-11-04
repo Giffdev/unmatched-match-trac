@@ -28,7 +28,7 @@ export type Match = {
   players: PlayerAssignment[]
   winnerId?: string
   isDraw: boolean
-  userId: string
+  userId: number
 }
 
 export type PlayerStats = {

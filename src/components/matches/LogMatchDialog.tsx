@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
@@ -8,6 +8,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import type { Match, GameMode, PlayerAssignment } from '@/lib/types'
 import { HEROES, MAPS } from '@/lib/data'
 import { toast } from 'sonner'
+import { useKV } from '@github/spark/hooks'
 
 type LogMatchDialogProps = {
   open: boolean
@@ -27,6 +28,7 @@ export function LogMatchDialog({ open, onOpenChange, onSave, prefilled }: LogMat
   )
   const [winnerId, setWinnerId] = useState<string | undefined>(prefilled?.winnerId)
   const [isDraw, setIsDraw] = useState(prefilled?.isDraw || false)
+  const [currentUserId] = useKV<number | null>('current-user-id', null)
 
   const playerCount = mode === '1v1' ? 2 : mode === '2v2' ? 4 : mode === 'ffa3' ? 3 : mode === 'ffa4' ? 4 : 2
 
@@ -42,6 +44,11 @@ export function LogMatchDialog({ open, onOpenChange, onSave, prefilled }: LogMat
   }
 
   const handleSubmit = () => {
+    if (!currentUserId) {
+      toast.error('Please sign in to log matches')
+      return
+    }
+
     if (!mapId) {
       toast.error('Please select a map')
       return
@@ -71,7 +78,7 @@ export function LogMatchDialog({ open, onOpenChange, onSave, prefilled }: LogMat
       players,
       winnerId: isDraw ? undefined : winnerId,
       isDraw,
-      userId: 'current-user',
+      userId: currentUserId,
     }
 
     onSave(match)
