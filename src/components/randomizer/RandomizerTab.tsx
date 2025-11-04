@@ -6,7 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
 import { Shuffle, DiceSix, Sparkle, ArrowsClockwise } from '@phosphor-icons/react'
-import { HEROES, MAPS, getHeroById, getMapById, getHeroesBySet } from '@/lib/data'
+import { getHeroById, getMapById, getHeroesBySet, getMapsByPlayerCount } from '@/lib/data'
 import { aggregateCommunityData, getBalancedRandomHero } from '@/lib/stats'
 import { LogMatchDialog } from '@/components/matches/LogMatchDialog'
 import { toast } from 'sonner'
@@ -42,7 +42,13 @@ export function RandomizerTab({ ownedSets, matches, setMatches }: RandomizerTabP
       return
     }
 
-    const randomMap = MAPS[Math.floor(Math.random() * MAPS.length)]
+    const suitableMaps = getMapsByPlayerCount(playerCount)
+    if (suitableMaps.length === 0) {
+      toast.error(`No maps available for ${playerCount} players`)
+      return
+    }
+
+    const randomMap = suitableMaps[Math.floor(Math.random() * suitableMaps.length)]
     const selectedHeroes: string[] = []
     const players: PlayerAssignment[] = []
 
@@ -113,7 +119,9 @@ export function RandomizerTab({ ownedSets, matches, setMatches }: RandomizerTabP
 
   const rerollMap = () => {
     if (!result) return
-    const randomMap = MAPS[Math.floor(Math.random() * MAPS.length)]
+    const playerCount = mode === '1v1' ? 2 : mode === '2v2' ? 4 : mode === 'ffa3' ? 3 : mode === 'ffa4' ? 4 : 2
+    const suitableMaps = getMapsByPlayerCount(playerCount)
+    const randomMap = suitableMaps[Math.floor(Math.random() * suitableMaps.length)]
     setResult({
       ...result,
       mapId: randomMap.id,
@@ -207,6 +215,13 @@ export function RandomizerTab({ ownedSets, matches, setMatches }: RandomizerTabP
                   <div>
                     <p className="text-sm text-muted-foreground mb-1">Map</p>
                     <p className="font-semibold">{getMapById(result.mapId)?.name}</p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      {getMapById(result.mapId)?.minPlayers === getMapById(result.mapId)?.maxPlayers 
+                        ? `${getMapById(result.mapId)?.minPlayers} players` 
+                        : `${getMapById(result.mapId)?.minPlayers}-${getMapById(result.mapId)?.maxPlayers} players`}
+                      {' • '}
+                      {getMapById(result.mapId)?.zones} zones, {getMapById(result.mapId)?.spaces} spaces
+                    </p>
                   </div>
                   <Button variant="outline" size="sm" onClick={rerollMap}>
                     <ArrowsClockwise className="mr-1" size={16} />

@@ -6,7 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Input } from '@/components/ui/input'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import type { Match, GameMode, PlayerAssignment } from '@/lib/types'
-import { HEROES, MAPS } from '@/lib/data'
+import { HEROES, getMapsByPlayerCount } from '@/lib/data'
 import { toast } from 'sonner'
 import { useKV } from '@github/spark/hooks'
 
@@ -31,6 +31,7 @@ export function LogMatchDialog({ open, onOpenChange, onSave, prefilled }: LogMat
   const [currentUserId] = useKV<string | null>('current-user-id', null)
 
   const playerCount = mode === '1v1' ? 2 : mode === '2v2' ? 4 : mode === 'ffa3' ? 3 : mode === 'ffa4' ? 4 : 2
+  const availableMaps = getMapsByPlayerCount(playerCount)
 
   const handleModeChange = (newMode: GameMode) => {
     setMode(newMode)
@@ -129,9 +130,9 @@ export function LogMatchDialog({ open, onOpenChange, onSave, prefilled }: LogMat
                 <SelectValue placeholder="Select a map" />
               </SelectTrigger>
               <SelectContent>
-                {MAPS.map((map) => (
+                {availableMaps.map((map) => (
                   <SelectItem key={map.id} value={map.id}>
-                    {map.name}
+                    {map.name} <span className="text-xs text-muted-foreground">({map.minPlayers === map.maxPlayers ? `${map.minPlayers}p` : `${map.minPlayers}-${map.maxPlayers}p`})</span>
                   </SelectItem>
                 ))}
               </SelectContent>

@@ -28,15 +28,26 @@ export function MatchCard({ match, onDelete }: MatchCardProps) {
     <Card className="p-6 hover:shadow-md transition-shadow">
       <div className="flex items-start justify-between gap-4">
         <div className="flex-1 space-y-3">
-          <div className="flex items-center gap-3 flex-wrap">
+          <div className="flex items-start justify-between gap-4">
             <Badge variant="secondary" className="font-medium">
               {MODE_LABELS[match.mode]}
             </Badge>
-            <span className="text-sm text-muted-foreground flex items-center gap-1">
-              <MapPin size={16} />
-              {map?.name || 'Unknown Map'}
-            </span>
-            <span className="text-sm text-muted-foreground">
+            <div className="flex-1">
+              <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                <MapPin size={16} />
+                <span>{map?.name || 'Unknown Map'}</span>
+              </div>
+              {map && (
+                <div className="text-xs text-muted-foreground mt-0.5">
+                  {map.minPlayers === map.maxPlayers 
+                    ? `${map.minPlayers}p` 
+                    : `${map.minPlayers}-${map.maxPlayers}p`}
+                  {' • '}
+                  {map.zones} zones, {map.spaces} spaces
+                </div>
+              )}
+            </div>
+            <span className="text-sm text-muted-foreground whitespace-nowrap">
               {format(new Date(match.date), 'MMM d, yyyy')}
             </span>
           </div>

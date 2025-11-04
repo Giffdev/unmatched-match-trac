@@ -27,11 +27,11 @@ A comprehensive web application for tracking Unmatched board game matches, analy
 - **Success criteria**: User can create account, sign in/out, initials display in header dropdown, matches filtered by user ID
 
 ### Match Logging
-- **Functionality**: Record complete game details including map, game mode (cooperative, 1v1, 2v2, 3-player FFA, 4-player FFA), heroes used, player names, turn order, and winner
+- **Functionality**: Record complete game details including map (filtered by player count), game mode (cooperative, 1v1, 2v2, 3-player FFA, 4-player FFA), heroes used, player names, turn order, and winner
 - **Purpose**: Creates the data foundation for all statistics and insights
 - **Trigger**: User clicks "Log New Match" button
-- **Progression**: Select game mode → Choose map → Assign heroes to players with turn order → Designate winner → Review and save → See confirmation toast
-- **Success criteria**: Match appears in match history with all details; statistics update immediately
+- **Progression**: Select game mode → Choose map (filtered to only show maps suitable for player count) → Assign heroes to players with turn order → Designate winner → Review and save → See confirmation toast
+- **Success criteria**: Match appears in match history with all details including map stats (zones, spaces); statistics update immediately; only appropriate maps shown based on game mode
 
 ### Player Statistics View
 - **Functionality**: Filter and analyze performance data for any logged player name
@@ -55,11 +55,11 @@ A comprehensive web application for tracking Unmatched board game matches, analy
 - **Success criteria**: Persistent collection data, accurate hero filtering, easy bulk selection
 
 ### Match Randomizer
-- **Functionality**: Generate random matchup suggestions with map and heroes, optionally balanced by win rates
+- **Functionality**: Generate random matchup suggestions with map (filtered by player count) and heroes, optionally balanced by win rates
 - **Purpose**: Removes decision paralysis and ensures variety in play experiences
 - **Trigger**: User clicks "Random Match" button
-- **Progression**: Choose game mode → Select randomization type (true random vs balanced) → View suggested matchup with map and heroes → Re-roll specific elements or accept all → Save directly as new match when played
-- **Success criteria**: Only suggests owned heroes, balanced mode keeps win rates within 10% difference, results feel fair and exciting
+- **Progression**: Choose game mode → Select randomization type (true random vs balanced) → View suggested matchup with map (showing player count, zones, spaces) and heroes → Re-roll specific elements or accept all → Save directly as new match when played
+- **Success criteria**: Only suggests owned heroes, only suggests maps appropriate for player count (e.g., 2-player-only maps won't appear in 4-player games), balanced mode keeps win rates within 10% difference, results feel fair and exciting
 
 ### Community Data Aggregation
 - **Functionality**: Anonymously combine match data from all users to show global win rates and matchup statistics
