@@ -1,6 +1,5 @@
 import { useKV } from '@github/spark/hooks'
 import { useUserData } from '@/hooks/use-user-data'
-import { useEffect } from 'react'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { MatchesTab } from '@/components/matches/MatchesTab'
 import { PlayersTab } from '@/components/players/PlayersTab'
@@ -19,25 +18,6 @@ function App() {
 
   const matchesData = matches || []
   const ownedSetsData = ownedSets || []
-
-  useEffect(() => {
-    const clearOldData = async () => {
-      const dataCleared = await window.spark.kv.get<boolean>('data-cleared-v2')
-      if (!dataCleared) {
-        const allKeys = await window.spark.kv.keys()
-        
-        for (const key of allKeys) {
-          if (key !== 'data-cleared-v2') {
-            await window.spark.kv.delete(key)
-          }
-        }
-        
-        await window.spark.kv.set('data-cleared-v2', true)
-        await window.spark.kv.set('current-user-id', null)
-      }
-    }
-    clearOldData()
-  }, [])
 
   const handleUserChange = async (userId: string) => {
     setCurrentUserId(userId)
