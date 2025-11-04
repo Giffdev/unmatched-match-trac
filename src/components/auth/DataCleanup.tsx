@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useKV } from '@github/spark/hooks'
-import type { User } from '@/lib/types'
+import type { Match, User } from '@/lib/types'
 
 const ALLOWED_EMAIL = 'giffdev@gmail.com'
 
@@ -36,10 +36,25 @@ export function DataCleanup() {
     const allKeys = await window.spark.kv.keys()
     console.log(`DataCleanup: Total keys in storage: ${allKeys.length}`)
 
+    const userMatchKey = `matches-${allowedUser.id}`
+    const existingMatches = await window.spark.kv.get<Match[]>(userMatchKey)
+    
+    console.log(`DataCleanup: Checking matches for user at key: ${userMatchKey}`)
+    console.log(`DataCleanup: Found ${existingMatches?.length || 0} matches`)
+
+    if (existingMatches && existingMatches.length > 0) {
+      const matchesWithUserId = existingMatches.map(match => ({
+        ...match,
+        userId: allowedUser.id
+      }))
+      await window.spark.kv.set(userMatchKey, matchesWithUserId)
+      console.log(`DataCleanup: Updated ${matchesWithUserId.length} matches with userId`)
+    }
+
     const keysToKeep = [
       'users',
       'current-user-id',
-      `matches-${allowedUser.id}`,
+      userMatchKey,
       `owned-sets-${allowedUser.id}`,
       `password-${allowedUser.id}`
     ]
