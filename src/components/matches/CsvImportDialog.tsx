@@ -174,8 +174,8 @@ export function CsvImportDialog({ open, onOpenChange, onImport, currentUserId }:
         continue
       }
 
-      const month = dateParts[0].padStart(2, '0')
-      const day = dateParts[1].padStart(2, '0')
+      const day = dateParts[0].padStart(2, '0')
+      const month = dateParts[1].padStart(2, '0')
       const year = dateParts[2]
       const isoDate = `${year}-${month}-${day}`
 
