@@ -11,6 +11,7 @@ export type Hero = {
   id: string
   name: string
   set: string
+  sidekick?: string
   imageUrl?: string
 }
 
