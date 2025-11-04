@@ -19,9 +19,15 @@ export function MatchesTab({ matches, setMatches, onClearAllData }: MatchesTabPr
   const [importDialogOpen, setImportDialogOpen] = useState(false)
   const [currentUserId] = useKV<string | null>('current-user-id', null)
 
-  const sortedMatches = [...matches].sort((a, b) => 
-    new Date(b.date + 'T00:00:00').getTime() - new Date(a.date + 'T00:00:00').getTime()
-  )
+  const sortedMatches = [...matches].sort((a, b) => {
+    const dateA = a.date.split('-').map(Number)
+    const dateB = b.date.split('-').map(Number)
+    
+    const timeA = new Date(dateA[0], dateA[1] - 1, dateA[2]).getTime()
+    const timeB = new Date(dateB[0], dateB[1] - 1, dateB[2]).getTime()
+    
+    return timeB - timeA
+  })
 
   const handleImport = (importedMatches: Match[]) => {
     setMatches(() => importedMatches)
