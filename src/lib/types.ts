@@ -57,6 +57,8 @@ export type PlayerStats = {
   winRate: number
   heroesPlayed: Record<string, number>
   heroWinRates: Record<string, { wins: number; total: number }>
+  mapsPlayed: Record<string, number>
+  mapWinRates: Record<string, { wins: number; total: number }>
 }
 
 export type HeroStats = {

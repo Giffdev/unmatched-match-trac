@@ -3,8 +3,8 @@ import type { Match } from '@/lib/types'
 import { Card } from '@/components/ui/card'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { getAllPlayerNames, calculatePlayerStats } from '@/lib/stats'
-import { getHeroById, HEROES } from '@/lib/data'
-import { Trophy, Target, Sword } from '@phosphor-icons/react'
+import { getHeroById, getMapById, HEROES, MAPS } from '@/lib/data'
+import { Trophy, Target, Sword, MapPin } from '@phosphor-icons/react'
 import { Progress } from '@/components/ui/progress'
 import { Badge } from '@/components/ui/badge'
 
@@ -37,6 +37,8 @@ export function PlayersTab({ matches }: PlayersTabProps) {
   const stats = calculatePlayerStats(matches, selectedPlayer)
   const heroesPlayedEntries = Object.entries(stats.heroesPlayed).sort((a, b) => b[1] - a[1])
   const neverPlayedHeroes = HEROES.filter(h => !stats.heroesPlayed[h.id])
+  const mapsPlayedEntries = Object.entries(stats.mapsPlayed).sort((a, b) => b[1] - a[1])
+  const neverPlayedMaps = MAPS.filter(m => !stats.mapsPlayed[m.id])
 
   return (
     <div className="space-y-6">
@@ -141,6 +143,61 @@ export function PlayersTab({ matches }: PlayersTabProps) {
             {neverPlayedHeroes.length === 0 && (
               <p className="text-sm text-muted-foreground text-center py-4 w-full">
                 You've played all heroes! 🎉
+              </p>
+            )}
+          </div>
+        </Card>
+
+        <Card className="p-6">
+          <div className="flex items-center gap-2 mb-4">
+            <MapPin className="w-5 h-5 text-primary" />
+            <h3 className="text-lg font-semibold">Most Played Maps</h3>
+          </div>
+          <div className="space-y-3">
+            {mapsPlayedEntries.slice(0, 10).map(([mapId, count]) => {
+              const map = getMapById(mapId)
+              const winRate = stats.mapWinRates[mapId]
+              const winPercentage = winRate ? (winRate.wins / winRate.total) * 100 : 0
+
+              return (
+                <div key={mapId} className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium">{map?.name}</span>
+                    <div className="flex items-center gap-2">
+                      <Badge variant="secondary" className="text-xs">
+                        {count} {count === 1 ? 'game' : 'games'}
+                      </Badge>
+                      <span className="text-sm text-muted-foreground">
+                        {winPercentage.toFixed(0)}% WR
+                      </span>
+                    </div>
+                  </div>
+                  <Progress value={winPercentage} className="h-2" />
+                </div>
+              )
+            })}
+            {mapsPlayedEntries.length === 0 && (
+              <p className="text-sm text-muted-foreground text-center py-4">
+                No maps played yet
+              </p>
+            )}
+          </div>
+        </Card>
+
+        <Card className="p-6">
+          <div className="flex items-center gap-2 mb-4">
+            <MapPin className="w-5 h-5 text-muted-foreground" />
+            <h3 className="text-lg font-semibold">Never Played Maps</h3>
+          </div>
+          <div className="flex flex-wrap gap-2 max-h-[400px] overflow-y-auto">
+            {neverPlayedMaps.map((map) => (
+              <Badge key={map.id} variant="outline">
+                {map.name}
+              </Badge>
+            ))}
+            {neverPlayedMaps.length === 0 && (
+              <p className="text-sm text-muted-foreground text-center py-4 w-full">
+                You've played all maps! 🎉
               </p>
             )}
           </div>

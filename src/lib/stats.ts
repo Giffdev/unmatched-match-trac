@@ -10,6 +10,8 @@ export function calculatePlayerStats(matches: Match[], playerName: string): Play
   let draws = 0
   const heroesPlayed: Record<string, number> = {}
   const heroWinRates: Record<string, { wins: number; total: number }> = {}
+  const mapsPlayed: Record<string, number> = {}
+  const mapWinRates: Record<string, { wins: number; total: number }> = {}
 
   for (const match of playerMatches) {
     const player = match.players.find(p => p.playerName.toLowerCase() === playerName.toLowerCase())
@@ -23,6 +25,14 @@ export function calculatePlayerStats(matches: Match[], playerName: string): Play
     }
     heroWinRates[heroId].total++
 
+    const mapId = match.mapId
+    mapsPlayed[mapId] = (mapsPlayed[mapId] || 0) + 1
+
+    if (!mapWinRates[mapId]) {
+      mapWinRates[mapId] = { wins: 0, total: 0 }
+    }
+    mapWinRates[mapId].total++
+
     if (match.isDraw) {
       draws++
     } else {
@@ -30,6 +40,7 @@ export function calculatePlayerStats(matches: Match[], playerName: string): Play
       if (winner?.playerName.toLowerCase() === playerName.toLowerCase()) {
         wins++
         heroWinRates[heroId].wins++
+        mapWinRates[mapId].wins++
       } else {
         losses++
       }
@@ -45,6 +56,8 @@ export function calculatePlayerStats(matches: Match[], playerName: string): Play
     winRate: playerMatches.length > 0 ? (wins / playerMatches.length) * 100 : 0,
     heroesPlayed,
     heroWinRates,
+    mapsPlayed,
+    mapWinRates,
   }
 }
 
