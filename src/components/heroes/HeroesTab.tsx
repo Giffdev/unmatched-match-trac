@@ -1,13 +1,16 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import type { Match } from '@/lib/types'
 import { Card } from '@/components/ui/card'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { HEROES, getHeroById } from '@/lib/data'
 import { calculateHeroStats } from '@/lib/stats'
-import { Sword, Trophy, Target } from '@phosphor-icons/react'
+import { Sword, Trophy, Target, CaretUpDown, Check } from '@phosphor-icons/react'
 import { Progress } from '@/components/ui/progress'
 import { Badge } from '@/components/ui/badge'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import { Button } from '@/components/ui/button'
+import { cn } from '@/lib/utils'
 
 type HeroesTabProps = {
   matches: Match[]
@@ -15,6 +18,18 @@ type HeroesTabProps = {
 
 export function HeroesTab({ matches }: HeroesTabProps) {
   const [selectedHero, setSelectedHero] = useState(HEROES[0]?.id || '')
+  const [open, setOpen] = useState(false)
+  const [search, setSearch] = useState('')
+
+  const filteredHeroes = useMemo(() => {
+    if (!search) return HEROES
+    const searchLower = search.toLowerCase()
+    return HEROES.filter(
+      hero =>
+        hero.name.toLowerCase().includes(searchLower) ||
+        hero.set.toLowerCase().includes(searchLower)
+    )
+  }, [search])
 
   if (matches.length === 0) {
     return (
@@ -46,22 +61,68 @@ export function HeroesTab({ matches }: HeroesTabProps) {
     .filter(m => m.hero)
     .sort((a, b) => b.total - a.total)
 
+  const selectedHeroData = getHeroById(selectedHero)
+
   return (
     <div className="space-y-6">
       <div>
         <h2 className="text-2xl font-semibold mb-4">Hero Statistics</h2>
-        <Select value={selectedHero} onValueChange={setSelectedHero}>
-          <SelectTrigger className="max-w-md">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {HEROES.map((h) => (
-              <SelectItem key={h.id} value={h.id}>
-                {h.name} <span className="text-xs text-muted-foreground">({h.set})</span>
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <Popover open={open} onOpenChange={setOpen}>
+          <PopoverTrigger asChild>
+            <Button
+              variant="outline"
+              role="combobox"
+              aria-expanded={open}
+              className="max-w-md w-full justify-between"
+            >
+              {selectedHeroData ? (
+                <span className="truncate">
+                  {selectedHeroData.name}
+                  <span className="text-xs text-muted-foreground ml-2">({selectedHeroData.set})</span>
+                </span>
+              ) : (
+                "Select hero..."
+              )}
+              <CaretUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-[400px] p-0" align="start">
+            <Command shouldFilter={false}>
+              <CommandInput 
+                placeholder="Search heroes..." 
+                value={search}
+                onValueChange={setSearch}
+              />
+              <CommandList>
+                <CommandEmpty>No hero found.</CommandEmpty>
+                <CommandGroup>
+                  {filteredHeroes.map((h) => (
+                    <CommandItem
+                      key={h.id}
+                      value={h.id}
+                      onSelect={() => {
+                        setSelectedHero(h.id)
+                        setOpen(false)
+                        setSearch('')
+                      }}
+                    >
+                      <Check
+                        className={cn(
+                          "mr-2 h-4 w-4",
+                          selectedHero === h.id ? "opacity-100" : "opacity-0"
+                        )}
+                      />
+                      <div className="flex-1">
+                        <div>{h.name}</div>
+                        <div className="text-xs text-muted-foreground">{h.set}</div>
+                      </div>
+                    </CommandItem>
+                  ))}
+                </CommandGroup>
+              </CommandList>
+            </Command>
+          </PopoverContent>
+        </Popover>
       </div>
 
       <div className="grid gap-4 md:grid-cols-4">
