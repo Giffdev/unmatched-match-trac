@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+<head><title>Data Gather</title></head>
+<body>
+<script>
+async function gatherData() {
+  const prompt = spark.llmPrompt`You are an expert on the Unmatched board game by Restoration Games. Please provide a comprehensive list of ALL officially published Unmatched content as of 2024.
+
+For each SET, provide:
+- Exact official set name
+- All heroes included in that set
+- All maps included in that set (if any)
+
+Include ALL of the following and any others I may have missed:
+- Battle of Legends Volume 1
+- Battle of Legends Volume 2  
+- Cobble & Fog
+- Robin Hood vs Bigfoot
+- Bruce Lee
+- Little Red Riding Hood vs Beowulf
+- Jurassic Park Dr. Sattler vs T. Rex
+- InGen vs Raptors
+- Buffy the Vampire Slayer
+- Deadpool
+- Teen Spirit
+- Houdini vs The Genie
+- For King and Country
+- Steel and Silver
+- Sun Wukong
+- Marvel sets (Redemption Row, Brains and Brawn, Hell's Kitchen, etc.)
+- Any digital-only releases
+- Any other official releases
+
+Format your response as a JSON object with a "sets" property containing an array of set objects. Each set object should have:
+{
+  "setName": "Official Set Name",
+  "heroes": ["Hero Name 1", "Hero Name 2"],
+  "maps": ["Map Name 1", "Map Name 2"]
+}
+
+Be thorough and accurate. Include only official Restoration Games releases.`
+
+  const result = await spark.llm(prompt, "gpt-4o", true)
+  console.log("RAW RESULT:", result)
+  
+  const data = JSON.parse(result)
+  console.log("PARSED DATA:", JSON.stringify(data, null, 2))
+}
+
+gatherData()
+</script>
+</body>
+</html>

@@ -10,6 +10,7 @@ export type Hero = {
 export type Map = {
   id: string
   name: string
+  set: string
   imageUrl?: string
 }
 
