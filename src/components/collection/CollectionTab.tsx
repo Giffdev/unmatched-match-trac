@@ -2,7 +2,7 @@ import { Card } from '@/components/ui/card'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
-import { UNMATCHED_SETS, getHeroesBySet, BRANDS, getSetsByBrand } from '@/lib/data'
+import { UNMATCHED_SETS, getHeroesBySet, FRANCHISES, getSetsByFranchise } from '@/lib/data'
 import { Badge } from '@/components/ui/badge'
 import { Package, CheckSquare, Square, Funnel } from '@phosphor-icons/react'
 import { useState } from 'react'
@@ -13,7 +13,7 @@ type CollectionTabProps = {
 }
 
 export function CollectionTab({ ownedSets, setOwnedSets }: CollectionTabProps) {
-  const [selectedBrand, setSelectedBrand] = useState<string | null>(null)
+  const [selectedFranchise, setSelectedFranchise] = useState<string | null>(null)
 
   const toggleSet = (setName: string) => {
     setOwnedSets((current) => {
@@ -37,8 +37,8 @@ export function CollectionTab({ ownedSets, setOwnedSets }: CollectionTabProps) {
     return acc + getHeroesBySet(setName).length
   }, 0)
 
-  const filteredSets = selectedBrand 
-    ? getSetsByBrand(selectedBrand)
+  const filteredSets = selectedFranchise 
+    ? getSetsByFranchise(selectedFranchise)
     : UNMATCHED_SETS
 
   const allSelected = ownedSets.length === UNMATCHED_SETS.length
@@ -81,22 +81,22 @@ export function CollectionTab({ ownedSets, setOwnedSets }: CollectionTabProps) {
 
       <div className="flex items-center gap-2 flex-wrap">
         <Funnel className="text-muted-foreground" />
-        <span className="text-sm font-medium">Filter by Brand:</span>
+        <span className="text-sm font-medium">Filter by Franchise:</span>
         <Button
-          variant={selectedBrand === null ? 'default' : 'outline'}
+          variant={selectedFranchise === null ? 'default' : 'outline'}
           size="sm"
-          onClick={() => setSelectedBrand(null)}
+          onClick={() => setSelectedFranchise(null)}
         >
-          All Brands
+          All Franchises
         </Button>
-        {BRANDS.map((brand) => (
+        {FRANCHISES.map((franchise) => (
           <Button
-            key={brand}
-            variant={selectedBrand === brand ? 'default' : 'outline'}
+            key={franchise}
+            variant={selectedFranchise === franchise ? 'default' : 'outline'}
             size="sm"
-            onClick={() => setSelectedBrand(brand)}
+            onClick={() => setSelectedFranchise(franchise)}
           >
-            {brand}
+            {franchise}
           </Button>
         ))}
       </div>
@@ -127,7 +127,7 @@ export function CollectionTab({ ownedSets, setOwnedSets }: CollectionTabProps) {
                       {setInfo.name}
                     </Label>
                     <Badge variant="outline" className="text-xs shrink-0">
-                      {setInfo.brand}
+                      {setInfo.franchise}
                     </Badge>
                   </div>
                   <div className="mt-2 flex flex-wrap gap-1">

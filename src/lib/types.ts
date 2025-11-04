@@ -23,7 +23,7 @@ export type Map = {
 
 export type SetInfo = {
   name: string
-  brand: string
+  franchise: string
 }
 
 export type PlayerAssignment = {

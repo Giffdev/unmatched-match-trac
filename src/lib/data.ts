@@ -1,34 +1,34 @@
 import type { Hero, Map, SetInfo } from './types'
 
 export const UNMATCHED_SETS: SetInfo[] = [
-  { name: 'Battle of Legends, Volume One', brand: 'Unmatched' },
-  { name: 'Bruce Lee', brand: 'Unmatched' },
-  { name: 'Robin Hood vs. Bigfoot', brand: 'Unmatched' },
-  { name: 'Jurassic Park – InGen vs. Raptors', brand: 'Jurassic Park' },
-  { name: 'Cobble & Fog', brand: 'Unmatched' },
-  { name: 'Buffy the Vampire Slayer', brand: 'Buffy' },
-  { name: 'Little Red Riding Hood vs. Beowulf', brand: 'Unmatched' },
-  { name: 'Deadpool', brand: 'Marvel' },
-  { name: 'Battle of Legends, Volume Two', brand: 'Unmatched' },
-  { name: 'Redemption Row', brand: 'Marvel' },
-  { name: 'Hell\'s Kitchen', brand: 'Marvel' },
-  { name: 'Jurassic Park – Sattler vs. T‑Rex', brand: 'Jurassic Park' },
-  { name: 'Houdini vs. The Genie', brand: 'Unmatched' },
-  { name: 'Teen Spirit', brand: 'Marvel' },
-  { name: 'For King and Country', brand: 'Marvel' },
-  { name: 'Brains & Brawn', brand: 'Marvel' },
-  { name: 'Unmatched Adventures – Tales to Amaze', brand: 'Unmatched' },
-  { name: 'Sun\'s Origin', brand: 'Unmatched' },
-  { name: 'Slings & Arrows', brand: 'Unmatched' },
-  { name: 'Realm\'s Fall', brand: 'The Witcher' },
-  { name: 'Steel & Silver', brand: 'The Witcher' },
-  { name: 'Muhammad Ali vs. Bruce Lee', brand: 'Unmatched' },
+  { name: 'Battle of Legends, Volume One', franchise: 'Unmatched' },
+  { name: 'Bruce Lee', franchise: 'Unmatched' },
+  { name: 'Robin Hood vs. Bigfoot', franchise: 'Unmatched' },
+  { name: 'Jurassic Park – InGen vs. Raptors', franchise: 'Jurassic Park' },
+  { name: 'Cobble & Fog', franchise: 'Unmatched' },
+  { name: 'Buffy the Vampire Slayer', franchise: 'Buffy' },
+  { name: 'Little Red Riding Hood vs. Beowulf', franchise: 'Unmatched' },
+  { name: 'Deadpool', franchise: 'Marvel' },
+  { name: 'Battle of Legends, Volume Two', franchise: 'Unmatched' },
+  { name: 'Redemption Row', franchise: 'Marvel' },
+  { name: 'Hell\'s Kitchen', franchise: 'Marvel' },
+  { name: 'Jurassic Park – Sattler vs. T‑Rex', franchise: 'Jurassic Park' },
+  { name: 'Houdini vs. The Genie', franchise: 'Unmatched' },
+  { name: 'Teen Spirit', franchise: 'Marvel' },
+  { name: 'For King and Country', franchise: 'Marvel' },
+  { name: 'Brains & Brawn', franchise: 'Marvel' },
+  { name: 'Unmatched Adventures – Tales to Amaze', franchise: 'Unmatched' },
+  { name: 'Sun\'s Origin', franchise: 'Unmatched' },
+  { name: 'Slings & Arrows', franchise: 'Unmatched' },
+  { name: 'Realm\'s Fall', franchise: 'The Witcher' },
+  { name: 'Steel & Silver', franchise: 'The Witcher' },
+  { name: 'Muhammad Ali vs. Bruce Lee', franchise: 'Unmatched' },
 ]
 
-export const BRANDS = Array.from(new Set(UNMATCHED_SETS.map(s => s.brand))).sort()
+export const FRANCHISES = Array.from(new Set(UNMATCHED_SETS.map(s => s.franchise))).sort()
 
-export function getSetsByBrand(brand: string): SetInfo[] {
-  return UNMATCHED_SETS.filter(s => s.brand === brand)
+export function getSetsByFranchise(franchise: string): SetInfo[] {
+  return UNMATCHED_SETS.filter(s => s.franchise === franchise)
 }
 
 export const HEROES: Hero[] = [
