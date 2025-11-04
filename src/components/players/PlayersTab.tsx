@@ -112,7 +112,12 @@ export function PlayersTab({ matches }: PlayersTabProps) {
               return (
                 <div key={heroId} className="space-y-2">
                   <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium">{hero?.name}</span>
+                    <div className="flex flex-col">
+                      <span className="text-sm font-medium">{hero?.name}</span>
+                      {hero?.sidekick && (
+                        <span className="text-xs text-muted-foreground">{hero.sidekick}</span>
+                      )}
+                    </div>
                     <div className="flex items-center gap-2">
                       <Badge variant="secondary" className="text-xs">
                         {count} {count === 1 ? 'game' : 'games'}
@@ -146,18 +151,18 @@ export function PlayersTab({ matches }: PlayersTabProps) {
                 <TableHeader>
                   <TableRow>
                     <TableHead>Hero</TableHead>
-                    <TableHead>Set</TableHead>
                     <TableHead>Sidekick</TableHead>
+                    <TableHead>Set</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {neverPlayedHeroes.map((hero) => (
                     <TableRow key={hero.id}>
                       <TableCell className="font-medium">{hero.name}</TableCell>
-                      <TableCell className="text-sm text-muted-foreground">{hero.set}</TableCell>
                       <TableCell className="text-sm text-muted-foreground">
                         {hero.sidekick || '—'}
                       </TableCell>
+                      <TableCell className="text-sm text-muted-foreground">{hero.set}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>

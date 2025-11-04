@@ -79,10 +79,10 @@ export const HEROES: Hero[] = [
   { id: 'bullseye', name: 'Bullseye', set: 'Hell\'s Kitchen', sidekick: 'Hostages' },
   { id: 'elektra', name: 'Elektra', set: 'Hell\'s Kitchen', sidekick: 'The Hand' },
   
-  { id: 'ellie-sattler', name: 'Dr. Ellie Sattler', set: 'Jurassic Park – Sattler vs. T‑Rex', sidekick: 'Juvenile Raptors' },
+  { id: 'ellie-sattler', name: 'Dr. Ellie Sattler', set: 'Jurassic Park – Sattler vs. T‑Rex', sidekick: 'Dr. Ian Malcolm' },
   { id: 't-rex', name: 'T‑Rex', set: 'Jurassic Park – Sattler vs. T‑Rex' },
   
-  { id: 'houdini', name: 'Harry Houdini', set: 'Houdini vs. The Genie' },
+  { id: 'houdini', name: 'Harry Houdini', set: 'Houdini vs. The Genie', sidekick: 'The Heir' },
   { id: 'the-genie', name: 'The Genie', set: 'Houdini vs. The Genie', sidekick: 'Jafar' },
   
   { id: 'ms-marvel', name: 'Ms. Marvel', set: 'Teen Spirit', sidekick: 'Bruno Carrelli' },
@@ -118,7 +118,7 @@ export const HEROES: Hero[] = [
   { id: 'ciri', name: 'Ciri', set: 'The Witcher – Steel & Silver', sidekick: 'Zireael' },
   { id: 'ancient-leshen', name: 'Ancient Leshen', set: 'The Witcher – Steel & Silver', sidekick: 'Wolves' },
   
-  { id: 'muhammad-ali', name: 'Muhammad Ali', set: 'Muhammad Ali vs. Bruce Lee', sidekick: 'The Champ' },
+  { id: 'muhammad-ali', name: 'Muhammad Ali', set: 'Muhammad Ali vs. Bruce Lee' },
   { id: 'bruce-lee-ali', name: 'Bruce Lee', set: 'Muhammad Ali vs. Bruce Lee' },
 ]
 
