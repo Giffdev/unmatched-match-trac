@@ -8,6 +8,7 @@ import { CollectionTab } from '@/components/collection/CollectionTab'
 import { RandomizerTab } from '@/components/randomizer/RandomizerTab'
 import { UserProfile } from '@/components/auth/UserProfile'
 import { SignInPrompt } from '@/components/auth/SignInPrompt'
+import { DataDiagnostic } from '@/components/auth/DataDiagnostic'
 import { Toaster } from '@/components/ui/sonner'
 import type { Match } from '@/lib/types'
 
@@ -47,14 +48,16 @@ function App() {
         {!currentUserId ? (
           <SignInPrompt onUserChange={handleUserChange} />
         ) : (
-          <Tabs defaultValue="matches" className="w-full">
-            <TabsList className="grid w-full grid-cols-5 mb-6">
-              <TabsTrigger value="matches">Matches</TabsTrigger>
-              <TabsTrigger value="players">Players</TabsTrigger>
-              <TabsTrigger value="heroes">Heroes</TabsTrigger>
-              <TabsTrigger value="collection">Collection</TabsTrigger>
-              <TabsTrigger value="randomizer">Randomizer</TabsTrigger>
-            </TabsList>
+          <>
+            <DataDiagnostic />
+            <Tabs defaultValue="matches" className="w-full">
+              <TabsList className="grid w-full grid-cols-5 mb-6">
+                <TabsTrigger value="matches">Matches</TabsTrigger>
+                <TabsTrigger value="players">Players</TabsTrigger>
+                <TabsTrigger value="heroes">Heroes</TabsTrigger>
+                <TabsTrigger value="collection">Collection</TabsTrigger>
+                <TabsTrigger value="randomizer">Randomizer</TabsTrigger>
+              </TabsList>
 
             <TabsContent value="matches">
               <MatchesTab matches={matchesData} setMatches={setMatches} />
@@ -76,6 +79,7 @@ function App() {
               <RandomizerTab ownedSets={ownedSetsData} matches={matchesData} setMatches={setMatches} />
             </TabsContent>
           </Tabs>
+          </>
         )}
       </main>
     </div>
