@@ -27,11 +27,11 @@ A comprehensive web application for tracking Unmatched board game matches, analy
 - **Success criteria**: User can create account, sign in/out, initials display in header dropdown, matches filtered by user ID
 
 ### Match Logging
-- **Functionality**: Record complete game details including map (filtered by player count), game mode (cooperative, 1v1, 2v2, 3-player FFA, 4-player FFA), heroes used, player names, turn order, and winner
+- **Functionality**: Record complete game details including map (filtered by player count), game mode (cooperative, 1v1, 2v2, 3-player FFA, 4-player FFA), heroes used (searchable from ALL heroes, not limited to collection), player names, turn order, and winner. Special handling for Yennefer & Triss hero variant selection.
 - **Purpose**: Creates the data foundation for all statistics and insights
 - **Trigger**: User clicks "Log New Match" button
-- **Progression**: Select game mode → Choose map (filtered to only show maps suitable for player count) → Assign heroes to players with turn order → Designate winner → Review and save → See confirmation toast
-- **Success criteria**: Match appears in match history with all details including map stats (zones, spaces); statistics update immediately; only appropriate maps shown based on game mode
+- **Progression**: Select game mode → Choose map (filtered to only show maps suitable for player count) → Search and assign heroes to players with turn order (search narrows hero list as user types) → For Yennefer & Triss, designate which is the hero and which is the sidekick → Designate winner → Review and save → See confirmation toast
+- **Success criteria**: Match appears in match history with all details including map stats (zones, spaces) and hero variants; statistics update immediately; only appropriate maps shown based on game mode; all heroes searchable and selectable regardless of collection status; Yennefer & Triss variant properly recorded and displayed
 
 ### Player Statistics View
 - **Functionality**: Filter and analyze performance data for any logged player name
@@ -48,11 +48,11 @@ A comprehensive web application for tracking Unmatched board game matches, analy
 - **Success criteria**: Clear comparison tables, color-coded win rates, statistically significant sample sizes noted
 
 ### Collection Management
-- **Functionality**: Users indicate which Unmatched sets they own to filter available heroes
-- **Purpose**: Ensures randomizer only suggests heroes the user can actually play
+- **Functionality**: Users indicate which Unmatched sets they own to filter available heroes for the randomizer ONLY
+- **Purpose**: Ensures randomizer only suggests heroes the user can actually play, while match logging remains unrestricted
 - **Trigger**: User navigates to Collection tab or prompted during first randomization
-- **Progression**: View all sets organized by release → Toggle owned/not owned → See hero count update → Changes immediately affect randomizer pool
-- **Success criteria**: Persistent collection data, accurate hero filtering, easy bulk selection
+- **Progression**: View all sets organized by release → Toggle owned/not owned → See hero count update → Changes immediately affect randomizer pool (but not match logging)
+- **Success criteria**: Persistent collection data, accurate hero filtering in randomizer, easy bulk selection, match logging unaffected by collection
 
 ### Match Randomizer
 - **Functionality**: Generate random matchup suggestions with map (filtered by player count) and heroes, optionally balanced by win rates

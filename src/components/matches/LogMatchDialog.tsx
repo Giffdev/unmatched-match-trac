@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
@@ -9,12 +9,121 @@ import type { Match, GameMode, PlayerAssignment } from '@/lib/types'
 import { HEROES, getMapsByPlayerCount } from '@/lib/data'
 import { toast } from 'sonner'
 import { useKV } from '@github/spark/hooks'
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import { Check, CaretUpDown } from '@phosphor-icons/react'
+import { cn } from '@/lib/utils'
 
 type LogMatchDialogProps = {
   open: boolean
   onOpenChange: (open: boolean) => void
   onSave: (match: Match) => void
   prefilled?: Partial<Match>
+}
+
+type HeroSelectorProps = {
+  value: string
+  onChange: (heroId: string) => void
+  variant?: string
+  onVariantChange?: (variant: string) => void
+}
+
+function HeroSelector({ value, onChange, variant, onVariantChange }: HeroSelectorProps) {
+  const [open, setOpen] = useState(false)
+  const [search, setSearch] = useState('')
+
+  const filteredHeroes = useMemo(() => {
+    if (!search) return HEROES
+    const searchLower = search.toLowerCase()
+    return HEROES.filter(
+      hero =>
+        hero.name.toLowerCase().includes(searchLower) ||
+        hero.set.toLowerCase().includes(searchLower)
+    )
+  }, [search])
+
+  const selectedHero = HEROES.find(h => h.id === value)
+  const isYenneferTriss = value === 'yennefer-triss'
+
+  return (
+    <div className="space-y-2">
+      <Popover open={open} onOpenChange={setOpen}>
+        <PopoverTrigger asChild>
+          <Button
+            variant="outline"
+            role="combobox"
+            aria-expanded={open}
+            className="w-full justify-between"
+          >
+            {selectedHero ? (
+              <span className="truncate">
+                {selectedHero.name}
+                <span className="text-xs text-muted-foreground ml-2">({selectedHero.set})</span>
+              </span>
+            ) : (
+              "Select hero..."
+            )}
+            <CaretUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent className="w-[400px] p-0" align="start">
+          <Command shouldFilter={false}>
+            <CommandInput 
+              placeholder="Search heroes..." 
+              value={search}
+              onValueChange={setSearch}
+            />
+            <CommandList>
+              <CommandEmpty>No hero found.</CommandEmpty>
+              <CommandGroup>
+                {filteredHeroes.map((hero) => (
+                  <CommandItem
+                    key={hero.id}
+                    value={hero.id}
+                    onSelect={() => {
+                      onChange(hero.id)
+                      setOpen(false)
+                      setSearch('')
+                    }}
+                  >
+                    <Check
+                      className={cn(
+                        "mr-2 h-4 w-4",
+                        value === hero.id ? "opacity-100" : "opacity-0"
+                      )}
+                    />
+                    <div className="flex-1">
+                      <div>{hero.name}</div>
+                      <div className="text-xs text-muted-foreground">{hero.set}</div>
+                    </div>
+                  </CommandItem>
+                ))}
+              </CommandGroup>
+            </CommandList>
+          </Command>
+        </PopoverContent>
+      </Popover>
+
+      {isYenneferTriss && onVariantChange && (
+        <RadioGroup value={variant || 'yennefer'} onValueChange={onVariantChange}>
+          <div className="flex gap-4 p-3 bg-muted/50 rounded-md">
+            <div className="flex items-center gap-2">
+              <RadioGroupItem value="yennefer" id={`yennefer-${value}`} />
+              <Label htmlFor={`yennefer-${value}`} className="cursor-pointer font-normal">
+                Yennefer (Hero)
+              </Label>
+            </div>
+            <div className="flex items-center gap-2">
+              <RadioGroupItem value="triss" id={`triss-${value}`} />
+              <Label htmlFor={`triss-${value}`} className="cursor-pointer font-normal">
+                Triss (Hero)
+              </Label>
+            </div>
+          </div>
+        </RadioGroup>
+      )}
+    </div>
+  )
 }
 
 export function LogMatchDialog({ open, onOpenChange, onSave, prefilled }: LogMatchDialogProps) {
@@ -162,25 +271,25 @@ export function LogMatchDialog({ open, onOpenChange, onSave, prefilled }: LogMat
                       setPlayers(newPlayers)
                     }}
                   />
-                  <Select
+                  <HeroSelector
                     value={player.heroId}
-                    onValueChange={(heroId) => {
+                    onChange={(heroId) => {
                       const newPlayers = [...players]
                       newPlayers[index].heroId = heroId
+                      if (heroId === 'yennefer-triss' && !newPlayers[index].heroVariant) {
+                        newPlayers[index].heroVariant = 'yennefer'
+                      } else if (heroId !== 'yennefer-triss') {
+                        delete newPlayers[index].heroVariant
+                      }
                       setPlayers(newPlayers)
                     }}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select hero" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {HEROES.map((hero) => (
-                        <SelectItem key={hero.id} value={hero.id}>
-                          {hero.name} <span className="text-xs text-muted-foreground">({hero.set})</span>
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                    variant={player.heroVariant}
+                    onVariantChange={(variant) => {
+                      const newPlayers = [...players]
+                      newPlayers[index].heroVariant = variant
+                      setPlayers(newPlayers)
+                    }}
+                  />
                 </div>
               </div>
             ))}
@@ -211,11 +320,15 @@ export function LogMatchDialog({ open, onOpenChange, onSave, prefilled }: LogMat
                 <div className="space-y-2">
                   {players.map((player, index) => {
                     const hero = HEROES.find(h => h.id === player.heroId)
+                    const displayName = hero?.id === 'yennefer-triss' 
+                      ? `${hero.name} (${player.heroVariant === 'triss' ? 'Triss as Hero' : 'Yennefer as Hero'})`
+                      : hero?.name || 'No hero selected'
+                    
                     return (
                       <div key={index} className="flex items-center gap-2">
                         <RadioGroupItem value={player.heroId} id={`winner-${index}`} />
                         <Label htmlFor={`winner-${index}`} className="cursor-pointer font-normal">
-                          {player.playerName || `Player ${index + 1}`} - {hero?.name || 'No hero selected'}
+                          {player.playerName || `Player ${index + 1}`} - {displayName}
                         </Label>
                       </div>
                     )

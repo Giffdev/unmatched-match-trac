@@ -34,6 +34,7 @@ export type PlayerAssignment = {
   playerName: string
   heroId: string
   turnOrder: number
+  heroVariant?: string
 }
 
 export type Match = {

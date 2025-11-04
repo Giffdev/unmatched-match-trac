@@ -28,7 +28,7 @@ export function CsvImportDialog({ open, onOpenChange, onImport, currentUserId, o
       .replace(/[^\w\s&'-]/g, '')
   }
 
-  const findHeroByName = (name: string): string | null => {
+  const findHeroByName = (name: string): { heroId: string; variant?: string } | null => {
     const normalized = normalizeText(name)
     
     const hero = HEROES.find(h => {
@@ -36,44 +36,45 @@ export function CsvImportDialog({ open, onOpenChange, onImport, currentUserId, o
       return heroNormalized === normalized
     })
 
-    if (hero) return hero.id
+    if (hero) return { heroId: hero.id }
 
-    const specialCases: Record<string, string> = {
-      'SQUIRREL GIRL': 'squirrel-girl',
-      'MS MARVEL': 'ms-marvel',
-      'WINTER SOLDIER': 'winter-soldier',
-      'CLOAK  DAGGER': 'cloak-dagger',
-      'CLOAK DAGGER': 'cloak-dagger',
-      'BLACK PANTHER': 'black-panther',
-      'BLACK WIDOW': 'black-widow',
-      'LITTLE RED RIDING HOOD': 'little-red',
-      'ROBERT MULDOON': 'ingen',
-      'SUN WUKONG': 'sun-wukong',
-      'BLOODY MARY': 'bloody-mary',
-      'BRUCE LEE': 'bruce-lee',
-      'HARRY HOUDINI': 'houdini',
-      'THE GENIE': 'the-genie',
-      'DOCTOR STRANGE': 'doctor-strange',
-      'SPIDERMAN': 'spider-man',
-      'SPIDER MAN': 'spider-man',
-      'SHEHULK': 'she-hulk',
-      'SHE HULK': 'she-hulk',
-      'KING ARTHUR': 'king-arthur',
-      'JEKYLL  HYDE': 'jekyll-hyde',
-      'INVISIBLE MAN': 'invisible-man',
-      'ROBIN HOOD': 'robin-hood',
-      'TOMOE GOZEN': 'tomoe-gozen',
-      'ODA NOBUNAGA': 'oda-nobunaga',
-      'THE WAYWARD SISTERS': 'wayward-sisters',
-      'SHAKESPEARE': 'william-shakespeare',
-      'T REX': 't-rex',
-      'TREX': 't-rex',
-      'ANCIENT LESCHEN': 'ancient-leshen',
-      'GERALT OF RIVIA': 'geralt',
-      'YENNEFER': 'yennefer-triss',
-      'TRISS': 'yennefer-triss',
-      'PHILIPPA': 'philippa',
-      'DR JILL TRENT': 'dr-jill-trent',
+    const specialCases: Record<string, { heroId: string; variant?: string }> = {
+      'SQUIRREL GIRL': { heroId: 'squirrel-girl' },
+      'MS MARVEL': { heroId: 'ms-marvel' },
+      'WINTER SOLDIER': { heroId: 'winter-soldier' },
+      'CLOAK  DAGGER': { heroId: 'cloak-dagger' },
+      'CLOAK DAGGER': { heroId: 'cloak-dagger' },
+      'BLACK PANTHER': { heroId: 'black-panther' },
+      'BLACK WIDOW': { heroId: 'black-widow' },
+      'LITTLE RED RIDING HOOD': { heroId: 'little-red' },
+      'ROBERT MULDOON': { heroId: 'ingen' },
+      'SUN WUKONG': { heroId: 'sun-wukong' },
+      'BLOODY MARY': { heroId: 'bloody-mary' },
+      'BRUCE LEE': { heroId: 'bruce-lee' },
+      'HARRY HOUDINI': { heroId: 'houdini' },
+      'THE GENIE': { heroId: 'the-genie' },
+      'DOCTOR STRANGE': { heroId: 'doctor-strange' },
+      'SPIDERMAN': { heroId: 'spider-man' },
+      'SPIDER MAN': { heroId: 'spider-man' },
+      'SHEHULK': { heroId: 'she-hulk' },
+      'SHE HULK': { heroId: 'she-hulk' },
+      'KING ARTHUR': { heroId: 'king-arthur' },
+      'JEKYLL  HYDE': { heroId: 'jekyll-hyde' },
+      'INVISIBLE MAN': { heroId: 'invisible-man' },
+      'ROBIN HOOD': { heroId: 'robin-hood' },
+      'TOMOE GOZEN': { heroId: 'tomoe-gozen' },
+      'ODA NOBUNAGA': { heroId: 'oda-nobunaga' },
+      'THE WAYWARD SISTERS': { heroId: 'wayward-sisters' },
+      'SHAKESPEARE': { heroId: 'william-shakespeare' },
+      'T REX': { heroId: 't-rex' },
+      'TREX': { heroId: 't-rex' },
+      'ANCIENT LESCHEN': { heroId: 'ancient-leshen' },
+      'GERALT OF RIVIA': { heroId: 'geralt' },
+      'YENNEFER': { heroId: 'yennefer-triss', variant: 'yennefer' },
+      'TRISS': { heroId: 'yennefer-triss', variant: 'triss' },
+      'YENNEFER  TRISS': { heroId: 'yennefer-triss', variant: 'yennefer' },
+      'PHILIPPA': { heroId: 'philippa' },
+      'DR JILL TRENT': { heroId: 'dr-jill-trent' },
     }
 
     return specialCases[normalized] || null
@@ -201,9 +202,9 @@ export function CsvImportDialog({ open, onOpenChange, onImport, currentUserId, o
         let winnerId: string | undefined
         
         if (victorName === player1Name.toUpperCase()) {
-          winnerId = hero1Id
+          winnerId = hero1Id.heroId
         } else if (victorName === player2Name.toUpperCase()) {
-          winnerId = hero2Id
+          winnerId = hero2Id.heroId
         }
 
         const match: Match = {
@@ -212,8 +213,8 @@ export function CsvImportDialog({ open, onOpenChange, onImport, currentUserId, o
           mode: '1v1',
           mapId: mapId,
           players: [
-            { playerName: player1Name, heroId: hero1Id, turnOrder: 1 },
-            { playerName: player2Name, heroId: hero2Id, turnOrder: 2 }
+            { playerName: player1Name, heroId: hero1Id.heroId, turnOrder: 1, ...(hero1Id.variant && { heroVariant: hero1Id.variant }) },
+            { playerName: player2Name, heroId: hero2Id.heroId, turnOrder: 2, ...(hero2Id.variant && { heroVariant: hero2Id.variant }) }
           ],
           winnerId: winnerId,
           isDraw: false,

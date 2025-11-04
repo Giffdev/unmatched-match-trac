@@ -4,6 +4,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Trash, Trophy, MapPin, Users } from '@phosphor-icons/react'
 import { getHeroById, getMapById } from '@/lib/data'
+import { getHeroDisplayName } from '@/lib/utils'
 import { format } from 'date-fns'
 
 type MatchCardProps = {
@@ -69,7 +70,7 @@ export function MatchCard({ match, onDelete }: MatchCardProps) {
                     </Badge>
                     <span className="text-sm min-w-[120px]">{player.playerName}</span>
                     <span className="text-sm text-muted-foreground">•</span>
-                    <span className="text-sm">{hero?.name || 'Unknown Hero'}</span>
+                    <span className="text-sm">{getHeroDisplayName(player)}</span>
                     {isWinner && (
                       <Trophy className="text-accent ml-2" size={16} weight="fill" />
                     )}
