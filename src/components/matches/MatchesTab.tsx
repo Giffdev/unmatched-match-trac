@@ -67,6 +67,9 @@ export function MatchesTab({ matches, setMatches }: MatchesTabProps) {
               key={match.id} 
               match={match} 
               onDelete={(id) => setMatches(current => current.filter(m => m.id !== id))}
+              onEdit={(updatedMatch) => setMatches(current => 
+                current.map(m => m.id === updatedMatch.id ? updatedMatch : m)
+              )}
             />
           ))}
         </div>

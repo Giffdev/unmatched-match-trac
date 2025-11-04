@@ -1,15 +1,18 @@
+import { useState } from 'react'
 import type { Match } from '@/lib/types'
 import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Trash, Trophy, MapPin, Users } from '@phosphor-icons/react'
+import { Trash, Trophy, MapPin, Pencil } from '@phosphor-icons/react'
 import { getHeroById, getMapById } from '@/lib/data'
 import { getHeroDisplayName } from '@/lib/utils'
 import { format } from 'date-fns'
+import { EditMatchDialog } from './EditMatchDialog'
 
 type MatchCardProps = {
   match: Match
   onDelete: (id: string) => void
+  onEdit: (match: Match) => void
 }
 
 const MODE_LABELS: Record<string, string> = {
@@ -20,15 +23,17 @@ const MODE_LABELS: Record<string, string> = {
   'ffa4': '4P FFA',
 }
 
-export function MatchCard({ match, onDelete }: MatchCardProps) {
+export function MatchCard({ match, onDelete, onEdit }: MatchCardProps) {
+  const [editDialogOpen, setEditDialogOpen] = useState(false)
   const map = getMapById(match.mapId)
   const winner = match.players.find(p => p.heroId === match.winnerId)
   const winnerHero = winner ? getHeroById(winner.heroId) : null
 
   return (
-    <Card className="p-6 hover:shadow-md transition-shadow">
-      <div className="flex items-start justify-between gap-4">
-        <div className="flex-1 space-y-3">
+    <>
+      <Card className="p-6 hover:shadow-md transition-shadow">
+        <div className="flex items-start justify-between gap-4">
+          <div className="flex-1 space-y-3">
           <div className="flex items-start justify-between gap-4">
             <Badge variant="secondary" className="font-medium">
               {MODE_LABELS[match.mode]}
@@ -81,17 +86,35 @@ export function MatchCard({ match, onDelete }: MatchCardProps) {
                 )
               })}
           </div>
-        </div>
+          </div>
 
-        <Button 
-          variant="ghost" 
-          size="icon"
-          onClick={() => onDelete(match.id)}
-          className="text-destructive hover:text-destructive hover:bg-destructive/10"
-        >
-          <Trash />
-        </Button>
-      </div>
-    </Card>
+          <div className="flex gap-2">
+            <Button 
+              variant="ghost" 
+              size="icon"
+              onClick={() => setEditDialogOpen(true)}
+              className="text-muted-foreground hover:text-foreground"
+            >
+              <Pencil />
+            </Button>
+            <Button 
+              variant="ghost" 
+              size="icon"
+              onClick={() => onDelete(match.id)}
+              className="text-destructive hover:text-destructive hover:bg-destructive/10"
+            >
+              <Trash />
+            </Button>
+          </div>
+        </div>
+      </Card>
+
+      <EditMatchDialog
+        open={editDialogOpen}
+        onOpenChange={setEditDialogOpen}
+        onSave={onEdit}
+        match={match}
+      />
+    </>
   )
 }
