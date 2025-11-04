@@ -1,10 +1,11 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import type { Match } from '@/lib/types'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
-import { Plus, Trophy, CalendarDots } from '@phosphor-icons/react'
+import { Plus, Trophy, CalendarDots, Upload } from '@phosphor-icons/react'
 import { LogMatchDialog } from './LogMatchDialog'
 import { MatchCard } from './MatchCard'
+import { CsvImportDialog } from './CsvImportDialog'
 
 type MatchesTabProps = {
   matches: Match[]
@@ -13,10 +14,30 @@ type MatchesTabProps = {
 
 export function MatchesTab({ matches, setMatches }: MatchesTabProps) {
   const [dialogOpen, setDialogOpen] = useState(false)
+  const [importDialogOpen, setImportDialogOpen] = useState(false)
+  const [userEmail, setUserEmail] = useState<string | null>(null)
+  const [currentUserId, setCurrentUserId] = useState<string>('')
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      const user = await window.spark.user()
+      if (user) {
+        setUserEmail(user.email || null)
+        setCurrentUserId(String(user.id))
+      }
+    }
+    fetchUser()
+  }, [])
 
   const sortedMatches = [...matches].sort((a, b) => 
     new Date(b.date).getTime() - new Date(a.date).getTime()
   )
+
+  const showImportButton = userEmail === 'giffdev@gmail.com'
+
+  const handleImport = (importedMatches: Match[]) => {
+    setMatches(current => [...current, ...importedMatches])
+  }
 
   return (
     <div className="space-y-6">
@@ -27,10 +48,18 @@ export function MatchesTab({ matches, setMatches }: MatchesTabProps) {
             {matches.length} {matches.length === 1 ? 'match' : 'matches'} logged
           </p>
         </div>
-        <Button onClick={() => setDialogOpen(true)} size="lg">
-          <Plus className="mr-2" />
-          Log Match
-        </Button>
+        <div className="flex gap-2">
+          {showImportButton && (
+            <Button onClick={() => setImportDialogOpen(true)} size="lg" variant="outline">
+              <Upload className="mr-2" />
+              Import CSV
+            </Button>
+          )}
+          <Button onClick={() => setDialogOpen(true)} size="lg">
+            <Plus className="mr-2" />
+            Log Match
+          </Button>
+        </div>
       </div>
 
       {matches.length === 0 ? (
@@ -67,6 +96,13 @@ export function MatchesTab({ matches, setMatches }: MatchesTabProps) {
         open={dialogOpen} 
         onOpenChange={setDialogOpen}
         onSave={(match) => setMatches(current => [...current, match])}
+      />
+
+      <CsvImportDialog
+        open={importDialogOpen}
+        onOpenChange={setImportDialogOpen}
+        onImport={handleImport}
+        currentUserId={currentUserId}
       />
     </div>
   )
