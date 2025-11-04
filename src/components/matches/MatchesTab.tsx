@@ -1,8 +1,8 @@
-import { useState, useEffect } from 'react'
-import type { Match, User } from '@/lib/types'
+import { useState } from 'react'
+import type { Match } from '@/lib/types'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
-import { Plus, Trophy, CalendarDots, Upload } from '@phosphor-icons/react'
+import { Plus, Trophy, Upload } from '@phosphor-icons/react'
 import { LogMatchDialog } from './LogMatchDialog'
 import { MatchCard } from './MatchCard'
 import { CsvImportDialog } from './CsvImportDialog'
@@ -11,32 +11,24 @@ import { useKV } from '@github/spark/hooks'
 type MatchesTabProps = {
   matches: Match[]
   setMatches: (updater: (matches: Match[]) => Match[]) => void
+  onClearAllData: () => void
 }
 
-export function MatchesTab({ matches, setMatches }: MatchesTabProps) {
+export function MatchesTab({ matches, setMatches, onClearAllData }: MatchesTabProps) {
   const [dialogOpen, setDialogOpen] = useState(false)
   const [importDialogOpen, setImportDialogOpen] = useState(false)
-  const [userEmail, setUserEmail] = useState<string | null>(null)
   const [currentUserId] = useKV<string | null>('current-user-id', null)
-  const [users] = useKV<User[]>('users', [])
-
-  useEffect(() => {
-    if (currentUserId && users) {
-      const user = users.find(u => u.id === currentUserId)
-      if (user) {
-        setUserEmail(user.email)
-      }
-    }
-  }, [currentUserId, users])
 
   const sortedMatches = [...matches].sort((a, b) => 
     new Date(b.date + 'T00:00:00').getTime() - new Date(a.date + 'T00:00:00').getTime()
   )
 
-  const showImportButton = userEmail === 'giffdev@gmail.com'
-
   const handleImport = (importedMatches: Match[]) => {
-    setMatches(current => [...current, ...importedMatches])
+    setMatches(() => importedMatches)
+  }
+
+  const handleClearData = () => {
+    onClearAllData()
   }
 
   if (!currentUserId) {
@@ -53,12 +45,10 @@ export function MatchesTab({ matches, setMatches }: MatchesTabProps) {
           </p>
         </div>
         <div className="flex gap-2">
-          {showImportButton && (
-            <Button onClick={() => setImportDialogOpen(true)} size="lg" variant="outline">
-              <Upload className="mr-2" />
-              Import CSV
-            </Button>
-          )}
+          <Button onClick={() => setImportDialogOpen(true)} size="lg" variant="outline">
+            <Upload className="mr-2" />
+            Import CSV
+          </Button>
           <Button onClick={() => setDialogOpen(true)} size="lg">
             <Plus className="mr-2" />
             Log Match
@@ -106,6 +96,7 @@ export function MatchesTab({ matches, setMatches }: MatchesTabProps) {
         open={importDialogOpen}
         onOpenChange={setImportDialogOpen}
         onImport={handleImport}
+        onClearData={handleClearData}
         currentUserId={currentUserId || ''}
       />
     </div>

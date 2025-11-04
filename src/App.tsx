@@ -60,7 +60,14 @@ function App() {
               </TabsList>
 
             <TabsContent value="matches">
-              <MatchesTab matches={matchesData} setMatches={setMatches} />
+              <MatchesTab 
+                matches={matchesData} 
+                setMatches={setMatches}
+                onClearAllData={() => {
+                  setMatches(() => [])
+                  setOwnedSets(() => [])
+                }}
+              />
             </TabsContent>
 
             <TabsContent value="players">
