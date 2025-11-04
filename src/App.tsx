@@ -21,14 +21,22 @@ function App() {
   const ownedSetsData = ownedSets || []
 
   useEffect(() => {
-    const clearOldAuthData = async () => {
-      const migrated = await window.spark.kv.get<boolean>('auth-migrated')
-      if (!migrated) {
+    const clearOldData = async () => {
+      const dataCleared = await window.spark.kv.get<boolean>('data-cleared-v2')
+      if (!dataCleared) {
+        const allKeys = await window.spark.kv.keys()
+        
+        for (const key of allKeys) {
+          if (key !== 'data-cleared-v2') {
+            await window.spark.kv.delete(key)
+          }
+        }
+        
+        await window.spark.kv.set('data-cleared-v2', true)
         await window.spark.kv.set('current-user-id', null)
-        await window.spark.kv.set('auth-migrated', true)
       }
     }
-    clearOldAuthData()
+    clearOldData()
   }, [])
 
   const handleUserChange = async (userId: string) => {
