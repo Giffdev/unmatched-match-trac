@@ -11,7 +11,7 @@ import type { Match } from '@/lib/types'
 type CsvImportDialogProps = {
   open: boolean
   onOpenChange: (open: boolean) => void
-  onImport: (matches: Match[]) => void
+  onImport: (matches: Match[]) => Promise<void>
   currentUserId: string
   onClearData: () => void
 }
@@ -137,14 +137,20 @@ export function CsvImportDialog({ open, onOpenChange, onImport, currentUserId, o
       const matches: Match[] = []
       const errors: string[] = []
 
+      console.log(`Total lines in CSV: ${lines.length}`)
+
       for (let i = 1; i < lines.length; i++) {
         const line = lines[i].trim()
-        if (!line) continue
+        if (!line) {
+          console.log(`Skipping empty line ${i + 1}`)
+          continue
+        }
         
         const parts = line.split(',')
         
         if (parts.length < 7) {
-          errors.push(`Line ${i + 1}: Invalid format`)
+          errors.push(`Line ${i + 1}: Invalid format (expected 7 columns, got ${parts.length})`)
+          console.log(`Line ${i + 1} error: Invalid format`, line)
           continue
         }
 
@@ -152,7 +158,8 @@ export function CsvImportDialog({ open, onOpenChange, onImport, currentUserId, o
 
         const dateParts = dateStr.split('/')
         if (dateParts.length !== 3) {
-          errors.push(`Line ${i + 1}: Invalid date format`)
+          errors.push(`Line ${i + 1}: Invalid date format "${dateStr}"`)
+          console.log(`Line ${i + 1} error: Invalid date`, dateStr)
           continue
         }
 
@@ -167,14 +174,17 @@ export function CsvImportDialog({ open, onOpenChange, onImport, currentUserId, o
 
         if (!hero1Id) {
           errors.push(`Line ${i + 1}: Unknown hero "${char1}"`)
+          console.log(`Line ${i + 1} error: Unknown hero`, char1)
           continue
         }
         if (!hero2Id) {
           errors.push(`Line ${i + 1}: Unknown hero "${char2}"`)
+          console.log(`Line ${i + 1} error: Unknown hero`, char2)
           continue
         }
         if (!mapId) {
           errors.push(`Line ${i + 1}: Unknown map "${mapName}"`)
+          console.log(`Line ${i + 1} error: Unknown map`, mapName)
           continue
         }
 
@@ -183,6 +193,7 @@ export function CsvImportDialog({ open, onOpenChange, onImport, currentUserId, o
         
         if (player1Name === '#VALUE!' || player2Name === '#VALUE!') {
           errors.push(`Line ${i + 1}: Invalid player name`)
+          console.log(`Line ${i + 1} error: Invalid player name`)
           continue
         }
 
@@ -212,23 +223,36 @@ export function CsvImportDialog({ open, onOpenChange, onImport, currentUserId, o
         matches.push(match)
       }
 
-      onClearData()
+      console.log(`Successfully parsed ${matches.length} matches`)
+      console.log(`Errors: ${errors.length}`)
 
-      setIsProcessing(false)
-      setSelectedFile(null)
-      if (fileInputRef.current) {
-        fileInputRef.current.value = ''
-      }
+      if (matches.length > 0) {
+        console.log('Clearing existing data...')
+        onClearData()
+        
+        await new Promise(resolve => setTimeout(resolve, 100))
+        
+        console.log('Importing new matches...')
+        await onImport(matches)
+        
+        setIsProcessing(false)
+        setSelectedFile(null)
+        if (fileInputRef.current) {
+          fileInputRef.current.value = ''
+        }
 
-      if (errors.length > 0) {
-        console.error('Import errors:', errors)
-        toast.error(`Import completed with ${errors.length} errors. Check console for details.`)
+        if (errors.length > 0) {
+          console.error('Import errors:', errors)
+          toast.warning(`Imported ${matches.length} matches with ${errors.length} errors. Check console for details.`)
+        } else {
+          toast.success(`Successfully imported ${matches.length} matches!`)
+        }
+
+        onOpenChange(false)
       } else {
-        toast.success(`Successfully imported ${matches.length} matches!`)
+        setIsProcessing(false)
+        toast.error('No valid matches found in CSV')
       }
-
-      onImport(matches)
-      onOpenChange(false)
     } catch (error) {
       setIsProcessing(false)
       toast.error('Failed to read CSV file')

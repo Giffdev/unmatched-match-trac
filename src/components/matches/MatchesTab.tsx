@@ -20,17 +20,19 @@ export function MatchesTab({ matches, setMatches, onClearAllData }: MatchesTabPr
   const [currentUserId] = useKV<string | null>('current-user-id', null)
 
   const sortedMatches = [...matches].sort((a, b) => {
-    const dateA = a.date.split('-').map(Number)
-    const dateB = b.date.split('-').map(Number)
+    const dateA = new Date(a.date).getTime()
+    const dateB = new Date(b.date).getTime()
     
-    const timeA = new Date(dateA[0], dateA[1] - 1, dateA[2]).getTime()
-    const timeB = new Date(dateB[0], dateB[1] - 1, dateB[2]).getTime()
-    
-    return timeB - timeA
+    return dateB - dateA
   })
 
-  const handleImport = (importedMatches: Match[]) => {
-    setMatches(() => importedMatches)
+  const handleImport = async (importedMatches: Match[]) => {
+    console.log(`MatchesTab: Importing ${importedMatches.length} matches`)
+    await new Promise(resolve => setTimeout(resolve, 150))
+    setMatches(() => {
+      console.log(`MatchesTab: Setting matches to ${importedMatches.length} items`)
+      return importedMatches
+    })
   }
 
   const handleClearData = () => {

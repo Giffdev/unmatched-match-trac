@@ -20,6 +20,9 @@ function App() {
   const matchesData = matches || []
   const ownedSetsData = ownedSets || []
 
+  console.log(`App: Current user ID: ${currentUserId}`)
+  console.log(`App: Matches count: ${matchesData.length}`)
+
   const handleUserChange = async (userId: string) => {
     setCurrentUserId(userId)
   }
