@@ -23,7 +23,7 @@ export function SignInPrompt({ onUserChange }: SignInPromptProps) {
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault()
     
-    const currentUsers = users || []
+    const currentUsers = await window.spark.kv.get<User[]>('users') || []
     const user = currentUsers.find(u => u.email === email.toLowerCase())
     if (!user) {
       toast.error('User not found. Please create an account.')
@@ -43,7 +43,7 @@ export function SignInPrompt({ onUserChange }: SignInPromptProps) {
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault()
     
-    const currentUsers = users || []
+    const currentUsers = await window.spark.kv.get<User[]>('users') || []
     if (currentUsers.some(u => u.email === email.toLowerCase())) {
       toast.error('An account with this email already exists')
       return
