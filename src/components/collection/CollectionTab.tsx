@@ -1,6 +1,5 @@
 import { Card } from '@/components/ui/card'
 import { Checkbox } from '@/components/ui/checkbox'
-import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
 import { UNMATCHED_SETS, getHeroesBySet, FRANCHISES, getSetsByFranchise } from '@/lib/data'
 import { Badge } from '@/components/ui/badge'
@@ -123,9 +122,9 @@ export function CollectionTab({ ownedSets, setOwnedSets }: CollectionTabProps) {
                 />
                 <div className="flex-1">
                   <div className="flex items-start justify-between gap-2">
-                    <Label htmlFor={setInfo.name} className="cursor-pointer font-semibold text-base">
+                    <div className="cursor-pointer font-semibold text-base">
                       {setInfo.name}
-                    </Label>
+                    </div>
                     <Badge variant="outline" className="text-xs shrink-0">
                       {setInfo.franchise}
                     </Badge>
