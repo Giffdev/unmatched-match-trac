@@ -1,9 +1,10 @@
 import { Card } from '@/components/ui/card'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Label } from '@/components/ui/label'
+import { Button } from '@/components/ui/button'
 import { UNMATCHED_SETS, getHeroesBySet } from '@/lib/data'
 import { Badge } from '@/components/ui/badge'
-import { Package } from '@phosphor-icons/react'
+import { Package, CheckSquare, Square } from '@phosphor-icons/react'
 
 type CollectionTabProps = {
   ownedSets: string[]
@@ -21,25 +22,57 @@ export function CollectionTab({ ownedSets, setOwnedSets }: CollectionTabProps) {
     })
   }
 
+  const selectAll = () => {
+    setOwnedSets(() => [...UNMATCHED_SETS])
+  }
+
+  const clearAll = () => {
+    setOwnedSets(() => [])
+  }
+
   const totalHeroes = ownedSets.reduce((acc, set) => {
     return acc + getHeroesBySet(set).length
   }, 0)
 
+  const allSelected = ownedSets.length === UNMATCHED_SETS.length
+
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between flex-wrap gap-4">
         <div>
           <h2 className="text-2xl font-semibold">My Collection</h2>
           <p className="text-sm text-muted-foreground mt-1">
             Select the sets you own to filter available heroes
           </p>
         </div>
-        <Card className="p-4">
-          <div className="text-center">
-            <p className="text-sm text-muted-foreground">Heroes Available</p>
-            <p className="text-2xl font-bold text-primary">{totalHeroes}</p>
+        <div className="flex items-center gap-3">
+          <div className="flex gap-2">
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={selectAll}
+              disabled={allSelected}
+            >
+              <CheckSquare className="mr-2" />
+              Select All
+            </Button>
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={clearAll}
+              disabled={ownedSets.length === 0}
+            >
+              <Square className="mr-2" />
+              Clear All
+            </Button>
           </div>
-        </Card>
+          <Card className="p-4">
+            <div className="text-center">
+              <p className="text-sm text-muted-foreground">Heroes Available</p>
+              <p className="text-2xl font-bold text-primary">{totalHeroes}</p>
+            </div>
+          </Card>
+        </div>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
