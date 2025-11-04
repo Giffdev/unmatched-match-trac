@@ -172,3 +172,9 @@ export function getMapsBySet(set: string): Map[] {
 export function getMapsByPlayerCount(playerCount: number): Map[] {
   return MAPS.filter(m => playerCount >= m.minPlayers && playerCount <= m.maxPlayers)
 }
+
+export const ADVENTURE_SETS = ['Adventures: Tales to Amaze']
+
+export function getCooperativeMaps(): Map[] {
+  return MAPS.filter(m => ADVENTURE_SETS.includes(m.set))
+}

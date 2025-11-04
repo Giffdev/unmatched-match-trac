@@ -6,12 +6,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Input } from '@/components/ui/input'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import type { Match, GameMode, PlayerAssignment } from '@/lib/types'
-import { HEROES, getMapsByPlayerCount } from '@/lib/data'
+import { HEROES, MAPS, getMapsByPlayerCount, getCooperativeMaps } from '@/lib/data'
 import { toast } from 'sonner'
 import { useKV } from '@github/spark/hooks'
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
-import { Check, CaretUpDown } from '@phosphor-icons/react'
+import { Check, CaretUpDown, Plus, Trash } from '@phosphor-icons/react'
 import { cn } from '@/lib/utils'
 
 type LogMatchDialogProps = {
@@ -19,6 +19,96 @@ type LogMatchDialogProps = {
   onOpenChange: (open: boolean) => void
   onSave: (match: Match) => void
   prefilled?: Partial<Match>
+}
+
+type MapSelectorProps = {
+  value: string
+  onChange: (mapId: string) => void
+  availableMaps: typeof MAPS
+}
+
+function MapSelector({ value, onChange, availableMaps }: MapSelectorProps) {
+  const [open, setOpen] = useState(false)
+  const [search, setSearch] = useState('')
+
+  const filteredMaps = useMemo(() => {
+    if (!search) return availableMaps
+    const searchLower = search.toLowerCase()
+    return availableMaps.filter(
+      map =>
+        map.name.toLowerCase().includes(searchLower) ||
+        map.set.toLowerCase().includes(searchLower)
+    )
+  }, [search, availableMaps])
+
+  const selectedMap = MAPS.find(m => m.id === value)
+
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <Button
+          variant="outline"
+          role="combobox"
+          aria-expanded={open}
+          className="w-full justify-between"
+        >
+          {selectedMap ? (
+            <span className="truncate">
+              {selectedMap.name}
+              <span className="text-xs text-muted-foreground ml-2">
+                ({selectedMap.minPlayers === selectedMap.maxPlayers 
+                  ? `${selectedMap.minPlayers}p` 
+                  : `${selectedMap.minPlayers}-${selectedMap.maxPlayers}p`})
+              </span>
+            </span>
+          ) : (
+            "Select map..."
+          )}
+          <CaretUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-[400px] p-0" align="start">
+        <Command shouldFilter={false}>
+          <CommandInput 
+            placeholder="Search maps..." 
+            value={search}
+            onValueChange={setSearch}
+          />
+          <CommandList>
+            <CommandEmpty>No map found.</CommandEmpty>
+            <CommandGroup>
+              {filteredMaps.map((map) => (
+                <CommandItem
+                  key={map.id}
+                  value={map.id}
+                  onSelect={() => {
+                    onChange(map.id)
+                    setOpen(false)
+                    setSearch('')
+                  }}
+                >
+                  <Check
+                    className={cn(
+                      "mr-2 h-4 w-4",
+                      value === map.id ? "opacity-100" : "opacity-0"
+                    )}
+                  />
+                  <div className="flex-1">
+                    <div>{map.name}</div>
+                    <div className="text-xs text-muted-foreground">
+                      {map.set} • {map.minPlayers === map.maxPlayers 
+                        ? `${map.minPlayers}p` 
+                        : `${map.minPlayers}-${map.maxPlayers}p`}
+                    </div>
+                  </div>
+                </CommandItem>
+              ))}
+            </CommandGroup>
+          </CommandList>
+        </Command>
+      </PopoverContent>
+    </Popover>
+  )
 }
 
 type HeroSelectorProps = {
@@ -139,18 +229,41 @@ export function LogMatchDialog({ open, onOpenChange, onSave, prefilled }: LogMat
   const [isDraw, setIsDraw] = useState(prefilled?.isDraw || false)
   const [currentUserId] = useKV<string | null>('current-user-id', null)
 
-  const playerCount = mode === '1v1' ? 2 : mode === '2v2' ? 4 : mode === 'ffa3' ? 3 : mode === 'ffa4' ? 4 : 2
-  const availableMaps = getMapsByPlayerCount(playerCount)
+  const isCooperative = mode === 'cooperative'
+  const playerCount = isCooperative 
+    ? players.length 
+    : mode === '1v1' ? 2 : mode === '2v2' ? 4 : mode === 'ffa3' ? 3 : mode === 'ffa4' ? 4 : 2
+  
+  const availableMaps = isCooperative ? getCooperativeMaps() : getMapsByPlayerCount(playerCount)
 
   const handleModeChange = (newMode: GameMode) => {
     setMode(newMode)
-    const count = newMode === '1v1' ? 2 : newMode === '2v2' ? 4 : newMode === 'ffa3' ? 3 : newMode === 'ffa4' ? 4 : 2
+    setMapId('')
     
-    const newPlayers: PlayerAssignment[] = []
-    for (let i = 0; i < count; i++) {
-      newPlayers.push(players[i] || { playerName: '', heroId: '', turnOrder: i + 1 })
+    if (newMode === 'cooperative') {
+      setPlayers([{ playerName: '', heroId: '', turnOrder: 1 }])
+    } else {
+      const count = newMode === '1v1' ? 2 : newMode === '2v2' ? 4 : newMode === 'ffa3' ? 3 : newMode === 'ffa4' ? 4 : 2
+      const newPlayers: PlayerAssignment[] = []
+      for (let i = 0; i < count; i++) {
+        newPlayers.push(players[i] || { playerName: '', heroId: '', turnOrder: i + 1 })
+      }
+      setPlayers(newPlayers)
     }
-    setPlayers(newPlayers)
+  }
+
+  const handleAddPlayer = () => {
+    if (isCooperative && players.length < 4) {
+      setPlayers([...players, { playerName: '', heroId: '', turnOrder: players.length + 1 }])
+    }
+  }
+
+  const handleRemovePlayer = (index: number) => {
+    if (isCooperative && players.length > 1) {
+      const newPlayers = players.filter((_, i) => i !== index)
+      newPlayers.forEach((p, i) => p.turnOrder = i + 1)
+      setPlayers(newPlayers)
+    }
   }
 
   const handleSubmit = () => {
@@ -175,7 +288,7 @@ export function LogMatchDialog({ open, onOpenChange, onSave, prefilled }: LogMat
       }
     }
 
-    if (!isDraw && !winnerId) {
+    if (!isCooperative && !isDraw && !winnerId) {
       toast.error('Please select a winner or mark as draw')
       return
     }
@@ -192,8 +305,8 @@ export function LogMatchDialog({ open, onOpenChange, onSave, prefilled }: LogMat
       mode,
       mapId,
       players,
-      winnerId: isDraw ? undefined : winnerId,
-      isDraw,
+      winnerId: isCooperative || isDraw ? undefined : winnerId,
+      isDraw: isCooperative ? false : isDraw,
       userId: currentUserId,
     }
 
@@ -240,22 +353,28 @@ export function LogMatchDialog({ open, onOpenChange, onSave, prefilled }: LogMat
 
           <div className="space-y-2">
             <Label>Map</Label>
-            <Select value={mapId} onValueChange={setMapId}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select a map" />
-              </SelectTrigger>
-              <SelectContent>
-                {availableMaps.map((map) => (
-                  <SelectItem key={map.id} value={map.id}>
-                    {map.name} <span className="text-xs text-muted-foreground">({map.minPlayers === map.maxPlayers ? `${map.minPlayers}p` : `${map.minPlayers}-${map.maxPlayers}p`})</span>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <MapSelector 
+              value={mapId} 
+              onChange={setMapId}
+              availableMaps={availableMaps}
+            />
           </div>
 
           <div className="space-y-4">
-            <Label>Players & Heroes</Label>
+            <div className="flex items-center justify-between">
+              <Label>Players & Heroes</Label>
+              {isCooperative && players.length < 4 && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={handleAddPlayer}
+                >
+                  <Plus className="mr-2 h-4 w-4" />
+                  Add Player
+                </Button>
+              )}
+            </div>
             {players.map((player, index) => (
               <div key={index} className="flex gap-3 items-start p-4 rounded-lg border bg-card">
                 <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 text-primary font-semibold text-sm">
@@ -291,52 +410,65 @@ export function LogMatchDialog({ open, onOpenChange, onSave, prefilled }: LogMat
                     }}
                   />
                 </div>
+                {isCooperative && players.length > 1 && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => handleRemovePlayer(index)}
+                    className="mt-1"
+                  >
+                    <Trash className="h-4 w-4" />
+                  </Button>
+                )}
               </div>
             ))}
           </div>
 
-          <div className="space-y-3">
-            <Label>Result</Label>
-            <div className="flex items-center gap-4">
-              <div className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  id="draw-checkbox"
-                  checked={isDraw}
-                  onChange={(e) => {
-                    setIsDraw(e.target.checked)
-                    if (e.target.checked) setWinnerId(undefined)
-                  }}
-                  className="w-4 h-4 rounded border-input"
-                />
-                <Label htmlFor="draw-checkbox" className="cursor-pointer font-normal">
-                  Draw
-                </Label>
-              </div>
-            </div>
-            
-            {!isDraw && (
-              <RadioGroup value={winnerId} onValueChange={setWinnerId}>
-                <div className="space-y-2">
-                  {players.map((player, index) => {
-                    const hero = HEROES.find(h => h.id === player.heroId)
-                    const displayName = hero?.id === 'yennefer-triss' 
-                      ? `${hero.name} (${player.heroVariant === 'triss' ? 'Triss as Hero' : 'Yennefer as Hero'})`
-                      : hero?.name || 'No hero selected'
-                    
-                    return (
-                      <div key={index} className="flex items-center gap-2">
-                        <RadioGroupItem value={player.heroId} id={`winner-${index}`} />
-                        <Label htmlFor={`winner-${index}`} className="cursor-pointer font-normal">
-                          {player.playerName || `Player ${index + 1}`} - {displayName}
-                        </Label>
-                      </div>
-                    )
-                  })}
+          {!isCooperative && (
+            <div className="space-y-3">
+              <Label>Result</Label>
+              <div className="flex items-center gap-4">
+                <div className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    id="draw-checkbox"
+                    checked={isDraw}
+                    onChange={(e) => {
+                      setIsDraw(e.target.checked)
+                      if (e.target.checked) setWinnerId(undefined)
+                    }}
+                    className="w-4 h-4 rounded border-input"
+                  />
+                  <Label htmlFor="draw-checkbox" className="cursor-pointer font-normal">
+                    Draw
+                  </Label>
                 </div>
-              </RadioGroup>
-            )}
-          </div>
+              </div>
+              
+              {!isDraw && (
+                <RadioGroup value={winnerId} onValueChange={setWinnerId}>
+                  <div className="space-y-2">
+                    {players.map((player, index) => {
+                      const hero = HEROES.find(h => h.id === player.heroId)
+                      const displayName = hero?.id === 'yennefer-triss' 
+                        ? `${hero.name} (${player.heroVariant === 'triss' ? 'Triss as Hero' : 'Yennefer as Hero'})`
+                        : hero?.name || 'No hero selected'
+                      
+                      return (
+                        <div key={index} className="flex items-center gap-2">
+                          <RadioGroupItem value={player.heroId} id={`winner-${index}`} />
+                          <Label htmlFor={`winner-${index}`} className="cursor-pointer font-normal">
+                            {player.playerName || `Player ${index + 1}`} - {displayName}
+                          </Label>
+                        </div>
+                      )
+                    })}
+                  </div>
+                </RadioGroup>
+              )}
+            </div>
+          )}
         </div>
 
         <DialogFooter>
