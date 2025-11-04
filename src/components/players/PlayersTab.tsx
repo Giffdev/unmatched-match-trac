@@ -4,9 +4,10 @@ import { Card } from '@/components/ui/card'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { getAllPlayerNames, calculatePlayerStats } from '@/lib/stats'
 import { getHeroById, getMapById, HEROES, MAPS } from '@/lib/data'
-import { Trophy, Target, Sword, MapPin } from '@phosphor-icons/react'
+import { Trophy, Target, Sword, MapPin, Users } from '@phosphor-icons/react'
 import { Progress } from '@/components/ui/progress'
 import { Badge } from '@/components/ui/badge'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 
 type PlayersTabProps = {
   matches: Match[]
@@ -39,6 +40,7 @@ export function PlayersTab({ matches }: PlayersTabProps) {
   const neverPlayedHeroes = HEROES.filter(h => !stats.heroesPlayed[h.id])
   const mapsPlayedEntries = Object.entries(stats.mapsPlayed).sort((a, b) => b[1] - a[1])
   const neverPlayedMaps = MAPS.filter(m => !stats.mapsPlayed[m.id])
+  const vsPlayersEntries = Object.entries(stats.vsPlayers).sort((a, b) => b[1].total - a[1].total)
 
   return (
     <div className="space-y-6">
@@ -203,6 +205,56 @@ export function PlayersTab({ matches }: PlayersTabProps) {
           </div>
         </Card>
       </div>
+
+      {vsPlayersEntries.length > 0 && (
+        <Card className="p-6">
+          <div className="flex items-center gap-2 mb-4">
+            <Users className="w-5 h-5 text-primary" />
+            <h3 className="text-lg font-semibold">Head-to-Head Records</h3>
+          </div>
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Opponent</TableHead>
+                  <TableHead className="text-center">Games</TableHead>
+                  <TableHead className="text-center">Wins</TableHead>
+                  <TableHead className="text-center">Losses</TableHead>
+                  <TableHead className="text-center">Draws</TableHead>
+                  <TableHead className="text-center">Win Rate</TableHead>
+                  <TableHead>Record</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {vsPlayersEntries.map(([opponentName, record]) => {
+                  const winRate = record.total > 0 ? (record.wins / record.total) * 100 : 0
+                  return (
+                    <TableRow key={opponentName}>
+                      <TableCell className="font-medium">{opponentName}</TableCell>
+                      <TableCell className="text-center">{record.total}</TableCell>
+                      <TableCell className="text-center">
+                        <span className="text-accent font-medium">{record.wins}</span>
+                      </TableCell>
+                      <TableCell className="text-center">
+                        <span className="text-destructive font-medium">{record.losses}</span>
+                      </TableCell>
+                      <TableCell className="text-center">
+                        <span className="text-muted-foreground">{record.draws}</span>
+                      </TableCell>
+                      <TableCell className="text-center">
+                        <span className="font-medium">{winRate.toFixed(1)}%</span>
+                      </TableCell>
+                      <TableCell>
+                        <Progress value={winRate} className="h-2 w-24" />
+                      </TableCell>
+                    </TableRow>
+                  )
+                })}
+              </TableBody>
+            </Table>
+          </div>
+        </Card>
+      )}
     </div>
   )
 }

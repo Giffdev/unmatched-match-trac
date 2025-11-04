@@ -12,10 +12,20 @@ export function calculatePlayerStats(matches: Match[], playerName: string): Play
   const heroWinRates: Record<string, { wins: number; total: number }> = {}
   const mapsPlayed: Record<string, number> = {}
   const mapWinRates: Record<string, { wins: number; total: number }> = {}
+  const vsPlayers: Record<string, { wins: number; losses: number; draws: number; total: number }> = {}
 
   for (const match of playerMatches) {
     const player = match.players.find(p => p.playerName.toLowerCase() === playerName.toLowerCase())
     if (!player) continue
+
+    const opponents = match.players.filter(p => p.playerName.toLowerCase() !== playerName.toLowerCase())
+    
+    for (const opponent of opponents) {
+      if (!vsPlayers[opponent.playerName]) {
+        vsPlayers[opponent.playerName] = { wins: 0, losses: 0, draws: 0, total: 0 }
+      }
+      vsPlayers[opponent.playerName].total++
+    }
 
     const heroId = player.heroId
     heroesPlayed[heroId] = (heroesPlayed[heroId] || 0) + 1
@@ -35,14 +45,23 @@ export function calculatePlayerStats(matches: Match[], playerName: string): Play
 
     if (match.isDraw) {
       draws++
+      for (const opponent of opponents) {
+        vsPlayers[opponent.playerName].draws++
+      }
     } else {
       const winner = match.players.find(p => p.heroId === match.winnerId)
       if (winner?.playerName.toLowerCase() === playerName.toLowerCase()) {
         wins++
         heroWinRates[heroId].wins++
         mapWinRates[mapId].wins++
+        for (const opponent of opponents) {
+          vsPlayers[opponent.playerName].wins++
+        }
       } else {
         losses++
+        for (const opponent of opponents) {
+          vsPlayers[opponent.playerName].losses++
+        }
       }
     }
   }
@@ -58,6 +77,7 @@ export function calculatePlayerStats(matches: Match[], playerName: string): Play
     heroWinRates,
     mapsPlayed,
     mapWinRates,
+    vsPlayers,
   }
 }
 
