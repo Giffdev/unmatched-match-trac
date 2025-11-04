@@ -1,12 +1,72 @@
+import { useState } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { SignIn } from '@phosphor-icons/react'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { SignIn, UserPlus } from '@phosphor-icons/react'
+import { useKV } from '@github/spark/hooks'
+import type { User } from '@/lib/types'
+import { toast } from 'sonner'
 
 type SignInPromptProps = {
-  onSignIn: () => void
+  onUserChange: (userId: string) => void
 }
 
-export function SignInPrompt({ onSignIn }: SignInPromptProps) {
+export function SignInPrompt({ onUserChange }: SignInPromptProps) {
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [name, setName] = useState('')
+  const [users, setUsers] = useKV<User[]>('users', [])
+
+  const handleSignIn = async (e: React.FormEvent) => {
+    e.preventDefault()
+    
+    const currentUsers = users || []
+    const user = currentUsers.find(u => u.email === email.toLowerCase())
+    if (!user) {
+      toast.error('User not found. Please create an account.')
+      return
+    }
+
+    const storedPassword = await window.spark.kv.get<string>(`password-${user.id}`)
+    if (storedPassword !== password) {
+      toast.error('Invalid password')
+      return
+    }
+
+    onUserChange(user.id)
+    toast.success(`Welcome back, ${user.name}!`)
+  }
+
+  const handleSignUp = async (e: React.FormEvent) => {
+    e.preventDefault()
+    
+    const currentUsers = users || []
+    if (currentUsers.some(u => u.email === email.toLowerCase())) {
+      toast.error('An account with this email already exists')
+      return
+    }
+
+    if (!name.trim()) {
+      toast.error('Please enter your name')
+      return
+    }
+
+    const newUser: User = {
+      id: crypto.randomUUID(),
+      email: email.toLowerCase(),
+      name: name.trim(),
+      createdAt: new Date().toISOString()
+    }
+
+    setUsers(current => [...(current || []), newUser])
+    await window.spark.kv.set(`password-${newUser.id}`, password)
+    
+    onUserChange(newUser.id)
+    toast.success(`Welcome, ${newUser.name}!`)
+  }
+
   return (
     <Card className="max-w-md mx-auto mt-8">
       <CardHeader>
@@ -16,10 +76,86 @@ export function SignInPrompt({ onSignIn }: SignInPromptProps) {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <Button onClick={onSignIn} className="w-full">
-          <SignIn className="mr-2" />
-          Sign In with GitHub
-        </Button>
+        <Tabs defaultValue="signin" className="w-full">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="signin">Sign In</TabsTrigger>
+            <TabsTrigger value="signup">Sign Up</TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="signin">
+            <form onSubmit={handleSignIn} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="signin-email">Email</Label>
+                <Input
+                  id="signin-email"
+                  type="email"
+                  placeholder="your@email.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="signin-password">Password</Label>
+                <Input
+                  id="signin-password"
+                  type="password"
+                  placeholder="••••••••"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                />
+              </div>
+              <Button type="submit" className="w-full">
+                <SignIn className="mr-2" />
+                Sign In
+              </Button>
+            </form>
+          </TabsContent>
+          
+          <TabsContent value="signup">
+            <form onSubmit={handleSignUp} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="signup-name">Name</Label>
+                <Input
+                  id="signup-name"
+                  type="text"
+                  placeholder="Your name"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="signup-email">Email</Label>
+                <Input
+                  id="signup-email"
+                  type="email"
+                  placeholder="your@email.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="signup-password">Password</Label>
+                <Input
+                  id="signup-password"
+                  type="password"
+                  placeholder="••••••••"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  minLength={6}
+                />
+              </div>
+              <Button type="submit" className="w-full">
+                <UserPlus className="mr-2" />
+                Create Account
+              </Button>
+            </form>
+          </TabsContent>
+        </Tabs>
       </CardContent>
     </Card>
   )

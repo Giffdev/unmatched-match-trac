@@ -1,5 +1,6 @@
 import { useKV } from '@github/spark/hooks'
 import { useUserData } from '@/hooks/use-user-data'
+import { useEffect } from 'react'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { MatchesTab } from '@/components/matches/MatchesTab'
 import { PlayersTab } from '@/components/players/PlayersTab'
@@ -12,20 +13,26 @@ import { Toaster } from '@/components/ui/sonner'
 import type { Match } from '@/lib/types'
 
 function App() {
-  const [currentUserId] = useKV<number | null>('current-user-id', null)
+  const [currentUserId, setCurrentUserId] = useKV<string | null>('current-user-id', null)
   const [matches, setMatches] = useUserData<Match[]>('matches', [])
   const [ownedSets, setOwnedSets] = useUserData<string[]>('owned-sets', [])
 
   const matchesData = matches || []
   const ownedSetsData = ownedSets || []
 
-  const handleSignIn = async () => {
-    try {
-      await window.spark.user()
-      window.location.reload()
-    } catch (error) {
-      console.error('Sign in failed:', error)
+  useEffect(() => {
+    const clearOldAuthData = async () => {
+      const migrated = await window.spark.kv.get<boolean>('auth-migrated')
+      if (!migrated) {
+        await window.spark.kv.set('current-user-id', null)
+        await window.spark.kv.set('auth-migrated', true)
+      }
     }
+    clearOldAuthData()
+  }, [])
+
+  const handleUserChange = async (userId: string) => {
+    setCurrentUserId(userId)
   }
 
   return (
@@ -50,7 +57,7 @@ function App() {
 
       <main className="container mx-auto px-4 py-6">
         {!currentUserId ? (
-          <SignInPrompt onSignIn={handleSignIn} />
+          <SignInPrompt onUserChange={handleUserChange} />
         ) : (
           <Tabs defaultValue="matches" className="w-full">
             <TabsList className="grid w-full grid-cols-5 mb-6">

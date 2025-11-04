@@ -13,11 +13,11 @@ A comprehensive web application for tracking Unmatched board game matches, analy
 ## Essential Features
 
 ### User Authentication
-- **Functionality**: Sign in with GitHub account to access personalized match tracking
+- **Functionality**: Create account and sign in with email and password to access personalized match tracking
 - **Purpose**: Enables multi-user support and ensures each user only sees their own data
-- **Trigger**: User clicks "Sign In with GitHub" on landing page or user profile icon
-- **Progression**: Click sign in → Authenticate with GitHub → Redirected to app → User profile displays in header with avatar
-- **Success criteria**: User can sign in/out, avatar displays in header, matches filtered by user ID
+- **Trigger**: User enters email/password on landing page sign in/sign up form
+- **Progression**: Enter email and password → Create account or sign in → User profile displays in header with initials avatar → Access personal match data
+- **Success criteria**: User can create account, sign in/out, initials display in header dropdown, matches filtered by user ID
 
 ### Match Logging
 - **Functionality**: Record complete game details including map, game mode (cooperative, 1v1, 2v2, 3-player FFA, 4-player FFA), heroes used, player names, turn order, and winner

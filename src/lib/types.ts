@@ -1,3 +1,10 @@
+export type User = {
+  id: string
+  email: string
+  name: string
+  createdAt: string
+}
+
 export type GameMode = 'cooperative' | '1v1' | '2v2' | 'ffa3' | 'ffa4'
 
 export type Hero = {
@@ -28,7 +35,7 @@ export type Match = {
   players: PlayerAssignment[]
   winnerId?: string
   isDraw: boolean
-  userId: number
+  userId: string
 }
 
 export type PlayerStats = {

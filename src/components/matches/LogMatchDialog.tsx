@@ -28,7 +28,7 @@ export function LogMatchDialog({ open, onOpenChange, onSave, prefilled }: LogMat
   )
   const [winnerId, setWinnerId] = useState<string | undefined>(prefilled?.winnerId)
   const [isDraw, setIsDraw] = useState(prefilled?.isDraw || false)
-  const [currentUserId] = useKV<number | null>('current-user-id', null)
+  const [currentUserId] = useKV<string | null>('current-user-id', null)
 
   const playerCount = mode === '1v1' ? 2 : mode === '2v2' ? 4 : mode === 'ffa3' ? 3 : mode === 'ffa4' ? 4 : 2
 

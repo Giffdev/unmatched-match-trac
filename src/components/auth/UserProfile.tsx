@@ -8,77 +8,36 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { SignIn, SignOut, User } from '@phosphor-icons/react'
+import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import { SignOut, User as UserIcon } from '@phosphor-icons/react'
 import { useKV } from '@github/spark/hooks'
-
-type UserInfo = {
-  avatarUrl: string
-  email: string
-  id: number
-  isOwner: boolean
-  login: string
-}
+import type { User } from '@/lib/types'
 
 export function UserProfile() {
-  const [user, setUser] = useState<UserInfo | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
-  const [currentUserId, setCurrentUserId] = useKV<number | null>('current-user-id', null)
+  const [currentUserId] = useKV<string | null>('current-user-id', null)
+  const [users] = useKV<User[]>('users', [])
+  const [currentUser, setCurrentUser] = useState<User | null>(null)
 
   useEffect(() => {
-    async function loadUser() {
-      try {
-        const userData = await window.spark.user()
-        setUser(userData)
-        if (userData && !currentUserId) {
-          setCurrentUserId(userData.id)
-        }
-      } catch (error) {
-        console.error('Failed to load user:', error)
-        setUser(null)
-      } finally {
-        setIsLoading(false)
-      }
+    if (currentUserId && users) {
+      const user = users.find(u => u.id === currentUserId)
+      setCurrentUser(user || null)
+    } else {
+      setCurrentUser(null)
     }
-    loadUser()
-  }, [])
+  }, [currentUserId, users])
 
-  const handleSignIn = async () => {
-    try {
-      const userData = await window.spark.user()
-      setUser(userData)
-      if (userData) {
-        setCurrentUserId(userData.id)
-      }
-    } catch (error) {
-      console.error('Sign in failed:', error)
-    }
-  }
-
-  const handleSignOut = () => {
-    setCurrentUserId(null)
+  const handleSignOut = async () => {
+    await window.spark.kv.set('current-user-id', null)
     window.location.reload()
   }
 
-  if (isLoading) {
-    return (
-      <div className="flex items-center gap-2">
-        <div className="w-8 h-8 rounded-full bg-muted animate-pulse" />
-      </div>
-    )
+  if (!currentUser) {
+    return null
   }
 
-  if (!user || !currentUserId) {
-    return (
-      <Button onClick={handleSignIn} variant="outline" size="sm">
-        <SignIn className="mr-2" />
-        Sign In
-      </Button>
-    )
-  }
-
-  const initials = user.login
-    .split('-')
+  const initials = currentUser.name
+    .split(' ')
     .map(part => part[0])
     .join('')
     .toUpperCase()
@@ -89,20 +48,19 @@ export function UserProfile() {
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" className="relative h-10 w-10 rounded-full">
           <Avatar className="h-10 w-10">
-            <AvatarImage src={user.avatarUrl} alt={user.login} />
-            <AvatarFallback>{initials}</AvatarFallback>
+            <AvatarFallback className="bg-primary text-primary-foreground">
+              {initials}
+            </AvatarFallback>
           </Avatar>
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent className="w-56" align="end" forceMount>
         <DropdownMenuLabel className="font-normal">
           <div className="flex flex-col gap-1">
-            <p className="text-sm font-medium leading-none">{user.login}</p>
-            {user.email && (
-              <p className="text-xs leading-none text-muted-foreground">
-                {user.email}
-              </p>
-            )}
+            <p className="text-sm font-medium leading-none">{currentUser.name}</p>
+            <p className="text-xs leading-none text-muted-foreground">
+              {currentUser.email}
+            </p>
           </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
