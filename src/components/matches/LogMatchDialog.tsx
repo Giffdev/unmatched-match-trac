@@ -11,8 +11,10 @@ import { toast } from 'sonner'
 import { useKV } from '@github/spark/hooks'
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
-import { Check, CaretUpDown, Plus, Trash } from '@phosphor-icons/react'
+import { Check, CaretUpDown, Plus, Trash, CalendarBlank } from '@phosphor-icons/react'
 import { cn } from '@/lib/utils'
+import { Calendar } from '@/components/ui/calendar'
+import { format } from 'date-fns'
 
 type LogMatchDialogProps = {
   open: boolean
@@ -227,6 +229,9 @@ export function LogMatchDialog({ open, onOpenChange, onSave, prefilled }: LogMat
   )
   const [winnerId, setWinnerId] = useState<string | undefined>(prefilled?.winnerId)
   const [isDraw, setIsDraw] = useState(prefilled?.isDraw || false)
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(
+    prefilled?.date ? new Date(prefilled.date) : new Date()
+  )
   const [currentUserId] = useKV<string | null>('current-user-id', null)
 
   const isCooperative = mode === 'cooperative'
@@ -293,10 +298,14 @@ export function LogMatchDialog({ open, onOpenChange, onSave, prefilled }: LogMat
       return
     }
 
-    const now = new Date()
-    const year = now.getFullYear()
-    const month = String(now.getMonth() + 1).padStart(2, '0')
-    const day = String(now.getDate()).padStart(2, '0')
+    if (!selectedDate) {
+      toast.error('Please select a date')
+      return
+    }
+
+    const year = selectedDate.getFullYear()
+    const month = String(selectedDate.getMonth() + 1).padStart(2, '0')
+    const day = String(selectedDate.getDate()).padStart(2, '0')
     const dateString = `${year}-${month}-${day}`
 
     const match: Match = {
@@ -325,6 +334,7 @@ export function LogMatchDialog({ open, onOpenChange, onSave, prefilled }: LogMat
     ])
     setWinnerId(undefined)
     setIsDraw(false)
+    setSelectedDate(new Date())
   }
 
   return (
@@ -335,6 +345,33 @@ export function LogMatchDialog({ open, onOpenChange, onSave, prefilled }: LogMat
         </DialogHeader>
 
         <div className="space-y-6 py-4">
+          <div className="space-y-2">
+            <Label>Date</Label>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  className={cn(
+                    "w-full justify-start text-left font-normal",
+                    !selectedDate && "text-muted-foreground"
+                  )}
+                >
+                  <CalendarBlank className="mr-2 h-4 w-4" />
+                  {selectedDate ? format(selectedDate, "PPP") : <span>Pick a date</span>}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar
+                  mode="single"
+                  selected={selectedDate}
+                  onSelect={setSelectedDate}
+                  disabled={(date) => date > new Date()}
+                  initialFocus
+                />
+              </PopoverContent>
+            </Popover>
+          </div>
+
           <div className="space-y-2">
             <Label>Game Mode</Label>
             <Select value={mode} onValueChange={(v) => handleModeChange(v as GameMode)}>
