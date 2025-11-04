@@ -46,26 +46,23 @@ export function CollectionTab({ ownedSets, setOwnedSets }: CollectionTabProps) {
           </p>
         </div>
         <div className="flex items-center gap-3">
-          <div className="flex gap-2">
-            <Button 
-              variant="outline" 
-              size="sm"
-              onClick={selectAll}
-              disabled={allSelected}
-            >
-              <CheckSquare className="mr-2" />
-              Select All
-            </Button>
-            <Button 
-              variant="outline" 
-              size="sm"
-              onClick={clearAll}
-              disabled={ownedSets.length === 0}
-            >
-              <Square className="mr-2" />
-              Clear All
-            </Button>
-          </div>
+          <Button 
+            variant="outline" 
+            size="sm"
+            onClick={allSelected ? clearAll : selectAll}
+          >
+            {allSelected ? (
+              <>
+                <Square className="mr-2" />
+                Clear All
+              </>
+            ) : (
+              <>
+                <CheckSquare className="mr-2" />
+                Select All
+              </>
+            )}
+          </Button>
           <Card className="p-4">
             <div className="text-center">
               <p className="text-sm text-muted-foreground">Heroes Available</p>
