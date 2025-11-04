@@ -12,6 +12,13 @@ A comprehensive web application for tracking Unmatched board game matches, analy
 
 ## Essential Features
 
+### Global Statistics (Unauthenticated)
+- **Functionality**: Display community-wide statistics showing most played heroes, highest win rates, and popular maps without requiring login
+- **Purpose**: Provides immediate value to new visitors and demonstrates the app's capabilities while encouraging sign-up
+- **Trigger**: User visits the app without being logged in
+- **Progression**: View global stats cards → See most played heroes, top win rates, popular maps → Read about community data → Sign in or sign up to contribute
+- **Success criteria**: Stats aggregate all user data, update when matches are logged, display correctly with no data, require minimum 3 games for win rate calculations
+
 ### User Authentication
 - **Functionality**: Create account and sign in with email and password to access personalized match tracking
 - **Purpose**: Enables multi-user support and ensures each user only sees their own data

@@ -8,6 +8,7 @@ import { SignIn, UserPlus } from '@phosphor-icons/react'
 import { useKV } from '@github/spark/hooks'
 import type { User } from '@/lib/types'
 import { toast } from 'sonner'
+import { GlobalStats } from './GlobalStats'
 
 type SignInPromptProps = {
   onUserChange: (userId: string) => void
@@ -68,95 +69,99 @@ export function SignInPrompt({ onUserChange }: SignInPromptProps) {
   }
 
   return (
-    <Card className="max-w-md mx-auto mt-8">
-      <CardHeader>
-        <CardTitle>Welcome to Unmatched Tracker</CardTitle>
-        <CardDescription>
-          Sign in to start tracking your matches, analyzing statistics, and discovering perfect matchups.
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <Tabs defaultValue="signin" className="w-full">
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="signin">Sign In</TabsTrigger>
-            <TabsTrigger value="signup">Sign Up</TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value="signin">
-            <form onSubmit={handleSignIn} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="signin-email">Email</Label>
-                <Input
-                  id="signin-email"
-                  type="email"
-                  placeholder="your@email.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="signin-password">Password</Label>
-                <Input
-                  id="signin-password"
-                  type="password"
-                  placeholder="••••••••"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                />
-              </div>
-              <Button type="submit" className="w-full">
-                <SignIn className="mr-2" />
-                Sign In
-              </Button>
-            </form>
-          </TabsContent>
-          
-          <TabsContent value="signup">
-            <form onSubmit={handleSignUp} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="signup-name">Name</Label>
-                <Input
-                  id="signup-name"
-                  type="text"
-                  placeholder="Your name"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  required
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="signup-email">Email</Label>
-                <Input
-                  id="signup-email"
-                  type="email"
-                  placeholder="your@email.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="signup-password">Password</Label>
-                <Input
-                  id="signup-password"
-                  type="password"
-                  placeholder="••••••••"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                  minLength={6}
-                />
-              </div>
-              <Button type="submit" className="w-full">
-                <UserPlus className="mr-2" />
-                Create Account
-              </Button>
-            </form>
-          </TabsContent>
-        </Tabs>
-      </CardContent>
-    </Card>
+    <div className="space-y-8">
+      <GlobalStats />
+      
+      <Card className="max-w-md mx-auto">
+        <CardHeader>
+          <CardTitle>Welcome to Unmatched Tracker</CardTitle>
+          <CardDescription>
+            Sign in to start tracking your matches, analyzing statistics, and discovering perfect matchups.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Tabs defaultValue="signin" className="w-full">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="signin">Sign In</TabsTrigger>
+              <TabsTrigger value="signup">Sign Up</TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="signin">
+              <form onSubmit={handleSignIn} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="signin-email">Email</Label>
+                  <Input
+                    id="signin-email"
+                    type="email"
+                    placeholder="your@email.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="signin-password">Password</Label>
+                  <Input
+                    id="signin-password"
+                    type="password"
+                    placeholder="••••••••"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                  />
+                </div>
+                <Button type="submit" className="w-full">
+                  <SignIn className="mr-2" />
+                  Sign In
+                </Button>
+              </form>
+            </TabsContent>
+            
+            <TabsContent value="signup">
+              <form onSubmit={handleSignUp} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="signup-name">Name</Label>
+                  <Input
+                    id="signup-name"
+                    type="text"
+                    placeholder="Your name"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="signup-email">Email</Label>
+                  <Input
+                    id="signup-email"
+                    type="email"
+                    placeholder="your@email.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="signup-password">Password</Label>
+                  <Input
+                    id="signup-password"
+                    type="password"
+                    placeholder="••••••••"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                    minLength={6}
+                  />
+                </div>
+                <Button type="submit" className="w-full">
+                  <UserPlus className="mr-2" />
+                  Create Account
+                </Button>
+              </form>
+            </TabsContent>
+          </Tabs>
+        </CardContent>
+      </Card>
+    </div>
   )
 }
