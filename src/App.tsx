@@ -118,7 +118,7 @@ function App() {
                 <TabsTrigger value="matches">Matches</TabsTrigger>
                 <TabsTrigger value="players">Players</TabsTrigger>
                 <TabsTrigger value="heroes">Heroes</TabsTrigger>
-                <TabsTrigger value="global">Global</TabsTrigger>
+                <TabsTrigger value="global">Global Stats</TabsTrigger>
                 <TabsTrigger value="randomizer">Randomizer</TabsTrigger>
               </TabsList>
             )}
@@ -211,7 +211,7 @@ function App() {
               }`}
             >
               <Globe size={24} weight={currentTab === 'global' ? 'fill' : 'regular'} />
-              <span className="text-xs">Global</span>
+              <span className="text-xs">Stats</span>
             </button>
             
             <button
