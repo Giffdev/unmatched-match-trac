@@ -223,7 +223,10 @@ export function EditMatchDialog({ open, onOpenChange, onSave, match }: EditMatch
   const [players, setPlayers] = useState<PlayerAssignment[]>(match.players)
   const [winnerId, setWinnerId] = useState<string | undefined>(match.winnerId)
   const [isDraw, setIsDraw] = useState(match.isDraw)
-  const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date(match.date))
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(() => {
+    const [year, month, day] = match.date.split('-').map(Number)
+    return new Date(year, month - 1, day)
+  })
 
   useEffect(() => {
     if (open) {
@@ -232,7 +235,8 @@ export function EditMatchDialog({ open, onOpenChange, onSave, match }: EditMatch
       setPlayers(match.players)
       setWinnerId(match.winnerId)
       setIsDraw(match.isDraw)
-      setSelectedDate(new Date(match.date))
+      const [year, month, day] = match.date.split('-').map(Number)
+      setSelectedDate(new Date(year, month - 1, day))
     }
   }, [open, match])
 
