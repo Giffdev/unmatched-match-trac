@@ -57,66 +57,39 @@ export function RandomizerTab({ ownedSets, matches, setMatches }: RandomizerTabP
     let communityData
     let heroStats: Record<string, HeroStats> | undefined
 
-    if (randomizationType === 'balanced') {
+    if (randomizationType === 'balanced' && mode === '1v1') {
       communityData = aggregateCommunityData(matches)
       heroStats = {}
 
-      if (mode === '1v1') {
-        const available = availableHeroes.map(h => h.id)
-        const firstHeroId = available[Math.floor(Math.random() * available.length)]
-        selectedHeroes.push(firstHeroId)
-        
-        const firstStats = communityData.heroStats[firstHeroId]
-        if (firstStats) {
-          heroStats[firstHeroId] = firstStats
-        }
-
-        players.push({
-          playerName: '',
-          heroId: firstHeroId,
-          turnOrder: 1,
-        })
-
-        const remainingAvailable = available.filter(h => h !== firstHeroId)
-        const secondHeroId = getBalancedMatchupHero(remainingAvailable, firstHeroId, communityData)
-        selectedHeroes.push(secondHeroId)
-        
-        const secondStats = communityData.heroStats[secondHeroId]
-        if (secondStats) {
-          heroStats[secondHeroId] = secondStats
-        }
-
-        players.push({
-          playerName: '',
-          heroId: secondHeroId,
-          turnOrder: 2,
-        })
-      } else {
-        let targetWinRate = 50
-
-        for (let i = 0; i < playerCount; i++) {
-          const available = availableHeroes
-            .filter(h => !selectedHeroes.includes(h.id))
-            .map(h => h.id)
-          
-          const heroId = getBalancedRandomHero(available, targetWinRate, communityData)
-          selectedHeroes.push(heroId)
-          
-          const stats = communityData.heroStats[heroId]
-          if (stats) {
-            heroStats[heroId] = stats
-            if (stats.totalGames >= 3) {
-              targetWinRate = stats.winRate
-            }
-          }
-
-          players.push({
-            playerName: '',
-            heroId,
-            turnOrder: i + 1,
-          })
-        }
+      const available = availableHeroes.map(h => h.id)
+      const firstHeroId = available[Math.floor(Math.random() * available.length)]
+      selectedHeroes.push(firstHeroId)
+      
+      const firstStats = communityData.heroStats[firstHeroId]
+      if (firstStats) {
+        heroStats[firstHeroId] = firstStats
       }
+
+      players.push({
+        playerName: '',
+        heroId: firstHeroId,
+        turnOrder: 1,
+      })
+
+      const remainingAvailable = available.filter(h => h !== firstHeroId)
+      const secondHeroId = getBalancedMatchupHero(remainingAvailable, firstHeroId, communityData)
+      selectedHeroes.push(secondHeroId)
+      
+      const secondStats = communityData.heroStats[secondHeroId]
+      if (secondStats) {
+        heroStats[secondHeroId] = secondStats
+      }
+
+      players.push({
+        playerName: '',
+        heroId: secondHeroId,
+        turnOrder: 2,
+      })
     } else {
       for (let i = 0; i < playerCount; i++) {
         const available = availableHeroes.filter(h => !selectedHeroes.includes(h.id))
@@ -153,21 +126,13 @@ export function RandomizerTab({ ownedSets, matches, setMatches }: RandomizerTabP
     let newHeroId: string
     let updatedHeroStats = result.heroStats ? { ...result.heroStats } : undefined
 
-    if (randomizationType === 'balanced' && matches.length > 0) {
+    if (randomizationType === 'balanced' && mode === '1v1' && matches.length > 0) {
       const communityData = aggregateCommunityData(matches)
       const availableIds = available.map(h => h.id)
       
-      if (mode === '1v1') {
-        const otherPlayerIndex = index === 0 ? 1 : 0
-        const opponentHeroId = result.players[otherPlayerIndex].heroId
-        newHeroId = getBalancedMatchupHero(availableIds, opponentHeroId, communityData)
-      } else {
-        const targetWinRate = index > 0 && result.players[index - 1] 
-          ? communityData.heroStats[result.players[index - 1].heroId]?.winRate ?? 50
-          : 50
-        
-        newHeroId = getBalancedRandomHero(availableIds, targetWinRate, communityData)
-      }
+      const otherPlayerIndex = index === 0 ? 1 : 0
+      const opponentHeroId = result.players[otherPlayerIndex].heroId
+      newHeroId = getBalancedMatchupHero(availableIds, opponentHeroId, communityData)
       
       const stats = communityData.heroStats[newHeroId]
       if (stats && updatedHeroStats) {
@@ -259,7 +224,7 @@ export function RandomizerTab({ ownedSets, matches, setMatches }: RandomizerTabP
                     <RadioGroupItem value="balanced" id="balanced" />
                     <Label htmlFor="balanced" className="cursor-pointer font-normal flex items-center gap-2">
                       <Sparkle className="text-accent" />
-                      Balanced - Similar win rates for close matches
+                      Balanced - Head-to-head matchups with close win rates (1v1 only)
                     </Label>
                   </div>
                 </RadioGroup>

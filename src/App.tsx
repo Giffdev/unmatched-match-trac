@@ -74,10 +74,7 @@ function App() {
                 Unmatched Tracker
               </h1>
               <p className="text-sm text-muted-foreground mt-1">
-                {currentView === 'collection' 
-                  ? 'Click title to return to main view'
-                  : 'Log matches, analyze statistics, and discover perfect matchups'
-                }
+                Log matches, analyze statistics, and discover perfect matchups
               </p>
             </div>
             <UserProfile onNavigateToCollection={navigateToCollection} />
