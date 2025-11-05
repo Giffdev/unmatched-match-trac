@@ -15,7 +15,6 @@ type SignInPromptProps = {
 
 export function SignInPrompt({ onUserChange }: SignInPromptProps) {
   const [mode, setMode] = useState<'signin' | 'signup'>('signin')
-  const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
@@ -65,9 +64,12 @@ export function SignInPrompt({ onUserChange }: SignInPromptProps) {
       return
     }
 
+    const emailUsername = email.split('@')[0]
+    const displayName = emailUsername.charAt(0).toUpperCase() + emailUsername.slice(1)
+
     const newUser: User = {
       id: `user-${Date.now()}`,
-      name: name.trim(),
+      name: displayName,
       email: email.toLowerCase(),
       createdAt: new Date().toISOString()
     }
@@ -81,7 +83,6 @@ export function SignInPrompt({ onUserChange }: SignInPromptProps) {
 
   const toggleMode = () => {
     setMode(mode === 'signin' ? 'signup' : 'signin')
-    setName('')
     setEmail('')
     setPassword('')
     setConfirmPassword('')
@@ -107,19 +108,6 @@ export function SignInPrompt({ onUserChange }: SignInPromptProps) {
         </CardHeader>
         <CardContent>
           <form onSubmit={mode === 'signin' ? handleSignIn : handleSignUp} className="space-y-4">
-            {mode === 'signup' && (
-              <div className="space-y-2">
-                <Label htmlFor="signup-name">Name</Label>
-                <Input
-                  id="signup-name"
-                  type="text"
-                  placeholder="Your name"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  required
-                />
-              </div>
-            )}
             <div className="space-y-2">
               <Label htmlFor="auth-email">Email</Label>
               <Input
