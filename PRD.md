@@ -47,6 +47,13 @@ A comprehensive web application for tracking Unmatched board game matches, analy
 - **Progression**: Select hero → View overall win rate → See matchup grid against all other heroes → Toggle between personal data and community data → Filter by map or game mode
 - **Success criteria**: Clear comparison tables, color-coded win rates, statistically significant sample sizes noted
 
+### Global Results Heatmap
+- **Functionality**: Display comprehensive matchup heatmap showing win rates for all hero-vs-hero combinations based on aggregated community data from 1v1 matches
+- **Purpose**: Provides at-a-glance meta-game overview, revealing dominant heroes, favorable matchups, and strategic insights across the entire roster
+- **Trigger**: User navigates to Global tab
+- **Progression**: View complete matchup matrix → Read win percentages for any hero-vs-hero pairing → Click hero name to navigate to detailed hero statistics → Understand color-coding and data confidence through legend
+- **Success criteria**: Only shows heroes with logged match data; clicking hero name navigates to Heroes tab with that hero pre-selected; color intensity reflects both win rate and sample size; tooltips show exact win/loss record; mobile-friendly scrolling table
+
 ### Collection Management
 - **Functionality**: Users indicate which Unmatched sets they own to filter available heroes for the randomizer ONLY
 - **Purpose**: Ensures randomizer only suggests heroes the user can actually play, while match logging remains unrestricted

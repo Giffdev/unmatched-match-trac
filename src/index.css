@@ -11,6 +11,11 @@
   }
 }
 
+.writing-mode-vertical {
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+}
+
 :root {
   --background: oklch(0.98 0.005 90);
   --foreground: oklch(0.25 0.05 300);

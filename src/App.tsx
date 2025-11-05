@@ -7,6 +7,7 @@ import { PlayersTab } from '@/components/players/PlayersTab'
 import { HeroesTab } from '@/components/heroes/HeroesTab'
 import { CollectionTab } from '@/components/collection/CollectionTab'
 import { RandomizerTab } from '@/components/randomizer/RandomizerTab'
+import { GlobalResultsTab } from '@/components/global/GlobalResultsTab'
 import { UserProfile } from '@/components/auth/UserProfile'
 import { SignInPrompt } from '@/components/auth/SignInPrompt'
 import { DataCleanup } from '@/components/auth/DataCleanup'
@@ -21,6 +22,8 @@ function App() {
   const [matches, setMatches] = useUserData<Match[]>('matches', [], currentUserId)
   const [ownedSets, setOwnedSets] = useUserData<string[]>('owned-sets', [], currentUserId)
   const [currentView, setCurrentView] = useState<ViewState>('main')
+  const [currentTab, setCurrentTab] = useState('matches')
+  const [selectedHeroId, setSelectedHeroId] = useState<string | null>(null)
   const normalizationRan = useRef(false)
 
   const matchesData = matches || []
@@ -36,6 +39,11 @@ function App() {
 
   const navigateToMain = () => {
     setCurrentView('main')
+  }
+
+  const handleHeroClick = (heroId: string) => {
+    setSelectedHeroId(heroId)
+    setCurrentTab('heroes')
   }
 
   useEffect(() => {
@@ -88,11 +96,12 @@ function App() {
         ) : currentView === 'collection' ? (
           <CollectionTab ownedSets={ownedSetsData} setOwnedSets={setOwnedSets} />
         ) : (
-          <Tabs defaultValue="matches" className="w-full">
-            <TabsList className="grid w-full grid-cols-4 mb-6">
+          <Tabs value={currentTab} onValueChange={setCurrentTab} className="w-full">
+            <TabsList className="grid w-full grid-cols-5 mb-6">
               <TabsTrigger value="matches">Matches</TabsTrigger>
               <TabsTrigger value="players">Players</TabsTrigger>
               <TabsTrigger value="heroes">Heroes</TabsTrigger>
+              <TabsTrigger value="global">Global</TabsTrigger>
               <TabsTrigger value="randomizer">Randomizer</TabsTrigger>
             </TabsList>
 
@@ -108,7 +117,20 @@ function App() {
             </TabsContent>
 
             <TabsContent value="heroes">
-              <HeroesTab matches={matchesData} currentUserId={currentUserId} />
+              <HeroesTab 
+                matches={matchesData} 
+                currentUserId={currentUserId}
+                initialSelectedHero={selectedHeroId}
+                onHeroChange={() => setSelectedHeroId(null)}
+              />
+            </TabsContent>
+
+            <TabsContent value="global">
+              <GlobalResultsTab 
+                matches={matchesData} 
+                currentUserId={currentUserId}
+                onHeroClick={handleHeroClick}
+              />
             </TabsContent>
 
             <TabsContent value="randomizer">

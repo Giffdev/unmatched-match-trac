@@ -17,13 +17,22 @@ import { HeroImage } from './HeroImage'
 type HeroesTabProps = {
   matches: Match[]
   currentUserId: string | null
+  initialSelectedHero?: string | null
+  onHeroChange?: () => void
 }
 
-export function HeroesTab({ matches, currentUserId }: HeroesTabProps) {
-  const [selectedHero, setSelectedHero] = useState('')
+export function HeroesTab({ matches, currentUserId, initialSelectedHero, onHeroChange }: HeroesTabProps) {
+  const [selectedHero, setSelectedHero] = useState(initialSelectedHero || '')
   const [open, setOpen] = useState(false)
   const [search, setSearch] = useState('')
   const [allMatches, setAllMatches] = useKV<Match[]>('community-all-matches', [])
+
+  useEffect(() => {
+    if (initialSelectedHero) {
+      setSelectedHero(initialSelectedHero)
+      onHeroChange?.()
+    }
+  }, [initialSelectedHero, onHeroChange])
 
   useEffect(() => {
     const updateCommunityMatches = async () => {
