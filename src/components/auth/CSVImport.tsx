@@ -21,11 +21,19 @@ export function CSVImport({ currentUserId, onImportComplete }: CSVImportProps) {
   } | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
-  const findHeroByName = async (name: string): Promise<string | null> => {
+  const findHeroByName = async (name: string): Promise<{ heroId: string; variant?: string } | null> => {
     if (!name) return null
     const normalized = name.trim().toLowerCase()
+    
+    if (normalized === 'yennefer') {
+      return { heroId: 'yennefer-triss', variant: 'yennefer' }
+    }
+    if (normalized === 'triss') {
+      return { heroId: 'yennefer-triss', variant: 'triss' }
+    }
+    
     const hero = HEROES.find(h => h.name.toLowerCase() === normalized)
-    if (hero) return hero.id
+    if (hero) return { heroId: hero.id }
     
     const heroNames = HEROES.map(h => `${h.id}: ${h.name}`).join('\n')
     const promptText = `You are matching a hero name from a CSV import to the correct hero ID in the Unmatched database.
@@ -34,6 +42,8 @@ Input name: "${name}"
 
 Available heroes:
 ${heroNames}
+
+SPECIAL CASE: The hero "yennefer-triss: Yennefer & Triss" is a dual character. If the input is just "Yennefer" return "yennefer-triss|yennefer". If the input is just "Triss" return "yennefer-triss|triss".
 
 If the input name closely matches one of the heroes (accounting for typos, abbreviations, alternate spellings, nicknames, etc.), return ONLY the hero ID (the part before the colon).
 If there is no reasonable match, return exactly "NONE".
@@ -44,17 +54,27 @@ Examples:
 - "Sherlock" → "sherlock-holmes"
 - "Dr Strange" → "doctor-strange"
 - "T Rex" → "t-rex"
+- "Yennefer" → "yennefer-triss|yennefer"
+- "Triss" → "yennefer-triss|triss"
 - "Random Unknown Hero" → "NONE"
 
-Return only the ID or "NONE", nothing else.`
+Return only the ID (or ID|variant for Yennefer/Triss) or "NONE", nothing else.`
     
     try {
       const result = await window.spark.llm(promptText, 'gpt-4o-mini', false)
       const cleanResult = result.trim().toLowerCase()
       if (cleanResult === 'none') return null
       
+      if (cleanResult.includes('|')) {
+        const [heroId, variant] = cleanResult.split('|')
+        const matchedHero = HEROES.find(h => h.id === heroId)
+        if (matchedHero) {
+          return { heroId: matchedHero.id, variant }
+        }
+      }
+      
       const matchedHero = HEROES.find(h => h.id === cleanResult)
-      return matchedHero?.id || null
+      return matchedHero ? { heroId: matchedHero.id } : null
     } catch (error) {
       console.error('Error matching hero with LLM:', error)
       return null
@@ -267,17 +287,23 @@ Example output format:
                 continue
               }
               
-              const heroId = await findHeroByName(heroName)
-              if (!heroId) {
+              const heroMatch = await findHeroByName(heroName)
+              if (!heroMatch) {
                 errors.push(`Row ${rowNum}: Hero "${heroName}" not found for Player${p}`)
                 continue
               }
               
-              players.push({
+              const playerAssignment: PlayerAssignment = {
                 playerName: playerName.trim(),
-                heroId,
+                heroId: heroMatch.heroId,
                 turnOrder: p
-              })
+              }
+              
+              if (heroMatch.variant) {
+                playerAssignment.heroVariant = heroMatch.variant
+              }
+              
+              players.push(playerAssignment)
             }
           }
 
@@ -455,6 +481,10 @@ Example output format:
                 <strong>Smart matching:</strong> Hero and map names don't need to match exactly.
                 The AI will intelligently match variations like "Robert Muldoon" → InGen, 
                 "T-Rex Paddock" → T. Rex Paddock, "Sherlock" → Sherlock Holmes, etc.
+              </p>
+              <p>
+                <strong>Yennefer & Triss:</strong> You can log just "Yennefer" or just "Triss" 
+                and it will automatically use the Yennefer & Triss hero with the correct variant.
               </p>
               <p className="text-xs">
                 <strong>Supported variations:</strong> "Player 1" / "P1" / "Player1", 
