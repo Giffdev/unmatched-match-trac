@@ -30,17 +30,23 @@ function App() {
   useEffect(() => {
     const runMigration = async () => {
       if (migrationRan.current) return
+      if (!currentUserId) return
       
       const user = await window.spark.user()
       if (!user || user.email !== 'giffdev@gmail.com') return
+      
+      migrationRan.current = true
       
       const userId = user.id
       const matchesKey = `matches-${userId}`
       const storedMatches = await window.spark.kv.get<Match[]>(matchesKey)
       
-      if (!storedMatches || storedMatches.length === 0) return
+      if (!storedMatches || storedMatches.length === 0) {
+        console.log('No matches found to migrate')
+        return
+      }
       
-      migrationRan.current = true
+      console.log('Found matches, checking for names to update...')
       
       const nameMap: Record<string, string> = {
         'sarah': 'Sarah Anderson',
@@ -51,8 +57,9 @@ function App() {
       let updated = false
       const updatedMatches = storedMatches.map(match => {
         const updatedPlayers = match.players.map(player => {
-          const lowerName = player.playerName.toLowerCase()
-          if (nameMap[lowerName]) {
+          const lowerName = player.playerName.toLowerCase().trim()
+          if (nameMap[lowerName] && player.playerName !== nameMap[lowerName]) {
+            console.log(`Updating ${player.playerName} to ${nameMap[lowerName]}`)
             updated = true
             return { ...player, playerName: nameMap[lowerName] }
           }
@@ -62,9 +69,12 @@ function App() {
       })
       
       if (updated) {
+        console.log('Saving updated matches...')
         await window.spark.kv.set(matchesKey, updatedMatches)
         setMatches(updatedMatches)
         toast.success('Player names updated successfully')
+      } else {
+        console.log('No player names needed updating')
       }
     }
     
