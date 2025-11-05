@@ -6,11 +6,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
 import { Shuffle, DiceSix, Sparkle, ArrowsClockwise } from '@phosphor-icons/react'
-import { getHeroById, getMapById, getHeroesBySet, getMapsByPlayerCount } from '@/lib/data'
+import { getHeroById, getMapById, getHeroesBySet, getMapsByPlayerCount, getMapsBySet, HEROES } from '@/lib/data'
 import { aggregateCommunityData, getBalancedRandomHero, getBalancedMatchupHero } from '@/lib/stats'
 import { LogMatchDialog } from '@/components/matches/LogMatchDialog'
 import { toast } from 'sonner'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
+import { Switch } from '@/components/ui/switch'
 
 type RandomizerTabProps = {
   ownedSets: string[]
@@ -29,12 +30,16 @@ export function RandomizerTab({ ownedSets, matches, setMatches }: RandomizerTabP
   const [randomizationType, setRandomizationType] = useState<'true' | 'balanced'>('true')
   const [result, setResult] = useState<RandomizerResult | null>(null)
   const [dialogOpen, setDialogOpen] = useState(false)
+  const [useCollectionOnly, setUseCollectionOnly] = useState(true)
+  const [restrictMapsToHeroSets, setRestrictMapsToHeroSets] = useState(false)
 
-  const availableHeroes = ownedSets.flatMap(set => getHeroesBySet(set))
+  const availableHeroes = useCollectionOnly 
+    ? ownedSets.flatMap(set => getHeroesBySet(set))
+    : HEROES
 
   const handleRandomize = () => {
     if (availableHeroes.length === 0) {
-      toast.error('Please select some sets in your collection first')
+      toast.error(useCollectionOnly ? 'Please select some sets in your collection first' : 'No heroes available')
       return
     }
 
@@ -45,13 +50,6 @@ export function RandomizerTab({ ownedSets, matches, setMatches }: RandomizerTabP
       return
     }
 
-    const suitableMaps = getMapsByPlayerCount(playerCount)
-    if (suitableMaps.length === 0) {
-      toast.error(`No maps available for ${playerCount} players`)
-      return
-    }
-
-    const randomMap = suitableMaps[Math.floor(Math.random() * suitableMaps.length)]
     const selectedHeroes: string[] = []
     const players: PlayerAssignment[] = []
     let communityData
@@ -102,6 +100,25 @@ export function RandomizerTab({ ownedSets, matches, setMatches }: RandomizerTabP
         })
       }
     }
+
+    let suitableMaps = getMapsByPlayerCount(playerCount)
+
+    if (restrictMapsToHeroSets) {
+      const heroSets = new Set(players.map(p => getHeroById(p.heroId)?.set).filter(Boolean))
+      const mapsFromHeroSets = Array.from(heroSets).flatMap(set => getMapsBySet(set as string))
+      const filteredMaps = suitableMaps.filter(map => mapsFromHeroSets.some(m => m.id === map.id))
+      
+      if (filteredMaps.length > 0) {
+        suitableMaps = filteredMaps
+      }
+    }
+
+    if (suitableMaps.length === 0) {
+      toast.error(`No maps available for ${playerCount} players`)
+      return
+    }
+
+    const randomMap = suitableMaps[Math.floor(Math.random() * suitableMaps.length)]
 
     setResult({
       mapId: randomMap.id,
@@ -156,7 +173,18 @@ export function RandomizerTab({ ownedSets, matches, setMatches }: RandomizerTabP
   const rerollMap = () => {
     if (!result) return
     const playerCount = mode === '1v1' ? 2 : mode === '2v2' ? 4 : mode === 'ffa3' ? 3 : mode === 'ffa4' ? 4 : 2
-    const suitableMaps = getMapsByPlayerCount(playerCount)
+    let suitableMaps = getMapsByPlayerCount(playerCount)
+
+    if (restrictMapsToHeroSets) {
+      const heroSets = new Set(result.players.map(p => getHeroById(p.heroId)?.set).filter(Boolean))
+      const mapsFromHeroSets = Array.from(heroSets).flatMap(set => getMapsBySet(set as string))
+      const filteredMaps = suitableMaps.filter(map => mapsFromHeroSets.some(m => m.id === map.id))
+      
+      if (filteredMaps.length > 0) {
+        suitableMaps = filteredMaps
+      }
+    }
+
     const randomMap = suitableMaps[Math.floor(Math.random() * suitableMaps.length)]
     setResult({
       ...result,
@@ -173,7 +201,7 @@ export function RandomizerTab({ ownedSets, matches, setMatches }: RandomizerTabP
       <div>
         <h2 className="text-2xl font-semibold">Match Randomizer</h2>
         <p className="text-sm text-muted-foreground mt-1">
-          Generate random matchups from your collection. You can manage your collection from your profile menu.
+          Generate random matchups {useCollectionOnly ? 'from your collection' : 'from all available heroes'}. You can manage your collection from your profile menu.
         </p>
       </div>
 
@@ -186,7 +214,9 @@ export function RandomizerTab({ ownedSets, matches, setMatches }: RandomizerTabP
             <div>
               <h3 className="text-lg font-semibold mb-2">No heroes available</h3>
               <p className="text-muted-foreground">
-                Add some sets to your collection from your profile menu to use the randomizer
+                {useCollectionOnly 
+                  ? 'Add some sets to your collection from your profile menu to use the randomizer'
+                  : 'No heroes available in the database'}
               </p>
             </div>
           </div>
@@ -228,6 +258,29 @@ export function RandomizerTab({ ownedSets, matches, setMatches }: RandomizerTabP
                     </Label>
                   </div>
                 </RadioGroup>
+              </div>
+
+              <div className="space-y-3 pt-2 border-t">
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="collection-only" className="cursor-pointer font-normal">
+                    Only use heroes from my collection
+                  </Label>
+                  <Switch 
+                    id="collection-only" 
+                    checked={useCollectionOnly}
+                    onCheckedChange={setUseCollectionOnly}
+                  />
+                </div>
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="restrict-maps" className="cursor-pointer font-normal">
+                    Only use maps from selected heroes' sets
+                  </Label>
+                  <Switch 
+                    id="restrict-maps" 
+                    checked={restrictMapsToHeroSets}
+                    onCheckedChange={setRestrictMapsToHeroSets}
+                  />
+                </div>
               </div>
 
               <Button onClick={handleRandomize} size="lg" className="w-full">
