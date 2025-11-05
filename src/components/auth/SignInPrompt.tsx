@@ -3,34 +3,31 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { SignIn, Eye, EyeClosed } from '@phosphor-icons/react'
+import { SignIn, Eye, EyeClosed, UserPlus } from '@phosphor-icons/react'
 import { useKV } from '@github/spark/hooks'
 import type { User } from '@/lib/types'
 import { toast } from 'sonner'
 import { GlobalStats } from './GlobalStats'
-
-const ALLOWED_EMAIL = 'giffdev@gmail.com'
 
 type SignInPromptProps = {
   onUserChange: (userId: string) => void
 }
 
 export function SignInPrompt({ onUserChange }: SignInPromptProps) {
+  const [mode, setMode] = useState<'signin' | 'signup'>('signin')
+  const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [users] = useKV<User[]>('users', [])
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault()
-    
-    if (email.toLowerCase() !== ALLOWED_EMAIL) {
-      toast.error('Access restricted to authorized accounts only')
-      return
-    }
 
     const currentUsers = await window.spark.kv.get<User[]>('users') || []
-    const user = currentUsers.find(u => u.email === ALLOWED_EMAIL)
+    const user = currentUsers.find(u => u.email.toLowerCase() === email.toLowerCase())
     
     if (!user) {
       toast.error('Account not found')
@@ -47,23 +44,86 @@ export function SignInPrompt({ onUserChange }: SignInPromptProps) {
     toast.success(`Welcome back, ${user.name}!`)
   }
 
+  const handleSignUp = async (e: React.FormEvent) => {
+    e.preventDefault()
+
+    if (password.length < 6) {
+      toast.error('Password must be at least 6 characters')
+      return
+    }
+
+    if (password !== confirmPassword) {
+      toast.error('Passwords do not match')
+      return
+    }
+
+    const currentUsers = await window.spark.kv.get<User[]>('users') || []
+    const existingUser = currentUsers.find(u => u.email.toLowerCase() === email.toLowerCase())
+    
+    if (existingUser) {
+      toast.error('An account with this email already exists')
+      return
+    }
+
+    const newUser: User = {
+      id: `user-${Date.now()}`,
+      name: name.trim(),
+      email: email.toLowerCase(),
+      createdAt: new Date().toISOString()
+    }
+
+    await window.spark.kv.set('users', [...currentUsers, newUser])
+    await window.spark.kv.set(`password-${newUser.id}`, password)
+
+    onUserChange(newUser.id)
+    toast.success(`Welcome to Unmatched Tracker, ${newUser.name}!`)
+  }
+
+  const toggleMode = () => {
+    setMode(mode === 'signin' ? 'signup' : 'signin')
+    setName('')
+    setEmail('')
+    setPassword('')
+    setConfirmPassword('')
+    setShowPassword(false)
+    setShowConfirmPassword(false)
+  }
+
   return (
     <div className="space-y-8">
       <GlobalStats />
       
       <Card className="max-w-md mx-auto">
         <CardHeader>
-          <CardTitle>Welcome to Unmatched Tracker</CardTitle>
+          <CardTitle>
+            {mode === 'signin' ? 'Welcome Back' : 'Create Account'}
+          </CardTitle>
           <CardDescription>
-            Sign in to access your match history, statistics, and collection.
+            {mode === 'signin' 
+              ? 'Sign in to access your match history, statistics, and collection.'
+              : 'Create a new account to start tracking your Unmatched games.'
+            }
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSignIn} className="space-y-4">
+          <form onSubmit={mode === 'signin' ? handleSignIn : handleSignUp} className="space-y-4">
+            {mode === 'signup' && (
+              <div className="space-y-2">
+                <Label htmlFor="signup-name">Name</Label>
+                <Input
+                  id="signup-name"
+                  type="text"
+                  placeholder="Your name"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  required
+                />
+              </div>
+            )}
             <div className="space-y-2">
-              <Label htmlFor="signin-email">Email</Label>
+              <Label htmlFor="auth-email">Email</Label>
               <Input
-                id="signin-email"
+                id="auth-email"
                 type="email"
                 placeholder="your@email.com"
                 value={email}
@@ -72,10 +132,10 @@ export function SignInPrompt({ onUserChange }: SignInPromptProps) {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="signin-password">Password</Label>
+              <Label htmlFor="auth-password">Password</Label>
               <div className="relative">
                 <Input
-                  id="signin-password"
+                  id="auth-password"
                   type={showPassword ? "text" : "password"}
                   placeholder="••••••••"
                   value={password}
@@ -98,11 +158,63 @@ export function SignInPrompt({ onUserChange }: SignInPromptProps) {
                 </Button>
               </div>
             </div>
+            {mode === 'signup' && (
+              <div className="space-y-2">
+                <Label htmlFor="confirm-password">Confirm Password</Label>
+                <div className="relative">
+                  <Input
+                    id="confirm-password"
+                    type={showConfirmPassword ? "text" : "password"}
+                    placeholder="••••••••"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    required
+                    className="pr-10"
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="absolute right-0 top-0 h-full px-3 hover:bg-transparent"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  >
+                    {showConfirmPassword ? (
+                      <EyeClosed className="text-muted-foreground" />
+                    ) : (
+                      <Eye className="text-muted-foreground" />
+                    )}
+                  </Button>
+                </div>
+              </div>
+            )}
             <Button type="submit" className="w-full">
-              <SignIn className="mr-2" />
-              Sign In
+              {mode === 'signin' ? (
+                <>
+                  <SignIn className="mr-2" />
+                  Sign In
+                </>
+              ) : (
+                <>
+                  <UserPlus className="mr-2" />
+                  Create Account
+                </>
+              )}
             </Button>
           </form>
+          
+          <div className="mt-4 text-center">
+            <Button
+              type="button"
+              variant="link"
+              onClick={toggleMode}
+              className="text-sm text-muted-foreground"
+            >
+              {mode === 'signin' 
+                ? "Don't have an account? Sign up" 
+                : 'Already have an account? Sign in'
+              }
+            </Button>
+          </div>
         </CardContent>
       </Card>
     </div>
