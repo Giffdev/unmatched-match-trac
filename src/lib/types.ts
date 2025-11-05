@@ -35,8 +35,8 @@ export type Map = {
   set: string
   minPlayers: number
   maxPlayers: number
-  zones: number
-  spaces: number
+  zones?: number
+  spaces?: number
   imageUrl?: string
 }
 
