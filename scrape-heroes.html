@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Unmatched Hero Data Scraper</title>
+    <style>
+        body {
+            font-family: system-ui;
+            max-width: 1200px;
+            margin: 40px auto;
+            padding: 20px;
+        }
+        button {
+            padding: 12px 24px;
+            font-size: 16px;
+            background: #4338ca;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        #output {
+            margin-top: 20px;
+            padding: 20px;
+            background: #f3f4f6;
+            border-radius: 8px;
+            white-space: pre-wrap;
+            font-family: monospace;
+            font-size: 12px;
+        }
+        #status {
+            margin-top: 12px;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <h1>Unmatched Hero Data Scraper</h1>
+    <p>Click the button below to fetch accurate hero data from official Unmatched sources.</p>
+    
+    <button id="scrapeBtn" onclick="scrapeData()">Scrape Hero Data</button>
+    <div id="status"></div>
+    <div id="output"></div>
+
+    <script>
+        const HERO_LIST = [
+            "Alice", "Medusa", "King Arthur", "Sinbad",
+            "Bruce Lee", "Robin Hood", "Bigfoot",
+            "Robert Muldoon", "Raptors",
+            "Sherlock Holmes", "Dracula", "Jekyll & Hyde", "Invisible Man",
+            "Buffy", "Angel", "Spike", "Willow",
+            "Little Red Riding Hood", "Beowulf",
+            "Deadpool",
+            "Achilles", "Bloody Mary", "Sun Wukong", "Yennenga",
+            "Blackbeard", "Chupacabra", "Loki", "Pandora",
+            "Luke Cage", "Moon Knight", "Ghost Rider",
+            "Daredevil", "Bullseye", "Elektra",
+            "Dr. Ellie Sattler", "T‑Rex",
+            "Harry Houdini", "The Genie",
+            "Ms. Marvel", "Squirrel Girl", "Cloak & Dagger",
+            "Black Widow", "Black Panther", "Winter Soldier",
+            "Spider‑Man", "She‑Hulk", "Doctor Strange",
+            "Nikola Tesla", "Dr. Jill Trent", "Golden Bat", "Annie Christmas",
+            "Tomoe Gozen", "Oda Nobunaga",
+            "Hamlet", "Titania", "The Wayward Sisters", "William Shakespeare",
+            "Eredin", "Philippa", "Yennefer & Triss",
+            "Geralt of Rivia", "Ciri", "Ancient Leshen",
+            "Muhammad Ali"
+        ];
+
+        async function scrapeData() {
+            const btn = document.getElementById('scrapeBtn');
+            const status = document.getElementById('status');
+            const output = document.getElementById('output');
+            
+            btn.disabled = true;
+            status.textContent = 'Fetching hero data...';
+            output.textContent = '';
+            
+            try {
+                const prompt = `You are an expert on the Unmatched board game. Provide ACCURATE official game data for these heroes:
+
+${HERO_LIST.map(h => `- ${h}`).join('\n')}
+
+For each hero, provide:
+1. Movement value (from character card)
+2. Sidekick name (or null)
+3. Sidekick movement (or null)
+4. Attack type: "melee", "ranged", or "both"
+5. Sidekick attack type (or null)
+6. Core ability (1-2 sentences describing main special ability)
+
+Return JSON with "heroes" array containing objects with: name, movement, sidekick, sidekickMovement, attackType, sidekickAttackType, coreAbility
+
+Be factually accurate using official Unmatched game rules.`;
+
+                const result = await spark.llm(prompt, "gpt-4o", true);
+                const data = JSON.parse(result);
+                
+                output.textContent = JSON.stringify(data, null, 2);
+                status.textContent = `✓ Successfully fetched data for ${data.heroes.length} heroes`;
+                status.style.color = '#059669';
+                
+            } catch (error) {
+                status.textContent = `Error: ${error.message}`;
+                status.style.color = '#dc2626';
+            } finally {
+                btn.disabled = false;
+            }
+        }
+    </script>
+</body>
+</html>
