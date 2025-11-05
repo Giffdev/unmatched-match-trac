@@ -1,9 +1,9 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import type { Match } from '@/lib/types'
 import { Card } from '@/components/ui/card'
 import { HEROES, getHeroById } from '@/lib/data'
 import { calculateHeroStats } from '@/lib/stats'
-import { Sword, Trophy, Target, CaretUpDown, Check } from '@phosphor-icons/react'
+import { Sword, Trophy, Target, CaretUpDown, Check, Globe, User } from '@phosphor-icons/react'
 import { Progress } from '@/components/ui/progress'
 import { Badge } from '@/components/ui/badge'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
@@ -11,15 +11,40 @@ import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, Command
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
+import { useKV } from '@github/spark/hooks'
+import { HeroImage } from './HeroImage'
 
 type HeroesTabProps = {
   matches: Match[]
+  currentUserId: string | null
 }
 
-export function HeroesTab({ matches }: HeroesTabProps) {
+export function HeroesTab({ matches, currentUserId }: HeroesTabProps) {
   const [selectedHero, setSelectedHero] = useState(HEROES[0]?.id || '')
   const [open, setOpen] = useState(false)
   const [search, setSearch] = useState('')
+  const [allMatches, setAllMatches] = useKV<Match[]>('community-all-matches', [])
+
+  useEffect(() => {
+    const updateCommunityMatches = async () => {
+      if (!currentUserId) return
+      
+      const keys = await window.spark.kv.keys()
+      const matchKeys = keys.filter(k => k.startsWith('matches-'))
+      
+      const allMatchesData: Match[] = []
+      for (const key of matchKeys) {
+        const userMatches = await window.spark.kv.get<Match[]>(key)
+        if (userMatches) {
+          allMatchesData.push(...userMatches)
+        }
+      }
+      
+      setAllMatches(allMatchesData)
+    }
+    
+    updateCommunityMatches()
+  }, [matches.length, currentUserId])
 
   const filteredHeroes = useMemo(() => {
     if (!search) return HEROES
@@ -49,13 +74,15 @@ export function HeroesTab({ matches }: HeroesTabProps) {
     )
   }
 
-  const stats = calculateHeroStats(matches, selectedHero)
+  const userStats = calculateHeroStats(matches, selectedHero)
+  const globalStats = calculateHeroStats(allMatches || [], selectedHero)
   const hero = getHeroById(selectedHero)
 
-  const matchupEntries = Object.entries(stats.vsMatchups)
+  const matchupEntries = Object.entries(userStats.vsMatchups)
     .map(([opponentId, data]) => ({
       hero: getHeroById(opponentId),
-      ...data,
+      wins: data.wins,
+      total: data.total,
       winRate: data.total > 0 ? (data.wins / data.total) * 100 : 0,
     }))
     .filter(m => m.hero)
@@ -128,31 +155,7 @@ export function HeroesTab({ matches }: HeroesTabProps) {
       {hero && (
         <Card className="p-6">
           <div className="flex flex-col md:flex-row gap-6">
-            <div className="flex-shrink-0">
-              {hero.imageUrl ? (
-                <img 
-                  src={hero.imageUrl} 
-                  alt={hero.name}
-                  className="w-48 h-72 object-cover rounded-lg border-2 border-border shadow-lg"
-                />
-              ) : (
-                <div className="w-48 h-72 bg-gradient-to-br from-primary/20 via-accent/10 to-secondary/20 rounded-lg border-2 border-border flex flex-col items-center justify-center p-4 text-center">
-                  <Sword className="w-16 h-16 text-primary mb-4 opacity-40" />
-                  <div className="space-y-2">
-                    <h3 className="font-bold text-lg text-foreground">{hero.name}</h3>
-                    {hero.sidekick && (
-                      <div className="text-sm text-muted-foreground">
-                        <p className="font-medium">Sidekick:</p>
-                        <p>{hero.sidekick}</p>
-                      </div>
-                    )}
-                    <div className="pt-2 border-t border-border">
-                      <p className="text-xs text-muted-foreground">{hero.set}</p>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
+            <HeroImage hero={hero} className="w-48 h-72 flex-shrink-0" />
             <div className="flex-1 flex flex-col justify-center">
               <h3 className="text-xl font-semibold mb-2">{hero.name}</h3>
               <p className="text-sm text-muted-foreground mb-4">
@@ -176,7 +179,7 @@ export function HeroesTab({ matches }: HeroesTabProps) {
             </div>
             <span className="text-sm text-muted-foreground">Total Games</span>
           </div>
-          <p className="text-3xl font-bold">{stats.totalGames}</p>
+          <p className="text-3xl font-bold">{userStats.totalGames}</p>
         </Card>
 
         <Card className="p-6">
@@ -186,7 +189,7 @@ export function HeroesTab({ matches }: HeroesTabProps) {
             </div>
             <span className="text-sm text-muted-foreground">Wins</span>
           </div>
-          <p className="text-3xl font-bold text-accent">{stats.wins}</p>
+          <p className="text-3xl font-bold text-accent">{userStats.wins}</p>
         </Card>
 
         <Card className="p-6">
@@ -196,15 +199,37 @@ export function HeroesTab({ matches }: HeroesTabProps) {
             </div>
             <span className="text-sm text-muted-foreground">Losses</span>
           </div>
-          <p className="text-3xl font-bold text-destructive">{stats.losses}</p>
+          <p className="text-3xl font-bold text-destructive">{userStats.losses}</p>
         </Card>
 
         <Card className="p-6">
           <div className="flex items-center gap-3 mb-2">
-            <span className="text-sm text-muted-foreground">Win Rate</span>
+            <span className="text-sm text-muted-foreground">Win Rates</span>
           </div>
-          <p className="text-3xl font-bold">{stats.winRate.toFixed(1)}%</p>
-          <Progress value={stats.winRate} className="mt-2" />
+          <div className="space-y-3">
+            <div>
+              <div className="flex items-center gap-2 mb-1">
+                <User className="w-4 h-4 text-primary" />
+                <span className="text-xs text-muted-foreground">Your Win Rate</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <p className="text-2xl font-bold">{userStats.winRate.toFixed(1)}%</p>
+                <Progress value={userStats.winRate} className="flex-1 h-2" />
+              </div>
+            </div>
+            {globalStats.totalGames > 0 && (
+              <div>
+                <div className="flex items-center gap-2 mb-1">
+                  <Globe className="w-4 h-4 text-accent" />
+                  <span className="text-xs text-muted-foreground">Global Win Rate</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <p className="text-2xl font-bold text-accent">{globalStats.winRate.toFixed(1)}%</p>
+                  <Progress value={globalStats.winRate} className="flex-1 h-2" />
+                </div>
+              </div>
+            )}
+          </div>
         </Card>
       </div>
 

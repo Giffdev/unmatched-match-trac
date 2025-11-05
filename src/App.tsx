@@ -94,7 +94,7 @@ function App() {
             </TabsContent>
 
             <TabsContent value="heroes">
-              <HeroesTab matches={matchesData} />
+              <HeroesTab matches={matchesData} currentUserId={currentUserId} />
             </TabsContent>
 
             <TabsContent value="collection">
