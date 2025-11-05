@@ -29,6 +29,18 @@ export function MatchCard({ match, onDelete, onEdit }: MatchCardProps) {
   const winner = match.players.find(p => p.heroId === match.winnerId)
   const winnerHero = winner ? getHeroById(winner.heroId) : null
 
+  const formatMatchDate = (dateString: string): string => {
+    try {
+      const date = new Date(dateString)
+      if (isNaN(date.getTime())) {
+        return dateString
+      }
+      return format(date, 'MMM d, yyyy')
+    } catch {
+      return dateString
+    }
+  }
+
   return (
     <>
       <Card className="p-6 hover:shadow-md transition-shadow">
@@ -54,7 +66,7 @@ export function MatchCard({ match, onDelete, onEdit }: MatchCardProps) {
               )}
             </div>
             <span className="text-sm text-muted-foreground whitespace-nowrap">
-              {format(new Date(match.date + 'T00:00:00'), 'MMM d, yyyy')}
+              {formatMatchDate(match.date)}
             </span>
           </div>
 

@@ -245,14 +245,30 @@ Example output format:
         const rowNum = i + 2
         
         try {
-          const date = getCell(row, 'date')
+          const dateStr = getCell(row, 'date')
           const modeStr = getCell(row, 'mode')
           const mapName = getCell(row, 'map')
           const isDrawStr = getCell(row, 'is_draw')
           const winner = getCell(row, 'winner')
 
-          if (!date) {
+          if (!dateStr) {
             errors.push(`Row ${rowNum}: Missing date`)
+            continue
+          }
+
+          let date: string
+          try {
+            const parsedDate = new Date(dateStr)
+            if (isNaN(parsedDate.getTime())) {
+              errors.push(`Row ${rowNum}: Invalid date format "${dateStr}"`)
+              continue
+            }
+            const year = parsedDate.getFullYear()
+            const month = String(parsedDate.getMonth() + 1).padStart(2, '0')
+            const day = String(parsedDate.getDate()).padStart(2, '0')
+            date = `${year}-${month}-${day}`
+          } catch (error) {
+            errors.push(`Row ${rowNum}: Unable to parse date "${dateStr}"`)
             continue
           }
 

@@ -20,6 +20,10 @@ export function MatchesTab({ matches, setMatches }: MatchesTabProps) {
     const dateA = new Date(a.date).getTime()
     const dateB = new Date(b.date).getTime()
     
+    if (isNaN(dateA) && isNaN(dateB)) return 0
+    if (isNaN(dateA)) return 1
+    if (isNaN(dateB)) return -1
+    
     return dateB - dateA
   })
 

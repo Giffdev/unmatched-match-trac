@@ -224,8 +224,17 @@ export function EditMatchDialog({ open, onOpenChange, onSave, match }: EditMatch
   const [winnerId, setWinnerId] = useState<string | undefined>(match.winnerId)
   const [isDraw, setIsDraw] = useState(match.isDraw)
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(() => {
-    const [year, month, day] = match.date.split('-').map(Number)
-    return new Date(year, month - 1, day)
+    try {
+      const date = new Date(match.date)
+      if (!isNaN(date.getTime())) {
+        return date
+      }
+      const [year, month, day] = match.date.split('-').map(Number)
+      const parsedDate = new Date(year, month - 1, day)
+      return !isNaN(parsedDate.getTime()) ? parsedDate : new Date()
+    } catch {
+      return new Date()
+    }
   })
 
   useEffect(() => {
@@ -235,8 +244,18 @@ export function EditMatchDialog({ open, onOpenChange, onSave, match }: EditMatch
       setPlayers(match.players)
       setWinnerId(match.winnerId)
       setIsDraw(match.isDraw)
-      const [year, month, day] = match.date.split('-').map(Number)
-      setSelectedDate(new Date(year, month - 1, day))
+      try {
+        const date = new Date(match.date)
+        if (!isNaN(date.getTime())) {
+          setSelectedDate(date)
+        } else {
+          const [year, month, day] = match.date.split('-').map(Number)
+          const parsedDate = new Date(year, month - 1, day)
+          setSelectedDate(!isNaN(parsedDate.getTime()) ? parsedDate : new Date())
+        }
+      } catch {
+        setSelectedDate(new Date())
+      }
     }
   }, [open, match])
 
