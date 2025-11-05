@@ -68,24 +68,6 @@ export function HeroesTab({ matches, currentUserId, initialSelectedHero, onHeroC
     return [...filtered].sort((a, b) => a.name.localeCompare(b.name))
   }, [search])
 
-  if (matches.length === 0) {
-    return (
-      <Card className="p-12 text-center">
-        <div className="flex flex-col items-center gap-4">
-          <div className="rounded-full bg-primary/10 p-6">
-            <Sword className="w-12 h-12 text-primary" />
-          </div>
-          <div>
-            <h3 className="text-lg font-semibold mb-2">No hero data</h3>
-            <p className="text-muted-foreground">
-              Log some matches to see hero statistics
-            </p>
-          </div>
-        </div>
-      </Card>
-    )
-  }
-
   if (!selectedHero) {
     return (
       <div className="space-y-6">
@@ -366,9 +348,13 @@ export function HeroesTab({ matches, currentUserId, initialSelectedHero, onHeroC
         </p>
         
         {matchupEntries.length === 0 ? (
-          <p className="text-sm text-muted-foreground text-center py-8">
-            No matchup data yet
-          </p>
+          <div className="text-center py-8">
+            <p className="text-sm text-muted-foreground">
+              {matches.length === 0 
+                ? "Log matches with this hero to see matchup statistics"
+                : "No matchup data yet for this hero"}
+            </p>
+          </div>
         ) : (
           <div className="border rounded-lg overflow-hidden">
             <Table>
