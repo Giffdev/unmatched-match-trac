@@ -1,13 +1,21 @@
 import { clsx, type ClassValue } from "clsx"
-import type { PlayerAssignment, Match } 
-import type { PlayerAssignment } from "./types"
+import { twMerge } from "tailwind-merge"
+import type { PlayerAssignment, Match } from "./types"
 import { getHeroById } from "./data"
 
-  const hero = getHeroById(player.heroId)
-  
- 
-
+export function cn(...inputs: ClassValue[]) {
+  return twMerge(clsx(inputs))
 }
+
+const PLAYER_NAME_MAP: Record<string, string> = {
+  'mike': 'Mike',
+  'sarah': 'Sarah',
+  'alex': 'Alex',
+  'chris': 'Chris',
+  'jordan': 'Jordan',
+}
+
+export function getHeroDisplayName(player: PlayerAssignment): string {
   const hero = getHeroById(player.heroId)
   if (!hero) return 'Unknown Hero'
   
