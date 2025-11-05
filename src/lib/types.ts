@@ -7,11 +7,23 @@ export type User = {
 
 export type GameMode = 'cooperative' | '1v1' | '2v2' | 'ffa3' | 'ffa4'
 
+export type AttackType = 'MELEE' | 'RANGED'
+
+export type Sidekick = {
+  name: string
+  count: number
+  hp?: number
+  attack: AttackType
+}
+
 export type Hero = {
   id: string
   name: string
   set: string
-  sidekick?: string
+  hp: number
+  move: number
+  attack: AttackType
+  sidekicks?: Sidekick[]
   imageUrl?: string
 }
 

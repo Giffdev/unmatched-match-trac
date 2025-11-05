@@ -114,8 +114,8 @@ export function PlayersTab({ matches }: PlayersTabProps) {
                   <div className="flex items-center justify-between">
                     <div className="flex flex-col">
                       <span className="text-sm font-medium">{hero?.name}</span>
-                      {hero?.sidekick && (
-                        <span className="text-xs text-muted-foreground">{hero.sidekick}</span>
+                      {hero?.sidekicks && hero.sidekicks.length > 0 && (
+                        <span className="text-xs text-muted-foreground">{hero.sidekicks.map(sk => sk.name).join(', ')}</span>
                       )}
                     </div>
                     <div className="flex items-center gap-2">
@@ -160,7 +160,7 @@ export function PlayersTab({ matches }: PlayersTabProps) {
                     <TableRow key={hero.id}>
                       <TableCell className="font-medium">{hero.name}</TableCell>
                       <TableCell className="text-sm text-muted-foreground">
-                        {hero.sidekick || '—'}
+                        {hero.sidekicks && hero.sidekicks.length > 0 ? hero.sidekicks.map(sk => sk.name).join(', ') : '—'}
                       </TableCell>
                       <TableCell className="text-sm text-muted-foreground">{hero.set}</TableCell>
                     </TableRow>

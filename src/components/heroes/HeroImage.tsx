@@ -39,10 +39,10 @@ export function HeroImage({ hero, className }: HeroImageProps) {
           <Sword className="w-16 h-16 text-primary mb-4" />
           <div className="space-y-2">
             <h3 className="font-bold text-lg text-foreground">{hero.name}</h3>
-            {hero.sidekick && (
+            {hero.sidekicks && hero.sidekicks.length > 0 && (
               <div className="text-sm text-muted-foreground">
                 <p className="font-medium">Sidekick:</p>
-                <p>{hero.sidekick}</p>
+                <p>{hero.sidekicks.map(sk => `${sk.name}${sk.count > 1 ? ` x${sk.count}` : ''}`).join(', ')}</p>
               </div>
             )}
             <div className="pt-2 border-t border-border">

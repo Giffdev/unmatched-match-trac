@@ -243,7 +243,7 @@ export function HeroesTab({ matches, currentUserId, initialSelectedHero, onHeroC
             <div className="flex-1 flex flex-col justify-center">
               <h3 className="text-xl font-semibold mb-2">{hero.name}</h3>
               <p className="text-sm text-muted-foreground mb-4">
-                {hero.sidekick ? `Fighting alongside ${hero.sidekick}` : 'Fighting alone'}
+                {hero.sidekicks && hero.sidekicks.length > 0 ? `Fighting alongside ${hero.sidekicks.map(sk => sk.name).join(', ')}` : 'Fighting alone'}
               </p>
               <div className="space-y-1">
                 <Badge variant="outline" className="mr-2">
