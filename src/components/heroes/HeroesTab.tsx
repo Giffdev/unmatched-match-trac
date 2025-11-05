@@ -129,21 +129,29 @@ export function HeroesTab({ matches }: HeroesTabProps) {
         <Card className="p-6">
           <div className="flex flex-col md:flex-row gap-6">
             <div className="flex-shrink-0">
-              <div className="w-48 h-72 bg-gradient-to-br from-primary/20 via-accent/10 to-secondary/20 rounded-lg border-2 border-border flex flex-col items-center justify-center p-4 text-center">
-                <Sword className="w-16 h-16 text-primary mb-4 opacity-40" />
-                <div className="space-y-2">
-                  <h3 className="font-bold text-lg text-foreground">{hero.name}</h3>
-                  {hero.sidekick && (
-                    <div className="text-sm text-muted-foreground">
-                      <p className="font-medium">Sidekick:</p>
-                      <p>{hero.sidekick}</p>
+              {hero.imageUrl ? (
+                <img 
+                  src={hero.imageUrl} 
+                  alt={hero.name}
+                  className="w-48 h-72 object-cover rounded-lg border-2 border-border shadow-lg"
+                />
+              ) : (
+                <div className="w-48 h-72 bg-gradient-to-br from-primary/20 via-accent/10 to-secondary/20 rounded-lg border-2 border-border flex flex-col items-center justify-center p-4 text-center">
+                  <Sword className="w-16 h-16 text-primary mb-4 opacity-40" />
+                  <div className="space-y-2">
+                    <h3 className="font-bold text-lg text-foreground">{hero.name}</h3>
+                    {hero.sidekick && (
+                      <div className="text-sm text-muted-foreground">
+                        <p className="font-medium">Sidekick:</p>
+                        <p>{hero.sidekick}</p>
+                      </div>
+                    )}
+                    <div className="pt-2 border-t border-border">
+                      <p className="text-xs text-muted-foreground">{hero.set}</p>
                     </div>
-                  )}
-                  <div className="pt-2 border-t border-border">
-                    <p className="text-xs text-muted-foreground">{hero.set}</p>
                   </div>
                 </div>
-              </div>
+              )}
             </div>
             <div className="flex-1 flex flex-col justify-center">
               <h3 className="text-xl font-semibold mb-2">{hero.name}</h3>
