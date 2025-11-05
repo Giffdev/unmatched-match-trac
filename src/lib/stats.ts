@@ -188,15 +188,18 @@ export function getBalancedMatchupHero(
   }
 
   const candidates = availableHeroes.filter(heroId => {
-    const matchupData = opponentStats.vsMatchups[heroId]
+    const heroStats = communityData.heroStats[heroId]
+    if (!heroStats) return true
     
-    if (!matchupData || matchupData.total < minGamesThreshold) {
+    const heroVsOpponentData = heroStats.vsMatchups[opponentHeroId]
+    
+    if (!heroVsOpponentData || heroVsOpponentData.total < minGamesThreshold) {
       return true
     }
     
-    const opponentWinRate = (matchupData.wins / matchupData.total) * 100
+    const heroWinRate = (heroVsOpponentData.wins / heroVsOpponentData.total) * 100
     
-    return opponentWinRate >= 40 && opponentWinRate <= 60
+    return heroWinRate >= 40 && heroWinRate <= 60
   })
 
   if (candidates.length === 0) {

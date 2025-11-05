@@ -208,7 +208,7 @@ export function RandomizerTab({ ownedSets, matches, setMatches }: RandomizerTabP
       <div>
         <h2 className="text-2xl font-semibold">Match Randomizer</h2>
         <p className="text-sm text-muted-foreground mt-1">
-          Generate random matchups from your collection
+          Generate random matchups from your collection. You can manage your collection from your profile menu.
         </p>
       </div>
 
@@ -221,7 +221,7 @@ export function RandomizerTab({ ownedSets, matches, setMatches }: RandomizerTabP
             <div>
               <h3 className="text-lg font-semibold mb-2">No heroes available</h3>
               <p className="text-muted-foreground">
-                Add some sets to your collection to use the randomizer
+                Add some sets to your collection from your profile menu to use the randomizer
               </p>
             </div>
           </div>

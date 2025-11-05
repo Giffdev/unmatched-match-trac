@@ -9,9 +9,10 @@ import { useState } from 'react'
 type CollectionTabProps = {
   ownedSets: string[]
   setOwnedSets: (updater: (sets: string[]) => string[]) => void
+  inDialog?: boolean
 }
 
-export function CollectionTab({ ownedSets, setOwnedSets }: CollectionTabProps) {
+export function CollectionTab({ ownedSets, setOwnedSets, inDialog = false }: CollectionTabProps) {
   const [selectedFranchise, setSelectedFranchise] = useState<string | null>(null)
 
   const toggleSet = (setName: string) => {
@@ -44,39 +45,76 @@ export function CollectionTab({ ownedSets, setOwnedSets }: CollectionTabProps) {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between flex-wrap gap-4">
-        <div>
-          <h2 className="text-2xl font-semibold">My Collection</h2>
-          <p className="text-sm text-muted-foreground mt-1">
-            Select the sets you own to filter available heroes
-          </p>
+      {!inDialog && (
+        <div className="flex items-center justify-between flex-wrap gap-4">
+          <div>
+            <h2 className="text-2xl font-semibold">My Collection</h2>
+            <p className="text-sm text-muted-foreground mt-1">
+              Select the sets you own to filter available heroes
+            </p>
+          </div>
+          <div className="flex items-center gap-3">
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={allSelected ? clearAll : selectAll}
+            >
+              {allSelected ? (
+                <>
+                  <Square className="mr-2" />
+                  Clear All
+                </>
+              ) : (
+                <>
+                  <CheckSquare className="mr-2" />
+                  Select All
+                </>
+              )}
+            </Button>
+            <Card className="p-4">
+              <div className="text-center">
+                <p className="text-sm text-muted-foreground">Heroes Available</p>
+                <p className="text-2xl font-bold text-primary">{totalHeroes}</p>
+              </div>
+            </Card>
+          </div>
         </div>
-        <div className="flex items-center gap-3">
-          <Button 
-            variant="outline" 
-            size="sm"
-            onClick={allSelected ? clearAll : selectAll}
-          >
-            {allSelected ? (
-              <>
-                <Square className="mr-2" />
-                Clear All
-              </>
-            ) : (
-              <>
-                <CheckSquare className="mr-2" />
-                Select All
-              </>
-            )}
-          </Button>
-          <Card className="p-4">
-            <div className="text-center">
-              <p className="text-sm text-muted-foreground">Heroes Available</p>
-              <p className="text-2xl font-bold text-primary">{totalHeroes}</p>
-            </div>
-          </Card>
+      )}
+
+      {inDialog && (
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-sm text-muted-foreground">
+              Select the sets you own to filter available heroes in the randomizer
+            </p>
+          </div>
+          <div className="flex items-center gap-3">
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={allSelected ? clearAll : selectAll}
+            >
+              {allSelected ? (
+                <>
+                  <Square className="mr-2" />
+                  Clear All
+                </>
+              ) : (
+                <>
+                  <CheckSquare className="mr-2" />
+                  Select All
+                </>
+              )}
+            </Button>
+            <Card className="p-3">
+              <div className="text-center">
+                <p className="text-xs text-muted-foreground">Heroes</p>
+                <p className="text-xl font-bold text-primary">{totalHeroes}</p>
+              </div>
+            </Card>
+          </div>
         </div>
-      </div>
+      )}
 
       <div className="flex items-center gap-2 flex-wrap">
         <Funnel className="text-muted-foreground" />
