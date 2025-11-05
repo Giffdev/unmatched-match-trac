@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
 import { Shuffle, DiceSix, Sparkle, ArrowsClockwise } from '@phosphor-icons/react'
 import { getHeroById, getMapById, getHeroesBySet, getMapsByPlayerCount } from '@/lib/data'
-import { aggregateCommunityData, getBalancedRandomHero } from '@/lib/stats'
+import { aggregateCommunityData, getBalancedRandomHero, getBalancedMatchupHero } from '@/lib/stats'
 import { LogMatchDialog } from '@/components/matches/LogMatchDialog'
 import { toast } from 'sonner'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
@@ -60,29 +60,62 @@ export function RandomizerTab({ ownedSets, matches, setMatches }: RandomizerTabP
     if (randomizationType === 'balanced') {
       communityData = aggregateCommunityData(matches)
       heroStats = {}
-      let targetWinRate = 50
 
-      for (let i = 0; i < playerCount; i++) {
-        const available = availableHeroes
-          .filter(h => !selectedHeroes.includes(h.id))
-          .map(h => h.id)
+      if (mode === '1v1') {
+        const available = availableHeroes.map(h => h.id)
+        const firstHeroId = available[Math.floor(Math.random() * available.length)]
+        selectedHeroes.push(firstHeroId)
         
-        const heroId = getBalancedRandomHero(available, targetWinRate, communityData)
-        selectedHeroes.push(heroId)
-        
-        const stats = communityData.heroStats[heroId]
-        if (stats) {
-          heroStats[heroId] = stats
-          if (stats.totalGames >= 3) {
-            targetWinRate = stats.winRate
-          }
+        const firstStats = communityData.heroStats[firstHeroId]
+        if (firstStats) {
+          heroStats[firstHeroId] = firstStats
         }
 
         players.push({
           playerName: '',
-          heroId,
-          turnOrder: i + 1,
+          heroId: firstHeroId,
+          turnOrder: 1,
         })
+
+        const remainingAvailable = available.filter(h => h !== firstHeroId)
+        const secondHeroId = getBalancedMatchupHero(remainingAvailable, firstHeroId, communityData)
+        selectedHeroes.push(secondHeroId)
+        
+        const secondStats = communityData.heroStats[secondHeroId]
+        if (secondStats) {
+          heroStats[secondHeroId] = secondStats
+        }
+
+        players.push({
+          playerName: '',
+          heroId: secondHeroId,
+          turnOrder: 2,
+        })
+      } else {
+        let targetWinRate = 50
+
+        for (let i = 0; i < playerCount; i++) {
+          const available = availableHeroes
+            .filter(h => !selectedHeroes.includes(h.id))
+            .map(h => h.id)
+          
+          const heroId = getBalancedRandomHero(available, targetWinRate, communityData)
+          selectedHeroes.push(heroId)
+          
+          const stats = communityData.heroStats[heroId]
+          if (stats) {
+            heroStats[heroId] = stats
+            if (stats.totalGames >= 3) {
+              targetWinRate = stats.winRate
+            }
+          }
+
+          players.push({
+            playerName: '',
+            heroId,
+            turnOrder: i + 1,
+          })
+        }
       }
     } else {
       for (let i = 0; i < playerCount; i++) {
@@ -124,11 +157,18 @@ export function RandomizerTab({ ownedSets, matches, setMatches }: RandomizerTabP
       const communityData = aggregateCommunityData(matches)
       const availableIds = available.map(h => h.id)
       
-      const targetWinRate = index > 0 && result.players[index - 1] 
-        ? communityData.heroStats[result.players[index - 1].heroId]?.winRate ?? 50
-        : 50
+      if (mode === '1v1') {
+        const otherPlayerIndex = index === 0 ? 1 : 0
+        const opponentHeroId = result.players[otherPlayerIndex].heroId
+        newHeroId = getBalancedMatchupHero(availableIds, opponentHeroId, communityData)
+      } else {
+        const targetWinRate = index > 0 && result.players[index - 1] 
+          ? communityData.heroStats[result.players[index - 1].heroId]?.winRate ?? 50
+          : 50
+        
+        newHeroId = getBalancedRandomHero(availableIds, targetWinRate, communityData)
+      }
       
-      newHeroId = getBalancedRandomHero(availableIds, targetWinRate, communityData)
       const stats = communityData.heroStats[newHeroId]
       if (stats && updatedHeroStats) {
         updatedHeroStats[newHeroId] = stats
@@ -265,6 +305,22 @@ export function RandomizerTab({ ownedSets, matches, setMatches }: RandomizerTabP
                   {result.players.map((player, index) => {
                     const hero = getHeroById(player.heroId)
                     const stats = result.heroStats?.[player.heroId]
+                    
+                    let matchupStats: { wins: number; losses: number; total: number; winRate: number } | undefined
+                    if (mode === '1v1' && randomizationType === 'balanced' && stats) {
+                      const otherPlayerIndex = index === 0 ? 1 : 0
+                      const opponentHeroId = result.players[otherPlayerIndex].heroId
+                      const vsData = stats.vsMatchups[opponentHeroId]
+                      if (vsData && vsData.total > 0) {
+                        matchupStats = {
+                          wins: vsData.wins,
+                          losses: vsData.total - vsData.wins,
+                          total: vsData.total,
+                          winRate: (vsData.wins / vsData.total) * 100
+                        }
+                      }
+                    }
+                    
                     return (
                       <div key={index} className="flex items-center justify-between p-4 bg-card rounded-lg border">
                         <div className="flex items-center gap-3 flex-1">
@@ -275,9 +331,17 @@ export function RandomizerTab({ ownedSets, matches, setMatches }: RandomizerTabP
                             <p className="font-semibold">{hero?.name}</p>
                             <p className="text-xs text-muted-foreground">{hero?.set}</p>
                             {randomizationType === 'balanced' && stats && stats.totalGames > 0 && (
-                              <p className="text-xs text-accent mt-1">
-                                {stats.wins}W - {stats.losses}L ({stats.winRate.toFixed(1)}% win rate)
-                              </p>
+                              <>
+                                {matchupStats ? (
+                                  <p className="text-xs text-accent mt-1">
+                                    vs {getHeroById(result.players[index === 0 ? 1 : 0].heroId)?.name}: {matchupStats.wins}W - {matchupStats.losses}L ({matchupStats.winRate.toFixed(1)}%)
+                                  </p>
+                                ) : (
+                                  <p className="text-xs text-accent mt-1">
+                                    Overall: {stats.wins}W - {stats.losses}L ({stats.winRate.toFixed(1)}% win rate)
+                                  </p>
+                                )}
+                              </>
                             )}
                           </div>
                         </div>

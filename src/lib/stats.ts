@@ -174,3 +174,34 @@ export function getBalancedRandomHero(
   if (candidates.length === 0) return availableHeroes[Math.floor(Math.random() * availableHeroes.length)]
   return candidates[Math.floor(Math.random() * candidates.length)]
 }
+
+export function getBalancedMatchupHero(
+  availableHeroes: string[],
+  opponentHeroId: string,
+  communityData: CommunityData,
+  minGamesThreshold: number = 2
+): string {
+  const opponentStats = communityData.heroStats[opponentHeroId]
+  
+  if (!opponentStats) {
+    return availableHeroes[Math.floor(Math.random() * availableHeroes.length)]
+  }
+
+  const candidates = availableHeroes.filter(heroId => {
+    const matchupData = opponentStats.vsMatchups[heroId]
+    
+    if (!matchupData || matchupData.total < minGamesThreshold) {
+      return true
+    }
+    
+    const opponentWinRate = (matchupData.wins / matchupData.total) * 100
+    
+    return opponentWinRate >= 40 && opponentWinRate <= 60
+  })
+
+  if (candidates.length === 0) {
+    return availableHeroes[Math.floor(Math.random() * availableHeroes.length)]
+  }
+  
+  return candidates[Math.floor(Math.random() * candidates.length)]
+}
