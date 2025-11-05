@@ -50,6 +50,10 @@ function App() {
     setCurrentTab('heroes')
   }
 
+  const handleImportMatches = (newMatches: Match[]) => {
+    setMatches((currentMatches) => [...(currentMatches || []), ...newMatches])
+  }
+
   useEffect(() => {
     const normalizeExistingMatches = async () => {
       if (normalizationRan.current) return
@@ -100,7 +104,7 @@ function App() {
                   Manage Collection
                 </Button>
               )}
-              {currentUserId && <UserProfile />}
+              {currentUserId && <UserProfile onImportMatches={handleImportMatches} />}
             </div>
           </div>
         </div>

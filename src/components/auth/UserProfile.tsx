@@ -19,16 +19,22 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
-import { SignOut, User as UserIconPhosphor } from '@phosphor-icons/react'
+import { SignOut, User as UserIconPhosphor, Upload } from '@phosphor-icons/react'
 import { useKV } from '@github/spark/hooks'
-import type { User } from '@/lib/types'
+import type { User, Match } from '@/lib/types'
 import { toast } from 'sonner'
+import { CSVImport } from './CSVImport'
 
-export function UserProfile() {
+type UserProfileProps = {
+  onImportMatches?: (matches: Match[]) => void
+}
+
+export function UserProfile({ onImportMatches }: UserProfileProps) {
   const [currentUserId] = useKV<string | null>('current-user-id', null)
   const [users, setUsers] = useKV<User[]>('users', [])
   const [currentUser, setCurrentUser] = useState<User | null>(null)
   const [showPlayerNameDialog, setShowPlayerNameDialog] = useState(false)
+  const [showImportDialog, setShowImportDialog] = useState(false)
   const [playerNameInput, setPlayerNameInput] = useState('')
 
   useEffect(() => {
@@ -62,6 +68,13 @@ export function UserProfile() {
     setCurrentUser(updatedUser)
     setShowPlayerNameDialog(false)
     toast.success('Player name updated!')
+  }
+
+  const handleImportComplete = (matches: Match[]) => {
+    setShowImportDialog(false)
+    if (onImportMatches) {
+      onImportMatches(matches)
+    }
   }
 
   if (!currentUser) {
@@ -106,6 +119,10 @@ export function UserProfile() {
             <UserIconPhosphor className="mr-2" />
             Set Player Name
           </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => setShowImportDialog(true)}>
+            <Upload className="mr-2" />
+            Import from CSV
+          </DropdownMenuItem>
           <DropdownMenuItem onClick={handleSignOut}>
             <SignOut className="mr-2" />
             Sign Out
@@ -140,6 +157,21 @@ export function UserProfile() {
               Save
             </Button>
           </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={showImportDialog} onOpenChange={setShowImportDialog}>
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Import Matches from CSV</DialogTitle>
+            <DialogDescription>
+              Upload a CSV file containing your match history from external tracking systems.
+            </DialogDescription>
+          </DialogHeader>
+          <CSVImport 
+            currentUserId={currentUserId} 
+            onImportComplete={handleImportComplete}
+          />
         </DialogContent>
       </Dialog>
     </>

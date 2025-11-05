@@ -1,6 +1,5 @@
 import { useState, useRef } from 'react'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Upload, CheckCircle, Warning, Sparkle } from '@phosphor-icons/react'
 import { toast } from 'sonner'
@@ -391,130 +390,119 @@ Example output format:
   }
 
   return (
-    <Card className="max-w-3xl mx-auto mb-6">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Sparkle className="h-5 w-5" />
-          Smart CSV Import
-        </CardTitle>
-        <CardDescription>
-          Upload any CSV file with match data - AI will automatically detect the format and match hero/map names
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        {!currentUserId ? (
-          <Alert variant="destructive">
-            <Warning className="h-4 w-4" />
-            <AlertTitle>Sign In Required</AlertTitle>
-            <AlertDescription>
-              You must be signed in to import match data.
-            </AlertDescription>
-          </Alert>
-        ) : (
-          <>
-            <div className="space-y-3">
-              <div className="relative">
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept=".csv"
-                  onChange={handleFileUpload}
-                  disabled={importing}
-                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer disabled:cursor-not-allowed"
-                />
-                <Button
-                  variant="default"
-                  disabled={importing}
-                  className="w-full pointer-events-none"
-                >
-                  <Upload className="h-4 w-4 mr-2" />
-                  {importing ? 'Analyzing CSV...' : 'Select CSV File to Import'}
-                </Button>
-              </div>
+    <div className="space-y-4">
+      {!currentUserId ? (
+        <Alert variant="destructive">
+          <Warning className="h-4 w-4" />
+          <AlertTitle>Sign In Required</AlertTitle>
+          <AlertDescription>
+            You must be signed in to import match data.
+          </AlertDescription>
+        </Alert>
+      ) : (
+        <>
+          <div className="space-y-3">
+            <div className="relative">
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept=".csv"
+                onChange={handleFileUpload}
+                disabled={importing}
+                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer disabled:cursor-not-allowed"
+              />
+              <Button
+                variant="default"
+                disabled={importing}
+                className="w-full pointer-events-none"
+              >
+                <Upload className="h-4 w-4 mr-2" />
+                {importing ? 'Analyzing CSV...' : 'Select CSV File to Import'}
+              </Button>
             </div>
+          </div>
 
-            {importResults && (
-              <div className="space-y-4 pt-4 border-t">
-                <Alert variant={importResults.success > 0 ? 'default' : 'destructive'}>
-                  {importResults.success > 0 ? (
-                    <>
-                      <CheckCircle className="h-4 w-4" />
-                      <AlertTitle>Ready to Import!</AlertTitle>
-                      <AlertDescription>
-                        Successfully parsed {importResults.success} match{importResults.success !== 1 ? 'es' : ''}.
-                        {importResults.errors.length > 0 && ` ${importResults.errors.length} error${importResults.errors.length !== 1 ? 's' : ''} encountered.`}
-                        <strong className="block mt-2 text-foreground">Click "Confirm Import" below to save these matches.</strong>
-                      </AlertDescription>
-                    </>
-                  ) : (
-                    <>
-                      <Warning className="h-4 w-4" />
-                      <AlertTitle>Import Failed</AlertTitle>
-                      <AlertDescription>
-                        No matches could be imported. Check the errors below.
-                      </AlertDescription>
-                    </>
-                  )}
-                </Alert>
-
-                {importResults.errors.length > 0 && (
-                  <div className="space-y-2">
-                    <h3 className="font-semibold text-sm text-destructive">Errors:</h3>
-                    <div className="max-h-48 overflow-y-auto bg-destructive/10 p-3 rounded text-xs space-y-1">
-                      {importResults.errors.map((error, idx) => (
-                        <div key={idx} className="text-destructive">• {error}</div>
-                      ))}
-                    </div>
-                  </div>
+          {importResults && (
+            <div className="space-y-4 pt-4 border-t">
+              <Alert variant={importResults.success > 0 ? 'default' : 'destructive'}>
+                {importResults.success > 0 ? (
+                  <>
+                    <CheckCircle className="h-4 w-4" />
+                    <AlertTitle>Ready to Import!</AlertTitle>
+                    <AlertDescription>
+                      Successfully parsed {importResults.success} match{importResults.success !== 1 ? 'es' : ''}.
+                      {importResults.errors.length > 0 && ` ${importResults.errors.length} error${importResults.errors.length !== 1 ? 's' : ''} encountered.`}
+                      <strong className="block mt-2 text-foreground">Click "Confirm Import" below to save these matches.</strong>
+                    </AlertDescription>
+                  </>
+                ) : (
+                  <>
+                    <Warning className="h-4 w-4" />
+                    <AlertTitle>Import Failed</AlertTitle>
+                    <AlertDescription>
+                      No matches could be imported. Check the errors below.
+                    </AlertDescription>
+                  </>
                 )}
+              </Alert>
 
-                {importResults.success > 0 && (
-                  <div className="flex gap-2">
-                    <Button
-                      onClick={confirmImport}
-                      className="flex-1 animate-pulse"
-                      size="lg"
-                    >
-                      <CheckCircle className="mr-2 h-5 w-5" />
-                      Confirm Import ({importResults.success} matches)
-                    </Button>
-                    <Button
-                      variant="outline"
-                      onClick={() => setImportResults(null)}
-                    >
-                      Cancel
-                    </Button>
+              {importResults.errors.length > 0 && (
+                <div className="space-y-2">
+                  <h3 className="font-semibold text-sm text-destructive">Errors:</h3>
+                  <div className="max-h-48 overflow-y-auto bg-destructive/10 p-3 rounded text-xs space-y-1">
+                    {importResults.errors.map((error, idx) => (
+                      <div key={idx} className="text-destructive">• {error}</div>
+                    ))}
                   </div>
-                )}
-              </div>
-            )}
+                </div>
+              )}
 
-            <div className="text-xs text-muted-foreground pt-2 border-t space-y-2">
-              <div className="flex items-center gap-2 text-accent font-medium">
-                <Sparkle className="h-4 w-4" />
-                <span>AI-Powered Smart Import</span>
-              </div>
-              <p>
-                Just upload your CSV! The AI will automatically detect columns for:
-                date, game mode, map, player names, heroes, and winner.
-              </p>
-              <p>
-                <strong>Smart matching:</strong> Hero and map names don't need to match exactly.
-                The AI will intelligently match variations like "Robert Muldoon" → InGen, 
-                "T-Rex Paddock" → T. Rex Paddock, "Sherlock" → Sherlock Holmes, etc.
-              </p>
-              <p>
-                <strong>Yennefer & Triss:</strong> You can log just "Yennefer" or just "Triss" 
-                and it will automatically use the Yennefer & Triss hero with the correct variant.
-              </p>
-              <p className="text-xs">
-                <strong>Supported variations:</strong> "Player 1" / "P1" / "Player1", 
-                "Hero 1" / "Character 1", "Winner" / "Result", and many more!
-              </p>
+              {importResults.success > 0 && (
+                <div className="flex gap-2">
+                  <Button
+                    onClick={confirmImport}
+                    className="flex-1 animate-pulse"
+                    size="lg"
+                  >
+                    <CheckCircle className="mr-2 h-5 w-5" />
+                    Confirm Import ({importResults.success} matches)
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => setImportResults(null)}
+                  >
+                    Cancel
+                  </Button>
+                </div>
+              )}
             </div>
-          </>
-        )}
-      </CardContent>
-    </Card>
+          )}
+
+          <div className="text-xs text-muted-foreground pt-2 border-t space-y-2">
+            <div className="flex items-center gap-2 text-accent font-medium">
+              <Sparkle className="h-4 w-4" />
+              <span>AI-Powered Smart Import</span>
+            </div>
+            <p>
+              Just upload your CSV! The AI will automatically detect columns for:
+              date, game mode, map, player names, heroes, and winner.
+            </p>
+            <p>
+              <strong>Smart matching:</strong> Hero and map names don't need to match exactly.
+              The AI will intelligently match variations like "Robert Muldoon" → InGen, 
+              "T-Rex Paddock" → T. Rex Paddock, "Sherlock" → Sherlock Holmes, etc.
+            </p>
+            <p>
+              <strong>Yennefer & Triss:</strong> You can log just "Yennefer" or just "Triss" 
+              and it will automatically use the Yennefer & Triss hero with the correct variant.
+            </p>
+            <p className="text-xs">
+              <strong>Supported variations:</strong> "Player 1" / "P1" / "Player1", 
+              "Hero 1" / "Character 1", "Winner" / "Result", and many more!
+            </p>
+          </div>
+        </>
+      )}
+    </div>
   )
 }
