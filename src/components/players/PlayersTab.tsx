@@ -165,7 +165,7 @@ export function PlayersTab({ matches, ownedSets = [], onHeroClick }: PlayersTabP
                 onCheckedChange={setShowOnlyOwnedHeroes}
               />
               <Label htmlFor="owned-only" className="text-sm cursor-pointer">
-                Owned only
+                Collection only
               </Label>
             </div>
           </div>
