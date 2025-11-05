@@ -28,6 +28,9 @@ export function UserProfile() {
   }, [currentUserId, users])
 
   const handleSignOut = async () => {
+    const confirmed = confirm('Are you sure you want to sign out?')
+    if (!confirmed) return
+    
     await window.spark.kv.set('current-user-id', null)
     window.location.reload()
   }
