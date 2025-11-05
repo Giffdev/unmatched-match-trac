@@ -189,12 +189,12 @@ export function getBalancedMatchupHero(
 
   const candidates = availableHeroes.filter(heroId => {
     const heroStats = communityData.heroStats[heroId]
-    if (!heroStats) return true
+    if (!heroStats) return false
     
     const heroVsOpponentData = heroStats.vsMatchups[opponentHeroId]
     
     if (!heroVsOpponentData || heroVsOpponentData.total < minGamesThreshold) {
-      return true
+      return false
     }
     
     const heroWinRate = (heroVsOpponentData.wins / heroVsOpponentData.total) * 100
