@@ -171,8 +171,10 @@ Example output format:
             continue
           }
 
-          const mode = modeStr.toLowerCase() as Match['mode']
-          if (!mode || !['1v1', '2v2', 'ffa3', 'ffa4', 'cooperative'].includes(mode)) {
+          let mode = modeStr.toLowerCase() as Match['mode']
+          if (!mode) {
+            mode = '1v1'
+          } else if (!['1v1', '2v2', 'ffa3', 'ffa4', 'cooperative'].includes(mode)) {
             errors.push(`Row ${rowNum}: Invalid mode "${modeStr}". Must be: 1v1, 2v2, ffa3, ffa4, or cooperative`)
             continue
           }
