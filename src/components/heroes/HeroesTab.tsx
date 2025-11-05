@@ -20,7 +20,7 @@ type HeroesTabProps = {
 }
 
 export function HeroesTab({ matches, currentUserId }: HeroesTabProps) {
-  const [selectedHero, setSelectedHero] = useState(HEROES[0]?.id || '')
+  const [selectedHero, setSelectedHero] = useState('')
   const [open, setOpen] = useState(false)
   const [search, setSearch] = useState('')
   const [allMatches, setAllMatches] = useKV<Match[]>('community-all-matches', [])
@@ -47,13 +47,16 @@ export function HeroesTab({ matches, currentUserId }: HeroesTabProps) {
   }, [matches.length, currentUserId])
 
   const filteredHeroes = useMemo(() => {
-    if (!search) return HEROES
     const searchLower = search.toLowerCase()
-    return HEROES.filter(
-      hero =>
-        hero.name.toLowerCase().includes(searchLower) ||
-        hero.set.toLowerCase().includes(searchLower)
-    )
+    const filtered = search 
+      ? HEROES.filter(
+          hero =>
+            hero.name.toLowerCase().includes(searchLower) ||
+            hero.set.toLowerCase().includes(searchLower)
+        )
+      : HEROES
+    
+    return [...filtered].sort((a, b) => a.name.localeCompare(b.name))
   }, [search])
 
   if (matches.length === 0) {
@@ -71,6 +74,78 @@ export function HeroesTab({ matches, currentUserId }: HeroesTabProps) {
           </div>
         </div>
       </Card>
+    )
+  }
+
+  if (!selectedHero) {
+    return (
+      <div className="space-y-6">
+        <div>
+          <h2 className="text-2xl font-semibold mb-4">Hero Statistics</h2>
+          <Popover open={open} onOpenChange={setOpen}>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                role="combobox"
+                aria-expanded={open}
+                className="max-w-md w-full justify-between"
+              >
+                Select hero...
+                <CaretUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-[400px] p-0" align="start">
+              <Command shouldFilter={false}>
+                <CommandInput 
+                  placeholder="Search heroes..." 
+                  value={search}
+                  onValueChange={setSearch}
+                />
+                <CommandList>
+                  <CommandEmpty>No hero found.</CommandEmpty>
+                  <CommandGroup>
+                    {filteredHeroes.map((h) => (
+                      <CommandItem
+                        key={h.id}
+                        value={h.id}
+                        onSelect={() => {
+                          setSelectedHero(h.id)
+                          setOpen(false)
+                          setSearch('')
+                        }}
+                      >
+                        <Check
+                          className={cn(
+                            "mr-2 h-4 w-4",
+                            selectedHero === h.id ? "opacity-100" : "opacity-0"
+                          )}
+                        />
+                        <div className="flex-1">
+                          <div>{h.name}</div>
+                          <div className="text-xs text-muted-foreground">{h.set}</div>
+                        </div>
+                      </CommandItem>
+                    ))}
+                  </CommandGroup>
+                </CommandList>
+              </Command>
+            </PopoverContent>
+          </Popover>
+        </div>
+        <Card className="p-12 text-center">
+          <div className="flex flex-col items-center gap-4">
+            <div className="rounded-full bg-muted p-6">
+              <Sword className="w-12 h-12 text-muted-foreground" />
+            </div>
+            <div>
+              <h3 className="text-lg font-semibold mb-2">Select a hero</h3>
+              <p className="text-muted-foreground">
+                Choose a hero from the list above to view their statistics
+              </p>
+            </div>
+          </div>
+        </Card>
+      </div>
     )
   }
 
