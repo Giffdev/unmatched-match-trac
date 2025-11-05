@@ -9,8 +9,6 @@ import { RandomizerTab } from '@/components/randomizer/RandomizerTab'
 import { UserProfile } from '@/components/auth/UserProfile'
 import { SignInPrompt } from '@/components/auth/SignInPrompt'
 import { DataCleanup } from '@/components/auth/DataCleanup'
-import { DataRecovery } from '@/components/auth/DataRecovery'
-import { DataLossExplanation } from '@/components/auth/DataLossExplanation'
 import { CSVImport } from '@/components/auth/CSVImport'
 import { CSVExport } from '@/components/auth/CSVExport'
 import { Toaster } from '@/components/ui/sonner'
@@ -82,10 +80,8 @@ function App() {
       </header>
 
       <main className="container mx-auto px-4 py-6">
-        <DataLossExplanation />
         <CSVImport currentUserId={currentUserId} onImportComplete={handleImportMatches} />
         <CSVExport matches={matchesData} />
-        <DataRecovery />
         
         {!currentUserId ? (
           <SignInPrompt onUserChange={handleUserChange} />
