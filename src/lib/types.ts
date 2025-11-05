@@ -25,6 +25,8 @@ export type Hero = {
   attack: AttackType
   sidekicks?: Sidekick[]
   imageUrl?: string
+  abilityTitle?: string
+  abilityDescription?: string
 }
 
 export type Map = {
