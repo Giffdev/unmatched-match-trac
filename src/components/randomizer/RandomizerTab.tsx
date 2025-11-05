@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import type { Match, GameMode, PlayerAssignment } from '@/lib/types'
+import type { Match, GameMode, PlayerAssignment, HeroStats } from '@/lib/types'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
@@ -18,13 +18,16 @@ type RandomizerTabProps = {
   setMatches: (updater: (matches: Match[]) => Match[]) => void
 }
 
+type RandomizerResult = {
+  mapId: string
+  players: PlayerAssignment[]
+  heroStats?: Record<string, HeroStats>
+}
+
 export function RandomizerTab({ ownedSets, matches, setMatches }: RandomizerTabProps) {
   const [mode, setMode] = useState<GameMode>('1v1')
   const [randomizationType, setRandomizationType] = useState<'true' | 'balanced'>('true')
-  const [result, setResult] = useState<{
-    mapId: string
-    players: PlayerAssignment[]
-  } | null>(null)
+  const [result, setResult] = useState<RandomizerResult | null>(null)
   const [dialogOpen, setDialogOpen] = useState(false)
 
   const availableHeroes = ownedSets.flatMap(set => getHeroesBySet(set))
@@ -51,9 +54,12 @@ export function RandomizerTab({ ownedSets, matches, setMatches }: RandomizerTabP
     const randomMap = suitableMaps[Math.floor(Math.random() * suitableMaps.length)]
     const selectedHeroes: string[] = []
     const players: PlayerAssignment[] = []
+    let communityData
+    let heroStats: Record<string, HeroStats> | undefined
 
     if (randomizationType === 'balanced') {
-      const communityData = aggregateCommunityData(matches)
+      communityData = aggregateCommunityData(matches)
+      heroStats = {}
       let targetWinRate = 50
 
       for (let i = 0; i < playerCount; i++) {
@@ -65,8 +71,11 @@ export function RandomizerTab({ ownedSets, matches, setMatches }: RandomizerTabP
         selectedHeroes.push(heroId)
         
         const stats = communityData.heroStats[heroId]
-        if (stats && stats.totalGames >= 3) {
-          targetWinRate = stats.winRate
+        if (stats) {
+          heroStats[heroId] = stats
+          if (stats.totalGames >= 3) {
+            targetWinRate = stats.winRate
+          }
         }
 
         players.push({
@@ -91,6 +100,7 @@ export function RandomizerTab({ ownedSets, matches, setMatches }: RandomizerTabP
     setResult({
       mapId: randomMap.id,
       players,
+      heroStats,
     })
 
     toast.success('Random matchup generated!')
@@ -107,13 +117,34 @@ export function RandomizerTab({ ownedSets, matches, setMatches }: RandomizerTabP
       return
     }
 
-    const randomHero = available[Math.floor(Math.random() * available.length)]
+    let newHeroId: string
+    let updatedHeroStats = result.heroStats ? { ...result.heroStats } : undefined
+
+    if (randomizationType === 'balanced' && matches.length > 0) {
+      const communityData = aggregateCommunityData(matches)
+      const availableIds = available.map(h => h.id)
+      
+      const targetWinRate = index > 0 && result.players[index - 1] 
+        ? communityData.heroStats[result.players[index - 1].heroId]?.winRate ?? 50
+        : 50
+      
+      newHeroId = getBalancedRandomHero(availableIds, targetWinRate, communityData)
+      const stats = communityData.heroStats[newHeroId]
+      if (stats && updatedHeroStats) {
+        updatedHeroStats[newHeroId] = stats
+      }
+    } else {
+      const randomHero = available[Math.floor(Math.random() * available.length)]
+      newHeroId = randomHero.id
+    }
+
     const newPlayers = [...result.players]
-    newPlayers[index].heroId = randomHero.id
+    newPlayers[index].heroId = newHeroId
 
     setResult({
       ...result,
       players: newPlayers,
+      heroStats: updatedHeroStats,
     })
   }
 
@@ -233,15 +264,21 @@ export function RandomizerTab({ ownedSets, matches, setMatches }: RandomizerTabP
                   <p className="text-sm font-medium">Heroes</p>
                   {result.players.map((player, index) => {
                     const hero = getHeroById(player.heroId)
+                    const stats = result.heroStats?.[player.heroId]
                     return (
                       <div key={index} className="flex items-center justify-between p-4 bg-card rounded-lg border">
-                        <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-3 flex-1">
                           <Badge variant="outline" className="w-8 h-8 rounded-full flex items-center justify-center p-0">
                             {player.turnOrder}
                           </Badge>
-                          <div>
+                          <div className="flex-1">
                             <p className="font-semibold">{hero?.name}</p>
                             <p className="text-xs text-muted-foreground">{hero?.set}</p>
+                            {randomizationType === 'balanced' && stats && stats.totalGames > 0 && (
+                              <p className="text-xs text-accent mt-1">
+                                {stats.wins}W - {stats.losses}L ({stats.winRate.toFixed(1)}% win rate)
+                              </p>
+                            )}
                           </div>
                         </div>
                         <Button variant="outline" size="sm" onClick={() => rerollHero(index)}>

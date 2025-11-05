@@ -171,7 +171,7 @@ export function HeroesTab({ matches, currentUserId }: HeroesTabProps) {
         </Card>
       )}
 
-      <div className="grid gap-4 md:grid-cols-4">
+      <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-5">
         <Card className="p-6">
           <div className="flex items-center gap-3 mb-2">
             <div className="rounded-full bg-primary/10 p-2">
@@ -204,32 +204,30 @@ export function HeroesTab({ matches, currentUserId }: HeroesTabProps) {
 
         <Card className="p-6">
           <div className="flex items-center gap-3 mb-2">
-            <span className="text-sm text-muted-foreground">Win Rates</span>
-          </div>
-          <div className="space-y-3">
-            <div>
-              <div className="flex items-center gap-2 mb-1">
-                <User className="w-4 h-4 text-primary" />
-                <span className="text-xs text-muted-foreground">Your Win Rate</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <p className="text-2xl font-bold">{userStats.winRate.toFixed(1)}%</p>
-                <Progress value={userStats.winRate} className="flex-1 h-2" />
-              </div>
+            <div className="rounded-full bg-primary/10 p-2">
+              <User className="w-5 h-5 text-primary" />
             </div>
-            {globalStats.totalGames > 0 && (
-              <div>
-                <div className="flex items-center gap-2 mb-1">
-                  <Globe className="w-4 h-4 text-accent" />
-                  <span className="text-xs text-muted-foreground">Global Win Rate</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <p className="text-2xl font-bold text-accent">{globalStats.winRate.toFixed(1)}%</p>
-                  <Progress value={globalStats.winRate} className="flex-1 h-2" />
-                </div>
-              </div>
-            )}
+            <span className="text-sm text-muted-foreground">Your Win Rate</span>
           </div>
+          <p className="text-3xl font-bold">{userStats.winRate.toFixed(1)}%</p>
+          <Progress value={userStats.winRate} className="mt-2 h-2" />
+        </Card>
+
+        <Card className="p-6">
+          <div className="flex items-center gap-3 mb-2">
+            <div className="rounded-full bg-accent/10 p-2">
+              <Globe className="w-5 h-5 text-accent" />
+            </div>
+            <span className="text-sm text-muted-foreground">Global Win Rate</span>
+          </div>
+          {globalStats.totalGames > 0 ? (
+            <>
+              <p className="text-3xl font-bold text-accent">{globalStats.winRate.toFixed(1)}%</p>
+              <Progress value={globalStats.winRate} className="mt-2 h-2" />
+            </>
+          ) : (
+            <p className="text-sm text-muted-foreground mt-2">No global data yet</p>
+          )}
         </Card>
       </div>
 
