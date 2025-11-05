@@ -3,11 +3,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { SignIn, Eye, EyeClosed, UserPlus } from '@phosphor-icons/react'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { SignIn, Eye, EyeClosed, UserPlus, ChartBar, MagnifyingGlass, GridFour } from '@phosphor-icons/react'
 import { useKV } from '@github/spark/hooks'
 import type { User } from '@/lib/types'
 import { toast } from 'sonner'
 import { GlobalStats } from './GlobalStats'
+import { PublicHeroBrowser } from './PublicHeroBrowser'
+import { PublicHeatmap } from './PublicHeatmap'
 
 type SignInPromptProps = {
   onUserChange: (userId: string) => void
@@ -21,6 +24,8 @@ export function SignInPrompt({ onUserChange }: SignInPromptProps) {
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [users] = useKV<User[]>('users', [])
+  const [currentTab, setCurrentTab] = useState('stats')
+  const [selectedHeroId, setSelectedHeroId] = useState<string | null>(null)
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -88,6 +93,11 @@ export function SignInPrompt({ onUserChange }: SignInPromptProps) {
     setConfirmPassword('')
     setShowPassword(false)
     setShowConfirmPassword(false)
+  }
+
+  const handleHeroClick = (heroId: string) => {
+    setSelectedHeroId(heroId)
+    setCurrentTab('heroes')
   }
 
   return (
@@ -204,7 +214,34 @@ export function SignInPrompt({ onUserChange }: SignInPromptProps) {
         </CardContent>
       </Card>
       
-      <GlobalStats />
+      <Tabs value={currentTab} onValueChange={setCurrentTab} className="w-full">
+        <TabsList className="grid w-full grid-cols-3 mb-6">
+          <TabsTrigger value="stats">
+            <ChartBar className="mr-2" size={18} />
+            Community Stats
+          </TabsTrigger>
+          <TabsTrigger value="heroes">
+            <MagnifyingGlass className="mr-2" size={18} />
+            Hero Browser
+          </TabsTrigger>
+          <TabsTrigger value="heatmap">
+            <GridFour className="mr-2" size={18} />
+            Matchup Heatmap
+          </TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="stats">
+          <GlobalStats />
+        </TabsContent>
+        
+        <TabsContent value="heroes">
+          <PublicHeroBrowser selectedHeroId={selectedHeroId} />
+        </TabsContent>
+        
+        <TabsContent value="heatmap">
+          <PublicHeatmap onHeroClick={handleHeroClick} />
+        </TabsContent>
+      </Tabs>
     </div>
   )
 }
