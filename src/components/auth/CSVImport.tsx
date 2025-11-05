@@ -21,18 +21,83 @@ export function CSVImport({ currentUserId, onImportComplete }: CSVImportProps) {
   } | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
-  const findHeroByName = (name: string): string | null => {
+  const findHeroByName = async (name: string): Promise<string | null> => {
     if (!name) return null
     const normalized = name.trim().toLowerCase()
     const hero = HEROES.find(h => h.name.toLowerCase() === normalized)
-    return hero?.id || null
+    if (hero) return hero.id
+    
+    const heroNames = HEROES.map(h => `${h.id}: ${h.name}`).join('\n')
+    const promptText = `You are matching a hero name from a CSV import to the correct hero ID in the Unmatched database.
+
+Input name: "${name}"
+
+Available heroes:
+${heroNames}
+
+If the input name closely matches one of the heroes (accounting for typos, abbreviations, alternate spellings, nicknames, etc.), return ONLY the hero ID (the part before the colon).
+If there is no reasonable match, return exactly "NONE".
+
+Examples:
+- "robert muldoon" → "ingen"
+- "ingen" → "ingen"
+- "Sherlock" → "sherlock-holmes"
+- "Dr Strange" → "doctor-strange"
+- "T Rex" → "t-rex"
+- "Random Unknown Hero" → "NONE"
+
+Return only the ID or "NONE", nothing else.`
+    
+    try {
+      const result = await window.spark.llm(promptText, 'gpt-4o-mini', false)
+      const cleanResult = result.trim().toLowerCase()
+      if (cleanResult === 'none') return null
+      
+      const matchedHero = HEROES.find(h => h.id === cleanResult)
+      return matchedHero?.id || null
+    } catch (error) {
+      console.error('Error matching hero with LLM:', error)
+      return null
+    }
   }
 
-  const findMapByName = (name: string): string | null => {
+  const findMapByName = async (name: string): Promise<string | null> => {
     if (!name) return null
     const normalized = name.trim().toLowerCase()
     const map = MAPS.find(m => m.name.toLowerCase() === normalized)
-    return map?.id || null
+    if (map) return map.id
+    
+    const mapNames = MAPS.map(m => `${m.id}: ${m.name}`).join('\n')
+    const promptText = `You are matching a map name from a CSV import to the correct map ID in the Unmatched database.
+
+Input name: "${name}"
+
+Available maps:
+${mapNames}
+
+If the input name closely matches one of the maps (accounting for typos, abbreviations, alternate spellings, etc.), return ONLY the map ID (the part before the colon).
+If there is no reasonable match, return exactly "NONE".
+
+Examples:
+- "Raptor Paddock" → "raptor-paddock"
+- "T-Rex Paddock" → "t-rex-paddock"
+- "T. Rex Paddock" → "t-rex-paddock"
+- "Soho" → "soho"
+- "Random Unknown Map" → "NONE"
+
+Return only the ID or "NONE", nothing else.`
+    
+    try {
+      const result = await window.spark.llm(promptText, 'gpt-4o-mini', false)
+      const cleanResult = result.trim().toLowerCase()
+      if (cleanResult === 'none') return null
+      
+      const matchedMap = MAPS.find(m => m.id === cleanResult)
+      return matchedMap?.id || null
+    } catch (error) {
+      console.error('Error matching map with LLM:', error)
+      return null
+    }
   }
 
   const parseCSV = (text: string): string[][] => {
@@ -179,7 +244,7 @@ Example output format:
             continue
           }
 
-          const mapId = findMapByName(mapName)
+          const mapId = await findMapByName(mapName)
           if (!mapId) {
             errors.push(`Row ${rowNum}: Map "${mapName}" not found`)
             continue
@@ -202,7 +267,7 @@ Example output format:
                 continue
               }
               
-              const heroId = findHeroByName(heroName)
+              const heroId = await findHeroByName(heroName)
               if (!heroId) {
                 errors.push(`Row ${rowNum}: Hero "${heroName}" not found for Player${p}`)
                 continue
@@ -289,7 +354,7 @@ Example output format:
           Smart CSV Import
         </CardTitle>
         <CardDescription>
-          Upload any CSV file with match data - AI will automatically detect the format
+          Upload any CSV file with match data - AI will automatically detect the format and match hero/map names
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -380,11 +445,16 @@ Example output format:
             <div className="text-xs text-muted-foreground pt-2 border-t space-y-2">
               <div className="flex items-center gap-2 text-accent font-medium">
                 <Sparkle className="h-4 w-4" />
-                <span>AI-Powered Format Detection</span>
+                <span>AI-Powered Smart Import</span>
               </div>
               <p>
                 Just upload your CSV! The AI will automatically detect columns for:
                 date, game mode, map, player names, heroes, and winner.
+              </p>
+              <p>
+                <strong>Smart matching:</strong> Hero and map names don't need to match exactly.
+                The AI will intelligently match variations like "Robert Muldoon" → InGen, 
+                "T-Rex Paddock" → T. Rex Paddock, "Sherlock" → Sherlock Holmes, etc.
               </p>
               <p className="text-xs">
                 <strong>Supported variations:</strong> "Player 1" / "P1" / "Player1", 
