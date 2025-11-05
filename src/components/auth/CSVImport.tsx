@@ -2,7 +2,7 @@ import { useState, useRef } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
-import { Upload, CheckCircle, Warning, DownloadSimple } from '@phosphor-icons/react'
+import { Upload, CheckCircle, Warning, Sparkle } from '@phosphor-icons/react'
 import { toast } from 'sonner'
 import type { Match, PlayerAssignment } from '@/lib/types'
 import { HEROES, MAPS } from '@/lib/data'
@@ -20,26 +20,6 @@ export function CSVImport({ currentUserId, onImportComplete }: CSVImportProps) {
     matches: Match[]
   } | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
-
-  const downloadTemplate = () => {
-    const template = `Date,Mode,Map,Player1Name,Player1Hero,Player2Name,Player2Hero,Player3Name,Player3Hero,Player4Name,Player4Hero,Winner,IsDraw
-2024-01-15,1v1,Sarpedon,Mike,Alice,Sarah,Medusa,,,,,Mike,false
-2024-01-16,2v2,Sarpedon,Mike,King Arthur,Sarah,Sinbad,Alex,Alice,Jordan,Medusa,Mike & Sarah,false
-2024-01-17,ffa3,Baskerville Manor,Mike,Bruce Lee,Sarah,Robin Hood,Alex,Bigfoot,,,Alex,false
-2024-01-18,1v1,Sarpedon,Mike,Sherlock Holmes,Sarah,Dracula,,,,,DRAW,true`
-
-    const blob = new Blob([template], { type: 'text/csv' })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = 'unmatched-import-template.csv'
-    document.body.appendChild(a)
-    a.click()
-    document.body.removeChild(a)
-    URL.revokeObjectURL(url)
-    
-    toast.success('Template downloaded')
-  }
 
   const findHeroByName = (name: string): string | null => {
     if (!name) return null
@@ -80,6 +60,67 @@ export function CSVImport({ currentUserId, onImportComplete }: CSVImportProps) {
     })
   }
 
+  const inferCSVMapping = async (headers: string[], sampleRows: string[][]): Promise<Record<string, number>> => {
+    const heroNames = HEROES.map(h => h.name).join(', ')
+    const mapNames = MAPS.map(m => m.name).join(', ')
+    const sampleData = sampleRows.map((row, i) => `Row ${i + 1}: ${row.join(', ')}`).join('\n')
+    
+    const promptText = `You are analyzing a CSV file for an Unmatched board game match tracker.
+
+CSV Headers: ${headers.join(', ')}
+
+Sample Data Rows (first 3):
+${sampleData}
+
+Available Heroes in database: ${heroNames}
+Available Maps in database: ${mapNames}
+
+Required fields to map:
+- date: The date of the match (look for date/when/timestamp columns)
+- mode: Game mode (1v1, 2v2, ffa3, ffa4, cooperative - look for mode/type/format columns)
+- map: The map name (look for map/board/location columns)
+- player1_name: First player's name
+- player1_hero: First player's hero
+- player2_name: Second player's name  
+- player2_hero: Second player's hero
+- player3_name: Third player's name (optional)
+- player3_hero: Third player's hero (optional)
+- player4_name: Fourth player's name (optional)
+- player4_hero: Fourth player's hero (optional)
+- winner: Winner's name or "DRAW" (look for winner/result columns)
+- is_draw: Boolean indicating if match was a draw (look for draw/tie columns)
+
+Return a JSON object mapping each required field to its column index (0-based).
+If a field cannot be found, use -1 as the index.
+Be smart about variations in column names (e.g., "Player 1" vs "P1" vs "Player1").
+
+Example output format:
+{
+  "date": 0,
+  "mode": 1,
+  "map": 2,
+  "player1_name": 3,
+  "player1_hero": 4,
+  "player2_name": 5,
+  "player2_hero": 6,
+  "player3_name": -1,
+  "player3_hero": -1,
+  "player4_name": -1,
+  "player4_hero": -1,
+  "winner": 7,
+  "is_draw": 8
+}`
+
+    try {
+      const result = await window.spark.llm(promptText, 'gpt-4o-mini', true)
+      const mapping = JSON.parse(result)
+      return mapping
+    } catch (error) {
+      console.error('Error inferring CSV mapping:', error)
+      throw new Error('Failed to automatically detect CSV structure. Please check your CSV format.')
+    }
+  }
+
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
     if (!file) return
@@ -102,30 +143,37 @@ export function CSVImport({ currentUserId, onImportComplete }: CSVImportProps) {
       }
 
       const headers = rows[0].map(h => h.toLowerCase().trim())
+      const dataRows = rows.slice(1)
+      const sampleRows = dataRows.slice(0, 3)
+
+      toast.info('Analyzing CSV structure with AI...')
+      const mapping = await inferCSVMapping(headers, sampleRows)
       
-      for (let i = 1; i < rows.length; i++) {
-        const row = rows[i]
-        const rowNum = i + 1
+      const getCell = (row: string[], field: string): string => {
+        const index = mapping[field]
+        if (index === undefined || index === -1 || index >= row.length) return ''
+        return row[index]?.trim() || ''
+      }
+      
+      for (let i = 0; i < dataRows.length; i++) {
+        const row = dataRows[i]
+        const rowNum = i + 2
         
         try {
-          const getCell = (headerName: string): string => {
-            const index = headers.findIndex(h => h.includes(headerName))
-            return index >= 0 ? row[index]?.trim() || '' : ''
-          }
-
-          const date = getCell('date')
-          const mode = getCell('mode') as Match['mode']
-          const mapName = getCell('map')
-          const isDraw = getCell('draw').toLowerCase() === 'true'
-          const winner = getCell('winner')
+          const date = getCell(row, 'date')
+          const modeStr = getCell(row, 'mode')
+          const mapName = getCell(row, 'map')
+          const isDrawStr = getCell(row, 'is_draw')
+          const winner = getCell(row, 'winner')
 
           if (!date) {
             errors.push(`Row ${rowNum}: Missing date`)
             continue
           }
 
+          const mode = modeStr.toLowerCase() as Match['mode']
           if (!mode || !['1v1', '2v2', 'ffa3', 'ffa4', 'cooperative'].includes(mode)) {
-            errors.push(`Row ${rowNum}: Invalid mode "${mode}". Must be: 1v1, 2v2, ffa3, ffa4, or cooperative`)
+            errors.push(`Row ${rowNum}: Invalid mode "${modeStr}". Must be: 1v1, 2v2, ffa3, ffa4, or cooperative`)
             continue
           }
 
@@ -139,8 +187,8 @@ export function CSVImport({ currentUserId, onImportComplete }: CSVImportProps) {
           const playerCount = mode === '1v1' ? 2 : mode === '2v2' ? 4 : mode === 'ffa3' ? 3 : 4
           
           for (let p = 1; p <= 4; p++) {
-            const playerName = getCell(`player${p}name`)
-            const heroName = getCell(`player${p}hero`)
+            const playerName = getCell(row, `player${p}_name`)
+            const heroName = getCell(row, `player${p}_hero`)
             
             if (p <= playerCount) {
               if (!playerName) {
@@ -169,6 +217,8 @@ export function CSVImport({ currentUserId, onImportComplete }: CSVImportProps) {
           if (players.length !== playerCount) {
             continue
           }
+
+          const isDraw = isDrawStr.toLowerCase() === 'true' || winner.toLowerCase() === 'draw'
 
           const match: Match = {
             id: `import-${Date.now()}-${i}`,
@@ -233,11 +283,11 @@ export function CSVImport({ currentUserId, onImportComplete }: CSVImportProps) {
     <Card className="max-w-3xl mx-auto mb-6">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <Upload className="h-5 w-5" />
-          Import Matches from CSV
+          <Sparkle className="h-5 w-5" />
+          Smart CSV Import
         </CardTitle>
         <CardDescription>
-          Restore your lost data by importing matches from a CSV file
+          Upload any CSV file with match data - AI will automatically detect the format
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -252,15 +302,6 @@ export function CSVImport({ currentUserId, onImportComplete }: CSVImportProps) {
         ) : (
           <>
             <div className="space-y-3">
-              <Button
-                variant="outline"
-                onClick={downloadTemplate}
-                className="w-full"
-              >
-                <DownloadSimple className="h-4 w-4 mr-2" />
-                Download CSV Template
-              </Button>
-
               <div className="relative">
                 <input
                   ref={fileInputRef}
@@ -276,7 +317,7 @@ export function CSVImport({ currentUserId, onImportComplete }: CSVImportProps) {
                   className="w-full pointer-events-none"
                 >
                   <Upload className="h-4 w-4 mr-2" />
-                  {importing ? 'Processing...' : 'Select CSV File to Import'}
+                  {importing ? 'Analyzing CSV...' : 'Select CSV File to Import'}
                 </Button>
               </div>
             </div>
@@ -335,16 +376,18 @@ export function CSVImport({ currentUserId, onImportComplete }: CSVImportProps) {
             )}
 
             <div className="text-xs text-muted-foreground pt-2 border-t space-y-2">
-              <p><strong>CSV Format:</strong></p>
-              <ul className="list-disc list-inside space-y-1 ml-2">
-                <li><strong>Date:</strong> YYYY-MM-DD format (e.g., 2024-01-15)</li>
-                <li><strong>Mode:</strong> 1v1, 2v2, ffa3, ffa4, or cooperative</li>
-                <li><strong>Map:</strong> Exact map name (e.g., "Sarpedon")</li>
-                <li><strong>Players:</strong> Player1Name, Player1Hero, Player2Name, Player2Hero, etc.</li>
-                <li><strong>Winner:</strong> Player name who won (or "DRAW")</li>
-                <li><strong>IsDraw:</strong> true or false</li>
-              </ul>
-              <p className="text-accent">Download the template for an example format!</p>
+              <div className="flex items-center gap-2 text-accent font-medium">
+                <Sparkle className="h-4 w-4" />
+                <span>AI-Powered Format Detection</span>
+              </div>
+              <p>
+                Just upload your CSV! The AI will automatically detect columns for:
+                date, game mode, map, player names, heroes, and winner.
+              </p>
+              <p className="text-xs">
+                <strong>Supported variations:</strong> "Player 1" / "P1" / "Player1", 
+                "Hero 1" / "Character 1", "Winner" / "Result", and many more!
+              </p>
             </div>
           </>
         )}
