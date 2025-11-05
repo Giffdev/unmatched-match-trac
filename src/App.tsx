@@ -9,6 +9,8 @@ import { RandomizerTab } from '@/components/randomizer/RandomizerTab'
 import { UserProfile } from '@/components/auth/UserProfile'
 import { SignInPrompt } from '@/components/auth/SignInPrompt'
 import { DataCleanup } from '@/components/auth/DataCleanup'
+import { DataRecovery } from '@/components/auth/DataRecovery'
+import { DataLossExplanation } from '@/components/auth/DataLossExplanation'
 import { Toaster } from '@/components/ui/sonner'
 import type { Match } from '@/lib/types'
 import { useEffect, useRef } from 'react'
@@ -69,6 +71,9 @@ function App() {
       </header>
 
       <main className="container mx-auto px-4 py-6">
+        <DataLossExplanation />
+        <DataRecovery />
+        
         {!currentUserId ? (
           <SignInPrompt onUserChange={handleUserChange} />
         ) : (
