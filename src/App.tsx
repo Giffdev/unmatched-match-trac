@@ -11,11 +11,14 @@ import { SignInPrompt } from '@/components/auth/SignInPrompt'
 import { DataCleanup } from '@/components/auth/DataCleanup'
 import { Toaster } from '@/components/ui/sonner'
 import type { Match } from '@/lib/types'
+import { useEffect, useRef } from 'react'
+import { toast } from 'sonner'
 
 function App() {
   const [currentUserId, setCurrentUserId] = useKV<string | null>('current-user-id', null)
   const [matches, setMatches] = useUserData<Match[]>('matches', [], currentUserId)
   const [ownedSets, setOwnedSets] = useUserData<string[]>('owned-sets', [], currentUserId)
+  const migrationRan = useRef(false)
 
   const matchesData = matches || []
   const ownedSetsData = ownedSets || []
@@ -23,6 +26,50 @@ function App() {
   const handleUserChange = async (userId: string) => {
     setCurrentUserId(userId)
   }
+
+  useEffect(() => {
+    const runMigration = async () => {
+      if (migrationRan.current) return
+      
+      const user = await window.spark.user()
+      if (!user || user.email !== 'giffdev@gmail.com') return
+      
+      const userId = user.id
+      const matchesKey = `matches-${userId}`
+      const storedMatches = await window.spark.kv.get<Match[]>(matchesKey)
+      
+      if (!storedMatches || storedMatches.length === 0) return
+      
+      migrationRan.current = true
+      
+      const nameMap: Record<string, string> = {
+        'sarah': 'Sarah Anderson',
+        'devin': 'Devin Sinha',
+        'stephen': 'Stephen Kidson'
+      }
+      
+      let updated = false
+      const updatedMatches = storedMatches.map(match => {
+        const updatedPlayers = match.players.map(player => {
+          const lowerName = player.playerName.toLowerCase()
+          if (nameMap[lowerName]) {
+            updated = true
+            return { ...player, playerName: nameMap[lowerName] }
+          }
+          return player
+        })
+        return { ...match, players: updatedPlayers }
+      })
+      
+      if (updated) {
+        await window.spark.kv.set(matchesKey, updatedMatches)
+        setMatches(updatedMatches)
+        toast.success('Player names updated successfully')
+      }
+    }
+    
+    runMigration()
+  }, [currentUserId, setMatches])
 
   return (
     <div className="min-h-screen bg-background">
