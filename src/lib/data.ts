@@ -43,7 +43,7 @@ export const HEROES: Hero[] = [
   { id: 'robin-hood', name: 'Robin Hood', set: 'Robin Hood vs Bigfoot', sidekick: 'Outlaws' },
   { id: 'bigfoot', name: 'Bigfoot', set: 'Robin Hood vs Bigfoot' },
   
-  { id: 'ingen', name: 'InGen', set: 'Jurassic Park – InGen vs. Raptors', sidekick: 'InGen Mercenaries' },
+  { id: 'ingen', name: 'Robert Muldoon', set: 'Jurassic Park – InGen vs. Raptors', sidekick: 'InGen Workers' },
   { id: 'raptors', name: 'Raptors', set: 'Jurassic Park – InGen vs. Raptors' },
   
   { id: 'sherlock-holmes', name: 'Sherlock Holmes', set: 'Cobble & Fog', sidekick: 'Dr. Watson' },
