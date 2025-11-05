@@ -12,14 +12,13 @@ import { DataCleanup } from '@/components/auth/DataCleanup'
 import { Toaster } from '@/components/ui/sonner'
 import type { Match } from '@/lib/types'
 import { useEffect, useRef } from 'react'
-import { toast } from 'sonner'
+import { normalizeMatchPlayerNames } from '@/lib/utils'
 
 function App() {
   const [currentUserId, setCurrentUserId] = useKV<string | null>('current-user-id', null)
   const [matches, setMatches] = useUserData<Match[]>('matches', [], currentUserId)
   const [ownedSets, setOwnedSets] = useUserData<string[]>('owned-sets', [], currentUserId)
-  const migrationRan = useRef(false)
-  const [migrationVersion, setMigrationVersion] = useKV<number>('migration-version', 0)
+  const normalizationRan = useRef(false)
 
   const matchesData = matches || []
   const ownedSetsData = ownedSets || []
@@ -29,85 +28,24 @@ function App() {
   }
 
   useEffect(() => {
-    const runMigration = async () => {
-      if (migrationRan.current) return
+    const normalizeExistingMatches = async () => {
+      if (normalizationRan.current) return
       if (!currentUserId) return
+      if (!matchesData || matchesData.length === 0) return
       
-      const user = await window.spark.user()
-      if (!user || user.email !== 'giffdev@gmail.com') return
+      normalizationRan.current = true
       
-      const currentVersion = migrationVersion || 0
+      const normalizedMatches = matchesData.map(normalizeMatchPlayerNames)
+      const hasChanges = JSON.stringify(matchesData) !== JSON.stringify(normalizedMatches)
       
-      if (currentVersion >= 2) {
-        console.log('Migration v2 already ran')
-        migrationRan.current = true
-        return
-      }
-      
-      migrationRan.current = true
-      
-      const userId = user.id
-      const matchesKey = `matches-${userId}`
-      const storedMatches = await window.spark.kv.get<Match[]>(matchesKey)
-      
-      if (!storedMatches || storedMatches.length === 0) {
-        console.log('No matches found to migrate')
-        setMigrationVersion(2)
-        return
-      }
-      
-      console.log(`Found ${storedMatches.length} matches, checking for names to update...`)
-      
-      const nameMap: Record<string, string> = {
-        'sarah': 'Sarah Anderson',
-        'sarah anderson': 'Sarah Anderson',
-        'devin': 'Devin Sinha',
-        'devin sinha': 'Devin Sinha',
-        'stephen': 'Stephen Kidson',
-        'stephen kidson': 'Stephen Kidson',
-        'SARAH': 'Sarah Anderson',
-        'DEVIN': 'Devin Sinha',
-        'STEPHEN': 'Stephen Kidson',
-        'Devin': 'Devin Sinha',
-        'Sarah': 'Sarah Anderson',
-        'Stephen': 'Stephen Kidson'
-      }
-      
-      let updateCount = 0
-      const updatedMatches = storedMatches.map(match => {
-        const updatedPlayers = match.players.map(player => {
-          const trimmedName = player.playerName.trim()
-          const lowerName = trimmedName.toLowerCase()
-          
-          if (nameMap[lowerName] && trimmedName !== nameMap[lowerName]) {
-            console.log(`Match ${match.id}: Updating "${trimmedName}" to "${nameMap[lowerName]}"`)
-            updateCount++
-            return { ...player, playerName: nameMap[lowerName] }
-          }
-          if (nameMap[trimmedName] && trimmedName !== nameMap[trimmedName]) {
-            console.log(`Match ${match.id}: Updating "${trimmedName}" to "${nameMap[trimmedName]}"`)
-            updateCount++
-            return { ...player, playerName: nameMap[trimmedName] }
-          }
-          return player
-        })
-        return { ...match, players: updatedPlayers }
-      })
-      
-      if (updateCount > 0) {
-        console.log(`Updating ${updateCount} player name entries across matches...`)
-        await window.spark.kv.set(matchesKey, updatedMatches)
-        setMatches(updatedMatches)
-        setMigrationVersion(2)
-        toast.success(`Updated ${updateCount} player name entries`)
-      } else {
-        console.log('No player names needed updating')
-        setMigrationVersion(2)
+      if (hasChanges) {
+        console.log('Normalizing player names in existing matches...')
+        setMatches(normalizedMatches)
       }
     }
     
-    runMigration()
-  }, [currentUserId, setMatches, migrationVersion, setMigrationVersion])
+    normalizeExistingMatches()
+  }, [currentUserId, matchesData.length])
 
   return (
     <div className="min-h-screen bg-background">

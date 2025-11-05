@@ -11,7 +11,7 @@ import { toast } from 'sonner'
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Check, CaretUpDown, Plus, Trash, CalendarBlank } from '@phosphor-icons/react'
-import { cn } from '@/lib/utils'
+import { cn, normalizePlayerName } from '@/lib/utils'
 import { Calendar } from '@/components/ui/calendar'
 import { format } from 'date-fns'
 
@@ -309,12 +309,17 @@ export function EditMatchDialog({ open, onOpenChange, onSave, match }: EditMatch
     const day = String(selectedDate.getDate()).padStart(2, '0')
     const dateString = `${year}-${month}-${day}`
 
+    const normalizedPlayers = players.map(player => ({
+      ...player,
+      playerName: normalizePlayerName(player.playerName)
+    }))
+
     const updatedMatch: Match = {
       ...match,
       date: dateString,
       mode,
       mapId,
-      players,
+      players: normalizedPlayers,
       winnerId: isCooperative || isDraw ? undefined : winnerId,
       isDraw: isCooperative ? false : isDraw,
     }

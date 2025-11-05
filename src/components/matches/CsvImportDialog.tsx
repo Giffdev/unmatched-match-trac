@@ -7,6 +7,7 @@ import { toast } from 'sonner'
 import { HEROES, MAPS } from '@/lib/data'
 import { Upload } from '@phosphor-icons/react'
 import type { Match } from '@/lib/types'
+import { normalizePlayerName } from '@/lib/utils'
 
 type CsvImportDialogProps = {
   open: boolean
@@ -189,8 +190,8 @@ export function CsvImportDialog({ open, onOpenChange, onImport, currentUserId, o
           continue
         }
 
-        const player1Name = player1.trim()
-        const player2Name = player2.trim()
+        const player1Name = normalizePlayerName(player1.trim())
+        const player2Name = normalizePlayerName(player2.trim())
         
         if (player1Name === '#VALUE!' || player2Name === '#VALUE!') {
           errors.push(`Line ${i + 1}: Invalid player name`)
@@ -201,9 +202,9 @@ export function CsvImportDialog({ open, onOpenChange, onImport, currentUserId, o
         const victorName = victor.trim().toUpperCase()
         let winnerId: string | undefined
         
-        if (victorName === player1Name.toUpperCase()) {
+        if (victorName === player1Name.toUpperCase() || victorName === player1.trim().toUpperCase()) {
           winnerId = hero1Id.heroId
-        } else if (victorName === player2Name.toUpperCase()) {
+        } else if (victorName === player2Name.toUpperCase() || victorName === player2.trim().toUpperCase()) {
           winnerId = hero2Id.heroId
         }
 
