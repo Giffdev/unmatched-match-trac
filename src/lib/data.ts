@@ -136,6 +136,8 @@ export const MAPS: Map[] = [
   { id: 'streets-of-novigrad', name: 'Streets of Novigrad', set: 'The Witcher – Realms Fall', minPlayers: 2, maxPlayers: 4, zones: 8, spaces: 34 },
   { id: 'fayrlund-forest', name: 'Fayrlund Forest', set: 'The Witcher – Steel & Silver', minPlayers: 2, maxPlayers: 4, zones: 8, spaces: 30 },
   { id: 'kaer-morhen', name: 'Kaer Morhen', set: 'The Witcher – Steel & Silver', minPlayers: 2, maxPlayers: 4, zones: 8, spaces: 32 },
+  { id: 'the-sewers', name: 'The Sewers', set: 'Unmatched Adventures: Teenage Mutant Ninja Turtles', minPlayers: 2, maxPlayers: 4, zones: 8, spaces: 32 },
+  { id: 'aprils-apartment', name: 'April\'s Apartment', set: 'Unmatched Adventures: Teenage Mutant Ninja Turtles', minPlayers: 2, maxPlayers: 4, zones: 7, spaces: 30 },
 ]
 
 export function getHeroById(id: string): Hero | undefined {
@@ -158,7 +160,7 @@ export function getMapsByPlayerCount(playerCount: number): Map[] {
   return MAPS.filter(m => playerCount >= m.minPlayers && playerCount <= m.maxPlayers)
 }
 
-export const ADVENTURE_SETS = ['Adventures: Tales to Amaze']
+export const ADVENTURE_SETS = ['Adventures: Tales to Amaze', 'Unmatched Adventures: Teenage Mutant Ninja Turtles']
 
 export function getCooperativeMaps(): Map[] {
   return MAPS.filter(m => ADVENTURE_SETS.includes(m.set))
