@@ -1,4 +1,4 @@
-import { useMemo, useEffect } from 'react'
+import { useMemo, useEffect, useState } from 'react'
 import { Card } from '@/components/ui/card'
 import { Globe } from '@phosphor-icons/react'
 import { useKV } from '@github/spark/hooks'
@@ -14,11 +14,16 @@ type GlobalResultsTabProps = {
 
 export function GlobalResultsTab({ matches, currentUserId, onHeroClick }: GlobalResultsTabProps) {
   const [allMatches, setAllMatches] = useKV<Match[]>('community-all-matches', [])
+  const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
     const updateCommunityMatches = async () => {
-      if (!currentUserId) return
+      if (!currentUserId) {
+        setIsLoading(false)
+        return
+      }
       
+      setIsLoading(true)
       const keys = await window.spark.kv.keys()
       const matchKeys = keys.filter(k => k.startsWith('matches-'))
       
@@ -31,6 +36,7 @@ export function GlobalResultsTab({ matches, currentUserId, onHeroClick }: Global
       }
       
       setAllMatches(allMatchesData)
+      setIsLoading(false)
     }
     
     updateCommunityMatches()
@@ -51,6 +57,24 @@ export function GlobalResultsTab({ matches, currentUserId, onHeroClick }: Global
             <h3 className="text-lg font-semibold mb-2">Sign in required</h3>
             <p className="text-muted-foreground">
               Sign in to view global matchup statistics
+            </p>
+          </div>
+        </div>
+      </Card>
+    )
+  }
+
+  if (isLoading) {
+    return (
+      <Card className="p-12 text-center">
+        <div className="flex flex-col items-center gap-4">
+          <div className="rounded-full bg-primary/10 p-6">
+            <Globe className="w-12 h-12 text-primary animate-pulse" />
+          </div>
+          <div>
+            <h3 className="text-lg font-semibold mb-2">Loading global data...</h3>
+            <p className="text-muted-foreground">
+              Fetching matchup statistics from all users
             </p>
           </div>
         </div>
@@ -91,7 +115,7 @@ export function GlobalResultsTab({ matches, currentUserId, onHeroClick }: Global
         </Card>
       </div>
 
-      <HeroMatchupHeatmap matches={allMatches || []} onHeroClick={onHeroClick} />
+      <HeroMatchupHeatmap matches={allMatches || []} onHeroClick={onHeroClick} isLoading={isLoading} />
 
       <Card className="p-6">
         <h3 className="text-lg font-semibold mb-4">How to Read the Heatmap</h3>

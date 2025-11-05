@@ -6,6 +6,7 @@ import { cn } from '@/lib/utils'
 type HeroMatchupHeatmapProps = {
   matches: Match[]
   onHeroClick: (heroId: string) => void
+  isLoading: boolean
 }
 
 type MatchupData = {
@@ -14,7 +15,7 @@ type MatchupData = {
   winRate: number
 }
 
-export function HeroMatchupHeatmap({ matches, onHeroClick }: HeroMatchupHeatmapProps) {
+export function HeroMatchupHeatmap({ matches, onHeroClick, isLoading }: HeroMatchupHeatmapProps) {
   const matchupMatrix = useMemo(() => {
     const matrix: Record<string, Record<string, MatchupData>> = {}
     
@@ -97,6 +98,14 @@ export function HeroMatchupHeatmap({ matches, onHeroClick }: HeroMatchupHeatmapP
       const lightness = 0.45 + ((winRate - 75) / 25) * 0.10
       return `oklch(${lightness} 0.15 195 / ${alpha})`
     }
+  }
+
+  if (isLoading) {
+    return (
+      <div className="text-center py-8 text-muted-foreground">
+        Loading matchup data...
+      </div>
+    )
   }
 
   if (heroesWithData.length === 0) {
