@@ -10,9 +10,8 @@ import { UserProfile } from '@/components/auth/UserProfile'
 import { SignInPrompt } from '@/components/auth/SignInPrompt'
 import { DataCleanup } from '@/components/auth/DataCleanup'
 import { Toaster } from '@/components/ui/sonner'
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import type { Match } from '@/lib/types'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef } from 'react'
 import { normalizeMatchPlayerNames } from '@/lib/utils'
 
 function App() {
@@ -20,7 +19,6 @@ function App() {
   const [matches, setMatches] = useUserData<Match[]>('matches', [], currentUserId)
   const [ownedSets, setOwnedSets] = useUserData<string[]>('owned-sets', [], currentUserId)
   const normalizationRan = useRef(false)
-  const [collectionDialogOpen, setCollectionDialogOpen] = useState(false)
 
   const matchesData = matches || []
   const ownedSetsData = ownedSets || []
@@ -65,7 +63,7 @@ function App() {
                 Log matches, analyze statistics, and discover perfect matchups
               </p>
             </div>
-            <UserProfile onCollectionClick={() => setCollectionDialogOpen(true)} />
+            <UserProfile />
           </div>
         </div>
       </header>
@@ -76,11 +74,12 @@ function App() {
         ) : (
           <>
             <Tabs defaultValue="matches" className="w-full">
-              <TabsList className="grid w-full grid-cols-4 mb-6">
+              <TabsList className="grid w-full grid-cols-5 mb-6">
                 <TabsTrigger value="matches">Matches</TabsTrigger>
                 <TabsTrigger value="players">Players</TabsTrigger>
                 <TabsTrigger value="heroes">Heroes</TabsTrigger>
                 <TabsTrigger value="randomizer">Randomizer</TabsTrigger>
+                <TabsTrigger value="collection">Collection</TabsTrigger>
               </TabsList>
 
             <TabsContent value="matches">
@@ -101,16 +100,11 @@ function App() {
             <TabsContent value="randomizer">
               <RandomizerTab ownedSets={ownedSetsData} matches={matchesData} setMatches={setMatches} />
             </TabsContent>
-          </Tabs>
 
-          <Dialog open={collectionDialogOpen} onOpenChange={setCollectionDialogOpen}>
-            <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
-              <DialogHeader>
-                <DialogTitle>Manage Collection</DialogTitle>
-              </DialogHeader>
-              <CollectionTab ownedSets={ownedSetsData} setOwnedSets={setOwnedSets} inDialog />
-            </DialogContent>
-          </Dialog>
+            <TabsContent value="collection">
+              <CollectionTab ownedSets={ownedSetsData} setOwnedSets={setOwnedSets} />
+            </TabsContent>
+          </Tabs>
           </>
         )}
       </main>
