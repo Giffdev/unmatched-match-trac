@@ -1,47 +1,42 @@
 import { useState } from 'react'
 import { Sword } from '@phosphor-icons/react'
 import { cn } from '@/lib/utils'
-import { cn } from '@/lib/utils'
+import type { Hero } from '@/lib/types'
 
-
-  const [ima
-
-
- 
-
-          alt={hero.name}
-            "w-full h-full object-cover rounded-lg bo
-          )}
-
-            setImageLoaded(false)
-
-      )}
-      <div 
-          "absolute inset-0 bg-gradient-
-        )}
-        <Sword className="w-16
-          <div className=
-            {hero.sideki
-                <p className="font-medium">Sidekick:</p>
-              </div>
-            
-            </div>
-        )}
-    </div>
+type HeroImageProps = {
+  hero: Hero
+  className?: string
 }
 
+export function HeroImage({ hero, className }: HeroImageProps) {
+  const [imageLoaded, setImageLoaded] = useState(false)
+  const [imageError, setImageError] = useState(false)
 
+  const imageUrl = `https://unmatched.cards/images/heroes/${hero.id}.jpg`
 
-
-
-
-
-
-
-
-
-
-
+  return (
+    <div className={cn("relative overflow-hidden rounded-lg border border-border bg-card", className)}>
+      {!imageError ? (
+        <img
+          src={imageUrl}
+          alt={hero.name}
+          className={cn(
+            "w-full h-full object-cover rounded-lg transition-opacity duration-300",
+            imageLoaded ? "opacity-100" : "opacity-0"
+          )}
+          onLoad={() => setImageLoaded(true)}
+          onError={() => {
+            setImageLoaded(false)
+            setImageError(true)
+          }}
+        />
+      ) : (
+        <div 
+          className={cn(
+            "absolute inset-0 bg-gradient-to-br from-primary/20 to-accent/20 flex flex-col items-center justify-center p-4 text-center"
+          )}
+        >
+          <Sword className="w-16 h-16 text-primary mb-4" />
           <div className="space-y-2">
             <h3 className="font-bold text-lg text-foreground">{hero.name}</h3>
             {hero.sidekick && (
@@ -54,8 +49,8 @@ import { cn } from '@/lib/utils'
               <p className="text-xs text-muted-foreground">{hero.set}</p>
             </div>
           </div>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   )
 }
