@@ -92,11 +92,9 @@ export function SignInPrompt({ onUserChange }: SignInPromptProps) {
 
   return (
     <div className="space-y-8">
-      <GlobalStats />
-      
-      <Card className="max-w-md mx-auto">
+      <Card className="max-w-md mx-auto shadow-lg">
         <CardHeader>
-          <CardTitle>
+          <CardTitle className="text-2xl">
             {mode === 'signin' ? 'Welcome Back' : 'Create Account'}
           </CardTitle>
           <CardDescription>
@@ -175,7 +173,7 @@ export function SignInPrompt({ onUserChange }: SignInPromptProps) {
                 </div>
               </div>
             )}
-            <Button type="submit" className="w-full">
+            <Button type="submit" className="w-full" size="lg">
               {mode === 'signin' ? (
                 <>
                   <SignIn className="mr-2" />
@@ -205,6 +203,8 @@ export function SignInPrompt({ onUserChange }: SignInPromptProps) {
           </div>
         </CardContent>
       </Card>
+      
+      <GlobalStats />
     </div>
   )
 }
