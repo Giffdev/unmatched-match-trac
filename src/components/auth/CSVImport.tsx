@@ -345,7 +345,9 @@ Example output format:
       })
 
       if (matches.length > 0) {
-        toast.success(`Successfully parsed ${matches.length} matches`)
+        toast.success(`Successfully parsed ${matches.length} matches - click "Confirm Import" to save them!`, {
+          duration: 6000
+        })
       }
       
       if (errors.length > 0) {
@@ -421,10 +423,11 @@ Example output format:
                   {importResults.success > 0 ? (
                     <>
                       <CheckCircle className="h-4 w-4" />
-                      <AlertTitle>Import Preview</AlertTitle>
+                      <AlertTitle>Ready to Import!</AlertTitle>
                       <AlertDescription>
                         Successfully parsed {importResults.success} match{importResults.success !== 1 ? 'es' : ''}.
                         {importResults.errors.length > 0 && ` ${importResults.errors.length} error${importResults.errors.length !== 1 ? 's' : ''} encountered.`}
+                        <strong className="block mt-2 text-foreground">Click "Confirm Import" below to save these matches.</strong>
                       </AlertDescription>
                     </>
                   ) : (
@@ -453,8 +456,10 @@ Example output format:
                   <div className="flex gap-2">
                     <Button
                       onClick={confirmImport}
-                      className="flex-1"
+                      className="flex-1 animate-pulse"
+                      size="lg"
                     >
+                      <CheckCircle className="mr-2 h-5 w-5" />
                       Confirm Import ({importResults.success} matches)
                     </Button>
                     <Button
