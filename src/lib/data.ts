@@ -25,6 +25,7 @@ export const UNMATCHED_SETS: SetInfo[] = [
   { name: 'The Witcher – Realms Fall', franchise: 'The Witcher' },
   { name: 'The Witcher – Steel & Silver', franchise: 'The Witcher' },
   { name: 'Unmatched Adventures: Teenage Mutant Ninja Turtles', franchise: 'TMNT' },
+  { name: 'TMNT: Shredder and Krang', franchise: 'TMNT' },
 ]
 
 export const FRANCHISES = Array.from(new Set(UNMATCHED_SETS.map(s => s.franchise))).sort()
@@ -105,6 +106,8 @@ export const HEROES: Hero[] = [
   { id: 'raphael', name: 'Raphael', hp: 16, move: 2, attack: 'MELEE', set: 'Unmatched Adventures: Teenage Mutant Ninja Turtles', imageUrl: 'https://cf.geekdo-images.com/c8cF9aWNjUyRSR3jF1SzyA__imagepage/img/W3TIgA8VsJcEJUxgYOpUe4KZeNg=/fit-in/900x600/filters:no_upscale():strip_icc()/pic7891995.png', abilityTitle: "FIGHT", abilityDescription: "After Raph wins combat when attacking, if he dealt at least 3 damage, he may immediately attack again." },
   { id: 'donatello', name: 'Donatello', hp: 12, move: 2, attack: 'RANGED', set: 'Unmatched Adventures: Teenage Mutant Ninja Turtles', imageUrl: 'https://cf.geekdo-images.com/M_Cp0GQ7UaC_jdpaTX0BQQ__imagepage/img/T0_iEw7ubIJtkbPLSiNHNJQkKdA=/fit-in/900x600/filters:no_upscale():strip_icc()/pic7891989.png', abilityTitle: "RESEARCH", abilityDescription: "At the end of your turn, you may discard a card to draw a card." },
   { id: 'michelangelo', name: 'Michelangelo', hp: 13, move: 3, attack: 'MELEE', set: 'Unmatched Adventures: Teenage Mutant Ninja Turtles', imageUrl: 'https://cf.geekdo-images.com/P0_nzLMBWe3f2zIcLIm-PQ__imagepage/img/hOX4XbjLqtKVCu8iinSp5Sc1Xig=/fit-in/900x600/filters:no_upscale():strip_icc()/pic7891991.png', abilityTitle: "PARTY", abilityDescription: "When you take the scheme action, you may move Mikey up to 2 spaces." },
+  { id: 'krang', name: 'Krang', hp: 16, move: 1, attack: 'MELEE', set: 'TMNT: Shredder and Krang', imageUrl: '', abilityTitle: "DOOOOM!", abilityDescription: "Krang has 3 doomsday machines. Start with one machine active. After you roll the die of epic destruction, you can flip an active machine to reroll the die. Add +1 to your move value for each active machine." },
+  { id: 'shredder', name: 'Shredder', hp: 15, move: 3, attack: 'MELEE', set: 'TMNT: Shredder and Krang', sidekicks: [{ name: 'Bebop & Rocksteady', count: 1, hp: 7, attack: 'MELEE' }], imageUrl: '', abilityTitle: "MASTER OF THE CLAN", abilityDescription: "At the start of your turn, deploy a Foot soldier to a path adjacent to a friendly fighter. You may attack opposing fighters adjacent to Foot soldiers. If an opponent boosts their maneuver, they may remove any Foot soldiers their hero moves through." },
 ]
 
 export const MAPS: Map[] = [
@@ -138,6 +141,8 @@ export const MAPS: Map[] = [
   { id: 'kaer-morhen', name: 'Kaer Morhen', set: 'The Witcher – Steel & Silver', minPlayers: 2, maxPlayers: 4, zones: 8, spaces: 32 },
   { id: 'technodrome', name: 'Technodrome', set: 'Unmatched Adventures: Teenage Mutant Ninja Turtles', minPlayers: 2, maxPlayers: 4 },
   { id: 'new-york-city', name: 'New York City', set: 'Unmatched Adventures: Teenage Mutant Ninja Turtles', minPlayers: 2, maxPlayers: 4 },
+  { id: 'technodrome-sk', name: 'Technodrome', set: 'TMNT: Shredder and Krang', minPlayers: 2, maxPlayers: 4 },
+  { id: 'new-york-city-sk', name: 'New York City', set: 'TMNT: Shredder and Krang', minPlayers: 2, maxPlayers: 4 },
 ]
 
 export function getHeroById(id: string): Hero | undefined {
