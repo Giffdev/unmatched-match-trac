@@ -240,16 +240,48 @@ export function HeroesTab({ matches, currentUserId, initialSelectedHero, onHeroC
         <Card className="p-6">
           <div className="flex flex-col md:flex-row gap-6">
             <HeroImage hero={hero} className="w-48 h-72 flex-shrink-0" />
-            <div className="flex-1 flex flex-col justify-center">
-              <h3 className="text-xl font-semibold mb-2">{hero.name}</h3>
-              <p className="text-sm text-muted-foreground mb-4">
-                {hero.sidekicks && hero.sidekicks.length > 0 ? `Fighting alongside ${hero.sidekicks.map(sk => sk.name).join(', ')}` : 'Fighting alone'}
-              </p>
-              <div className="space-y-1">
+            <div className="flex-1 space-y-4">
+              <div>
+                <h3 className="text-xl font-semibold mb-2">{hero.name}</h3>
                 <Badge variant="outline" className="mr-2">
                   {hero.set}
                 </Badge>
               </div>
+              
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                <div className="space-y-1">
+                  <p className="text-xs text-muted-foreground uppercase tracking-wide">Health</p>
+                  <p className="text-2xl font-bold text-accent">{hero.hp}</p>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-xs text-muted-foreground uppercase tracking-wide">Movement</p>
+                  <p className="text-2xl font-bold text-primary">{hero.move}</p>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-xs text-muted-foreground uppercase tracking-wide">Attack Type</p>
+                  <p className="text-2xl font-bold">{hero.attack}</p>
+                </div>
+              </div>
+
+              {hero.sidekicks && hero.sidekicks.length > 0 && (
+                <div className="space-y-2 pt-2 border-t">
+                  <p className="text-sm font-semibold text-muted-foreground">Sidekicks</p>
+                  <div className="space-y-2">
+                    {hero.sidekicks.map((sidekick, idx) => (
+                      <div key={idx} className="flex items-center gap-4 text-sm">
+                        <span className="font-medium">{sidekick.name}</span>
+                        <span className="text-muted-foreground">×{sidekick.count}</span>
+                        {sidekick.hp && (
+                          <span className="text-accent">HP: {sidekick.hp}</span>
+                        )}
+                        <Badge variant="secondary" className="text-xs">
+                          {sidekick.attack}
+                        </Badge>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </Card>
