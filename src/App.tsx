@@ -100,7 +100,7 @@ function App() {
                   Manage Collection
                 </Button>
               )}
-              <UserProfile />
+              {currentUserId && <UserProfile />}
             </div>
           </div>
         </div>
