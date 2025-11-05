@@ -1,9 +1,9 @@
 import { useState, useMemo, useEffect } from 'react'
-import type { Match } from '@/lib/types'
+import type { Match, User } from '@/lib/types'
 import { Card } from '@/components/ui/card'
 import { HEROES, getHeroById } from '@/lib/data'
-import { calculateHeroStats } from '@/lib/stats'
-import { Sword, Trophy, Target, CaretUpDown, Check, Globe, User } from '@phosphor-icons/react'
+import { calculateHeroStats, calculateUserHeroStats } from '@/lib/stats'
+import { Sword, Trophy, Target, CaretUpDown, Check, Globe, User as UserIcon } from '@phosphor-icons/react'
 import { Progress } from '@/components/ui/progress'
 import { Badge } from '@/components/ui/badge'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
@@ -26,6 +26,17 @@ export function HeroesTab({ matches, currentUserId, initialSelectedHero, onHeroC
   const [open, setOpen] = useState(false)
   const [search, setSearch] = useState('')
   const [allMatches, setAllMatches] = useKV<Match[]>('community-all-matches', [])
+  const [users] = useKV<User[]>('users', [])
+  const [currentUser, setCurrentUser] = useState<User | null>(null)
+
+  useEffect(() => {
+    if (currentUserId && users) {
+      const user = users.find(u => u.id === currentUserId)
+      setCurrentUser(user || null)
+    } else {
+      setCurrentUser(null)
+    }
+  }, [currentUserId, users])
 
   useEffect(() => {
     if (initialSelectedHero) {
@@ -140,7 +151,7 @@ export function HeroesTab({ matches, currentUserId, initialSelectedHero, onHeroC
     )
   }
 
-  const userStats = calculateHeroStats(matches, selectedHero)
+  const userStats = calculateUserHeroStats(matches, selectedHero, currentUser?.playerName)
   const globalStats = calculateHeroStats(allMatches || [], selectedHero)
   const hero = getHeroById(selectedHero)
 
@@ -315,7 +326,7 @@ export function HeroesTab({ matches, currentUserId, initialSelectedHero, onHeroC
         <Card className="p-6">
           <div className="flex items-center gap-3 mb-2">
             <div className="rounded-full bg-primary/10 p-2">
-              <User className="w-5 h-5 text-primary" />
+              <UserIcon className="w-5 h-5 text-primary" />
             </div>
             <span className="text-sm text-muted-foreground">Your Win Rate</span>
           </div>

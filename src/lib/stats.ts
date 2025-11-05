@@ -128,6 +128,87 @@ export function calculateHeroStats(matches: Match[], heroId: string, filterByHer
   }
 }
 
+export function calculateUserHeroStats(userMatches: Match[], heroId: string, playerName?: string): HeroStats {
+  let relevantMatches: Match[]
+  
+  if (playerName) {
+    relevantMatches = userMatches.filter(m => 
+      m.players.some(p => p.heroId === heroId && p.playerName.toLowerCase() === playerName.toLowerCase())
+    )
+  } else {
+    relevantMatches = userMatches.filter(m => 
+      m.players.some(p => p.heroId === heroId)
+    )
+  }
+
+  let wins = 0
+  let losses = 0
+  let draws = 0
+  const vsMatchups: Record<string, { wins: number; total: number }> = {}
+
+  for (const match of relevantMatches) {
+    let heroPlayer: typeof match.players[0] | undefined
+    
+    if (playerName) {
+      heroPlayer = match.players.find(p => p.heroId === heroId && p.playerName.toLowerCase() === playerName.toLowerCase())
+    } else {
+      heroPlayer = match.players.find(p => p.heroId === heroId)
+    }
+    
+    if (!heroPlayer) continue
+
+    const opponents = match.players.filter(p => 
+      playerName 
+        ? p.playerName.toLowerCase() !== playerName.toLowerCase()
+        : p.heroId !== heroId
+    )
+    
+    for (const opponent of opponents) {
+      if (!vsMatchups[opponent.heroId]) {
+        vsMatchups[opponent.heroId] = { wins: 0, total: 0 }
+      }
+      vsMatchups[opponent.heroId].total++
+    }
+
+    if (match.isDraw) {
+      draws++
+    } else {
+      const winningPlayer = match.players.find(p => p.heroId === match.winnerId)
+      if (winningPlayer) {
+        if (playerName) {
+          if (winningPlayer.playerName.toLowerCase() === playerName.toLowerCase()) {
+            wins++
+            for (const opponent of opponents) {
+              vsMatchups[opponent.heroId].wins++
+            }
+          } else {
+            losses++
+          }
+        } else {
+          if (winningPlayer.heroId === heroId) {
+            wins++
+            for (const opponent of opponents) {
+              vsMatchups[opponent.heroId].wins++
+            }
+          } else {
+            losses++
+          }
+        }
+      }
+    }
+  }
+
+  return {
+    heroId,
+    totalGames: relevantMatches.length,
+    wins,
+    losses,
+    draws,
+    winRate: relevantMatches.length > 0 ? (wins / relevantMatches.length) * 100 : 0,
+    vsMatchups,
+  }
+}
+
 export function getAllPlayerNames(matches: Match[]): string[] {
   const names = new Set<string>()
   for (const match of matches) {
