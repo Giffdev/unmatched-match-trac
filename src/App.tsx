@@ -2,6 +2,7 @@ import { useKV } from '@github/spark/hooks'
 import { useUserData } from '@/hooks/use-user-data'
 import { useState, useEffect, useRef } from 'react'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Button } from '@/components/ui/button'
 import { MatchesTab } from '@/components/matches/MatchesTab'
 import { PlayersTab } from '@/components/players/PlayersTab'
 import { HeroesTab } from '@/components/heroes/HeroesTab'
@@ -88,7 +89,19 @@ function App() {
                 Log matches, analyze statistics, and discover perfect matchups
               </p>
             </div>
-            <UserProfile onNavigateToCollection={navigateToCollection} />
+            <div className="flex items-center gap-4">
+              {currentUserId && currentView === 'main' && (
+                <Button 
+                  variant="ghost" 
+                  size="sm"
+                  onClick={navigateToCollection}
+                  className="text-muted-foreground hover:text-foreground"
+                >
+                  Manage Collection
+                </Button>
+              )}
+              <UserProfile />
+            </div>
           </div>
         </div>
       </header>
