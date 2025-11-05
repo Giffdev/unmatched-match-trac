@@ -21,6 +21,7 @@ export function PlayersTab({ matches, ownedSets = [], onHeroClick }: PlayersTabP
   const playerNames = getAllPlayerNames(matches)
   const [selectedPlayer, setSelectedPlayer] = useState(playerNames[0] || '')
   const [showOnlyOwnedHeroes, setShowOnlyOwnedHeroes] = useState(false)
+  const [showOnlyOwnedMaps, setShowOnlyOwnedMaps] = useState(false)
 
   if (playerNames.length === 0) {
     return (
@@ -50,7 +51,10 @@ export function PlayersTab({ matches, ownedSets = [], onHeroClick }: PlayersTabP
   neverPlayedHeroes = neverPlayedHeroes.sort((a, b) => a.name.localeCompare(b.name))
   
   const mapsPlayedEntries = Object.entries(stats.mapsPlayed).sort((a, b) => b[1] - a[1])
-  const neverPlayedMaps = MAPS.filter(m => !stats.mapsPlayed[m.id])
+  let neverPlayedMaps = MAPS.filter(m => !stats.mapsPlayed[m.id])
+  if (showOnlyOwnedMaps && ownedSets.length > 0) {
+    neverPlayedMaps = neverPlayedMaps.filter(m => ownedSets.includes(m.set))
+  }
   const vsPlayersEntries = Object.entries(stats.vsPlayers).sort((a, b) => b[1].total - a[1].total)
 
   return (
@@ -242,9 +246,21 @@ export function PlayersTab({ matches, ownedSets = [], onHeroClick }: PlayersTabP
         </Card>
 
         <Card className="p-6">
-          <div className="flex items-center gap-2 mb-4">
-            <MapPin className="w-5 h-5 text-muted-foreground" />
-            <h3 className="text-lg font-semibold">Never Played Maps</h3>
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <MapPin className="w-5 h-5 text-muted-foreground" />
+              <h3 className="text-lg font-semibold">Never Played Maps</h3>
+            </div>
+            <div className="flex items-center gap-2">
+              <Switch 
+                id="maps-owned-only" 
+                checked={showOnlyOwnedMaps}
+                onCheckedChange={setShowOnlyOwnedMaps}
+              />
+              <Label htmlFor="maps-owned-only" className="text-sm cursor-pointer">
+                Collection only
+              </Label>
+            </div>
           </div>
           <div className="flex flex-wrap gap-2 max-h-[400px] overflow-y-auto">
             {neverPlayedMaps.map((map) => (
@@ -254,7 +270,9 @@ export function PlayersTab({ matches, ownedSets = [], onHeroClick }: PlayersTabP
             ))}
             {neverPlayedMaps.length === 0 && (
               <p className="text-sm text-muted-foreground text-center py-4 w-full">
-                You've played all maps! 🎉
+                {showOnlyOwnedMaps && ownedSets.length > 0
+                  ? "You've played all maps in your collection! 🎉"
+                  : "You've played all maps! 🎉"}
               </p>
             )}
           </div>
