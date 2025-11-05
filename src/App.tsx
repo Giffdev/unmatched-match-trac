@@ -12,8 +12,10 @@ import { UserProfile } from '@/components/auth/UserProfile'
 import { SignInPrompt } from '@/components/auth/SignInPrompt'
 import { DataCleanup } from '@/components/auth/DataCleanup'
 import { Toaster } from '@/components/ui/sonner'
+import { ListChecks, Users, User, Globe, Shuffle } from '@phosphor-icons/react'
 import type { Match } from '@/lib/types'
 import { normalizeMatchPlayerNames } from '@/lib/utils'
+import { useIsMobile } from '@/hooks/use-mobile'
 
 type ViewState = 'main' | 'collection'
 
@@ -25,6 +27,7 @@ function App() {
   const [currentTab, setCurrentTab] = useState('matches')
   const [selectedHeroId, setSelectedHeroId] = useState<string | null>(null)
   const normalizationRan = useRef(false)
+  const isMobile = useIsMobile()
 
   const matchesData = matches || []
   const ownedSetsData = ownedSets || []
@@ -67,7 +70,7 @@ function App() {
   }, [currentUserId, matchesData.length])
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background pb-20 md:pb-0">
       <Toaster />
       <DataCleanup />
       
@@ -97,13 +100,15 @@ function App() {
           <CollectionTab ownedSets={ownedSetsData} setOwnedSets={setOwnedSets} />
         ) : (
           <Tabs value={currentTab} onValueChange={setCurrentTab} className="w-full">
-            <TabsList className="grid w-full grid-cols-5 mb-6">
-              <TabsTrigger value="matches">Matches</TabsTrigger>
-              <TabsTrigger value="players">Players</TabsTrigger>
-              <TabsTrigger value="heroes">Heroes</TabsTrigger>
-              <TabsTrigger value="global">Global</TabsTrigger>
-              <TabsTrigger value="randomizer">Randomizer</TabsTrigger>
-            </TabsList>
+            {!isMobile && (
+              <TabsList className="grid w-full grid-cols-5 mb-6">
+                <TabsTrigger value="matches">Matches</TabsTrigger>
+                <TabsTrigger value="players">Players</TabsTrigger>
+                <TabsTrigger value="heroes">Heroes</TabsTrigger>
+                <TabsTrigger value="global">Global</TabsTrigger>
+                <TabsTrigger value="randomizer">Randomizer</TabsTrigger>
+              </TabsList>
+            )}
 
             <TabsContent value="matches">
               <MatchesTab 
@@ -144,6 +149,72 @@ function App() {
           </Tabs>
         )}
       </main>
+
+      {isMobile && currentUserId && currentView === 'main' && (
+        <nav className="fixed bottom-0 left-0 right-0 bg-card border-t border-border z-20">
+          <div className="grid grid-cols-5 h-16">
+            <button
+              onClick={() => setCurrentTab('matches')}
+              className={`flex flex-col items-center justify-center gap-1 transition-colors ${
+                currentTab === 'matches' 
+                  ? 'text-primary' 
+                  : 'text-muted-foreground'
+              }`}
+            >
+              <ListChecks size={24} weight={currentTab === 'matches' ? 'fill' : 'regular'} />
+              <span className="text-xs">Matches</span>
+            </button>
+            
+            <button
+              onClick={() => setCurrentTab('players')}
+              className={`flex flex-col items-center justify-center gap-1 transition-colors ${
+                currentTab === 'players' 
+                  ? 'text-primary' 
+                  : 'text-muted-foreground'
+              }`}
+            >
+              <Users size={24} weight={currentTab === 'players' ? 'fill' : 'regular'} />
+              <span className="text-xs">Players</span>
+            </button>
+            
+            <button
+              onClick={() => setCurrentTab('heroes')}
+              className={`flex flex-col items-center justify-center gap-1 transition-colors ${
+                currentTab === 'heroes' 
+                  ? 'text-primary' 
+                  : 'text-muted-foreground'
+              }`}
+            >
+              <User size={24} weight={currentTab === 'heroes' ? 'fill' : 'regular'} />
+              <span className="text-xs">Heroes</span>
+            </button>
+            
+            <button
+              onClick={() => setCurrentTab('global')}
+              className={`flex flex-col items-center justify-center gap-1 transition-colors ${
+                currentTab === 'global' 
+                  ? 'text-primary' 
+                  : 'text-muted-foreground'
+              }`}
+            >
+              <Globe size={24} weight={currentTab === 'global' ? 'fill' : 'regular'} />
+              <span className="text-xs">Global</span>
+            </button>
+            
+            <button
+              onClick={() => setCurrentTab('randomizer')}
+              className={`flex flex-col items-center justify-center gap-1 transition-colors ${
+                currentTab === 'randomizer' 
+                  ? 'text-primary' 
+                  : 'text-muted-foreground'
+              }`}
+            >
+              <Shuffle size={24} weight={currentTab === 'randomizer' ? 'fill' : 'regular'} />
+              <span className="text-xs">Random</span>
+            </button>
+          </div>
+        </nav>
+      )}
     </div>
   )
 }
