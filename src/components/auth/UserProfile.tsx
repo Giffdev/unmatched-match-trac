@@ -9,11 +9,15 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
-import { SignOut } from '@phosphor-icons/react'
+import { SignOut, Package } from '@phosphor-icons/react'
 import { useKV } from '@github/spark/hooks'
 import type { User } from '@/lib/types'
 
-export function UserProfile() {
+type UserProfileProps = {
+  onNavigateToCollection: () => void
+}
+
+export function UserProfile({ onNavigateToCollection }: UserProfileProps) {
   const [currentUserId] = useKV<string | null>('current-user-id', null)
   const [users] = useKV<User[]>('users', [])
   const [currentUser, setCurrentUser] = useState<User | null>(null)
@@ -66,6 +70,11 @@ export function UserProfile() {
             </p>
           </div>
         </DropdownMenuLabel>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem onClick={onNavigateToCollection}>
+          <Package className="mr-2" />
+          Manage Collection
+        </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={handleSignOut}>
           <SignOut className="mr-2" />
