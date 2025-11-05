@@ -114,7 +114,11 @@ function App() {
             </TabsContent>
 
             <TabsContent value="players">
-              <PlayersTab matches={matchesData} />
+              <PlayersTab 
+                matches={matchesData}
+                ownedSets={ownedSetsData}
+                onHeroClick={handleHeroClick}
+              />
             </TabsContent>
 
             <TabsContent value="heroes">

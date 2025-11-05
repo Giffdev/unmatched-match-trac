@@ -2,6 +2,8 @@ import { useState } from 'react'
 import type { Match } from '@/lib/types'
 import { Card } from '@/components/ui/card'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Switch } from '@/components/ui/switch'
+import { Label } from '@/components/ui/label'
 import { getAllPlayerNames, calculatePlayerStats } from '@/lib/stats'
 import { getHeroById, getMapById, HEROES, MAPS } from '@/lib/data'
 import { Trophy, Target, Sword, MapPin, Users } from '@phosphor-icons/react'
@@ -11,11 +13,14 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 
 type PlayersTabProps = {
   matches: Match[]
+  ownedSets?: string[]
+  onHeroClick?: (heroId: string) => void
 }
 
-export function PlayersTab({ matches }: PlayersTabProps) {
+export function PlayersTab({ matches, ownedSets = [], onHeroClick }: PlayersTabProps) {
   const playerNames = getAllPlayerNames(matches)
   const [selectedPlayer, setSelectedPlayer] = useState(playerNames[0] || '')
+  const [showOnlyOwnedHeroes, setShowOnlyOwnedHeroes] = useState(false)
 
   if (playerNames.length === 0) {
     return (
@@ -37,7 +42,13 @@ export function PlayersTab({ matches }: PlayersTabProps) {
 
   const stats = calculatePlayerStats(matches, selectedPlayer)
   const heroesPlayedEntries = Object.entries(stats.heroesPlayed).sort((a, b) => b[1] - a[1])
-  const neverPlayedHeroes = HEROES.filter(h => !stats.heroesPlayed[h.id]).sort((a, b) => a.name.localeCompare(b.name))
+  
+  let neverPlayedHeroes = HEROES.filter(h => !stats.heroesPlayed[h.id])
+  if (showOnlyOwnedHeroes && ownedSets.length > 0) {
+    neverPlayedHeroes = neverPlayedHeroes.filter(h => ownedSets.includes(h.set))
+  }
+  neverPlayedHeroes = neverPlayedHeroes.sort((a, b) => a.name.localeCompare(b.name))
+  
   const mapsPlayedEntries = Object.entries(stats.mapsPlayed).sort((a, b) => b[1] - a[1])
   const neverPlayedMaps = MAPS.filter(m => !stats.mapsPlayed[m.id])
   const vsPlayersEntries = Object.entries(stats.vsPlayers).sort((a, b) => b[1].total - a[1].total)
@@ -113,7 +124,12 @@ export function PlayersTab({ matches }: PlayersTabProps) {
                 <div key={heroId} className="space-y-2">
                   <div className="flex items-center justify-between">
                     <div className="flex flex-col">
-                      <span className="text-sm font-medium">{hero?.name}</span>
+                      <span 
+                        className={`text-sm font-medium ${onHeroClick ? 'cursor-pointer hover:text-primary transition-colors' : ''}`}
+                        onClick={() => onHeroClick?.(heroId)}
+                      >
+                        {hero?.name}
+                      </span>
                       {hero?.sidekicks && hero.sidekicks.length > 0 && (
                         <span className="text-xs text-muted-foreground">{hero.sidekicks.map(sk => sk.name).join(', ')}</span>
                       )}
@@ -140,11 +156,25 @@ export function PlayersTab({ matches }: PlayersTabProps) {
         </Card>
 
         <Card className="p-6">
-          <h3 className="text-lg font-semibold mb-4">Never Played Heroes</h3>
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-semibold">Never Played Heroes</h3>
+            <div className="flex items-center gap-2">
+              <Switch 
+                id="owned-only" 
+                checked={showOnlyOwnedHeroes}
+                onCheckedChange={setShowOnlyOwnedHeroes}
+              />
+              <Label htmlFor="owned-only" className="text-sm cursor-pointer">
+                Owned only
+              </Label>
+            </div>
+          </div>
           <div className="max-h-[400px] overflow-y-auto">
             {neverPlayedHeroes.length === 0 ? (
               <p className="text-sm text-muted-foreground text-center py-4">
-                You've played all heroes! 🎉
+                {showOnlyOwnedHeroes && ownedSets.length > 0 
+                  ? "You've played all heroes in your collection! 🎉"
+                  : "You've played all heroes! 🎉"}
               </p>
             ) : (
               <Table>
@@ -157,7 +187,11 @@ export function PlayersTab({ matches }: PlayersTabProps) {
                 </TableHeader>
                 <TableBody>
                   {neverPlayedHeroes.map((hero) => (
-                    <TableRow key={hero.id}>
+                    <TableRow 
+                      key={hero.id}
+                      className={onHeroClick ? 'cursor-pointer hover:bg-muted/50 transition-colors' : ''}
+                      onClick={() => onHeroClick?.(hero.id)}
+                    >
                       <TableCell className="font-medium">{hero.name}</TableCell>
                       <TableCell className="text-sm text-muted-foreground">
                         {hero.sidekicks && hero.sidekicks.length > 0 ? hero.sidekicks.map(sk => sk.name).join(', ') : '—'}
