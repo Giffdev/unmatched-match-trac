@@ -24,6 +24,7 @@ export const UNMATCHED_SETS: SetInfo[] = [
   { name: 'Brains and Brawn', franchise: 'Marvel' },
   { name: 'The Witcher – Realms Fall', franchise: 'The Witcher' },
   { name: 'The Witcher – Steel & Silver', franchise: 'The Witcher' },
+  { name: 'Unmatched Adventures: Teenage Mutant Ninja Turtles', franchise: 'TMNT' },
 ]
 
 export const FRANCHISES = Array.from(new Set(UNMATCHED_SETS.map(s => s.franchise))).sort()
@@ -100,6 +101,10 @@ export const HEROES: Hero[] = [
   { id: 'geralt', name: 'Geralt of Rivia', hp: 16, move: 2, attack: 'MELEE', set: 'The Witcher – Steel & Silver', sidekicks: [{ name: 'Dandelion', count: 1, hp: 5, attack: 'RANGED' }], imageUrl: 'https://cf.geekdo-images.com/s9GF0fXi-P4xjKKQd7YpXw__imagepage/img/7NVe-H0Jz55tcrnREK6h_QJdvvM=/fit-in/900x600/filters:no_upscale():strip_icc()/pic7775208.png', abilityTitle: "ALWAYS PREPARED", abilityDescription: "At the start of the game, choose your gear. Select a POTION, ARMOR, and SWORD, and shuffle 2 copies of each into your deck." },
   { id: 'muhammad-ali', name: 'Muhammad Ali', hp: 16, move: 3, attack: 'MELEE', set: 'Muhammad Ali vs. Bruce Lee', imageUrl: 'https://cf.geekdo-images.com/4YH7gOTh5Fl4uQD4Fvs4hg__imagepage/img/-hCqy8Iow40l5MPZlMAf1kUJCmg=/fit-in/900x600/filters:no_upscale():strip_icc()/pic7899527.png', abilityTitle: "A BEAUTIFUL SWING", abilityDescription: "Begin the game with your stance on Float Like a Butterfly. After you attack, if you won the combat, change stances. Float Like a Butterfly: You can attack from 2 spaces away. Sting Like a Bee: Add +2 to your attacks." },
   { id: 'bruce-lee-ali', name: 'Bruce Lee', hp: 14, move: 3, attack: 'MELEE', set: 'Muhammad Ali vs. Bruce Lee', imageUrl: 'https://cf.geekdo-images.com/a5Q-X5RMH1gIZGR8aWLBwQ__imagepage/img/LwDJnPvJpVY8xAL2wHb8aY7CxpQ=/fit-in/900x600/filters:no_upscale():strip_icc()/pic7899525.png', abilityTitle: "FLEET OF FOOT", abilityDescription: "At the end of your turn, you may move Bruce Lee 1 space." },
+  { id: 'leonardo', name: 'Leonardo', hp: 14, move: 2, attack: 'MELEE', set: 'Unmatched Adventures: Teenage Mutant Ninja Turtles', imageUrl: 'https://cf.geekdo-images.com/VZa1gS0hYjEWLNf8wUGIPA__imagepage/img/LGQOvtY9Vl3Wtu8_xIl_6K8Ckf0=/fit-in/900x600/filters:no_upscale():strip_icc()/pic7891993.png', abilityTitle: "LEAD", abilityDescription: "When you take the maneuver action, you may maneuver your other Turtles instead of Leo." },
+  { id: 'raphael', name: 'Raphael', hp: 16, move: 2, attack: 'MELEE', set: 'Unmatched Adventures: Teenage Mutant Ninja Turtles', imageUrl: 'https://cf.geekdo-images.com/c8cF9aWNjUyRSR3jF1SzyA__imagepage/img/W3TIgA8VsJcEJUxgYOpUe4KZeNg=/fit-in/900x600/filters:no_upscale():strip_icc()/pic7891995.png', abilityTitle: "FIGHT", abilityDescription: "After Raph wins combat when attacking, if he dealt at least 3 damage, he may immediately attack again." },
+  { id: 'donatello', name: 'Donatello', hp: 12, move: 2, attack: 'RANGED', set: 'Unmatched Adventures: Teenage Mutant Ninja Turtles', imageUrl: 'https://cf.geekdo-images.com/M_Cp0GQ7UaC_jdpaTX0BQQ__imagepage/img/T0_iEw7ubIJtkbPLSiNHNJQkKdA=/fit-in/900x600/filters:no_upscale():strip_icc()/pic7891989.png', abilityTitle: "RESEARCH", abilityDescription: "At the end of your turn, you may discard a card to draw a card." },
+  { id: 'michelangelo', name: 'Michelangelo', hp: 13, move: 3, attack: 'MELEE', set: 'Unmatched Adventures: Teenage Mutant Ninja Turtles', imageUrl: 'https://cf.geekdo-images.com/P0_nzLMBWe3f2zIcLIm-PQ__imagepage/img/hOX4XbjLqtKVCu8iinSp5Sc1Xig=/fit-in/900x600/filters:no_upscale():strip_icc()/pic7891991.png', abilityTitle: "PARTY", abilityDescription: "When you take the scheme action, you may move Mikey up to 2 spaces." },
 ]
 
 export const MAPS: Map[] = [
