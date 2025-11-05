@@ -11,6 +11,8 @@ import { SignInPrompt } from '@/components/auth/SignInPrompt'
 import { DataCleanup } from '@/components/auth/DataCleanup'
 import { DataRecovery } from '@/components/auth/DataRecovery'
 import { DataLossExplanation } from '@/components/auth/DataLossExplanation'
+import { CSVImport } from '@/components/auth/CSVImport'
+import { CSVExport } from '@/components/auth/CSVExport'
 import { Toaster } from '@/components/ui/sonner'
 import type { Match } from '@/lib/types'
 import { useEffect, useRef } from 'react'
@@ -27,6 +29,15 @@ function App() {
 
   const handleUserChange = async (userId: string) => {
     setCurrentUserId(userId)
+  }
+
+  const handleImportMatches = (importedMatches: Match[]) => {
+    setMatches((currentMatches) => {
+      const current = currentMatches || []
+      const existingIds = new Set(current.map(m => m.id))
+      const newMatches = importedMatches.filter(m => !existingIds.has(m.id))
+      return [...current, ...newMatches]
+    })
   }
 
   useEffect(() => {
@@ -72,6 +83,8 @@ function App() {
 
       <main className="container mx-auto px-4 py-6">
         <DataLossExplanation />
+        <CSVImport currentUserId={currentUserId} onImportComplete={handleImportMatches} />
+        <CSVExport matches={matchesData} />
         <DataRecovery />
         
         {!currentUserId ? (
