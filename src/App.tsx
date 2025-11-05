@@ -109,6 +109,7 @@ function App() {
               <MatchesTab 
                 matches={matchesData} 
                 setMatches={setMatches}
+                onHeroClick={handleHeroClick}
               />
             </TabsContent>
 

@@ -13,6 +13,7 @@ type MatchCardProps = {
   match: Match
   onDelete: (id: string) => void
   onEdit: (match: Match) => void
+  onHeroClick: (heroId: string) => void
 }
 
 const MODE_LABELS: Record<string, string> = {
@@ -23,7 +24,7 @@ const MODE_LABELS: Record<string, string> = {
   'ffa4': '4P FFA',
 }
 
-export function MatchCard({ match, onDelete, onEdit }: MatchCardProps) {
+export function MatchCard({ match, onDelete, onEdit, onHeroClick }: MatchCardProps) {
   const [editDialogOpen, setEditDialogOpen] = useState(false)
   const map = getMapById(match.mapId)
   const winner = match.players.find(p => p.heroId === match.winnerId)
@@ -87,7 +88,12 @@ export function MatchCard({ match, onDelete, onEdit }: MatchCardProps) {
                     </Badge>
                     <span className="text-sm min-w-[120px]">{player.playerName}</span>
                     <span className="text-sm text-muted-foreground">•</span>
-                    <span className="text-sm">{getHeroDisplayName(player)}</span>
+                    <button
+                      onClick={() => onHeroClick(player.heroId)}
+                      className="text-sm text-primary hover:underline cursor-pointer transition-colors"
+                    >
+                      {getHeroDisplayName(player)}
+                    </button>
                     {isWinner && (
                       <Trophy className="text-accent ml-2" size={16} weight="fill" />
                     )}

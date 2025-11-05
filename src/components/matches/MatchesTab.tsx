@@ -10,9 +10,10 @@ import { useKV } from '@github/spark/hooks'
 type MatchesTabProps = {
   matches: Match[]
   setMatches: (updater: (matches: Match[]) => Match[]) => void
+  onHeroClick: (heroId: string) => void
 }
 
-export function MatchesTab({ matches, setMatches }: MatchesTabProps) {
+export function MatchesTab({ matches, setMatches, onHeroClick }: MatchesTabProps) {
   const [dialogOpen, setDialogOpen] = useState(false)
   const [currentUserId] = useKV<string | null>('current-user-id', null)
 
@@ -74,6 +75,7 @@ export function MatchesTab({ matches, setMatches }: MatchesTabProps) {
               onEdit={(updatedMatch) => setMatches(current => 
                 current.map(m => m.id === updatedMatch.id ? updatedMatch : m)
               )}
+              onHeroClick={onHeroClick}
             />
           ))}
         </div>
