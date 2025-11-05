@@ -263,6 +263,18 @@ export function HeroesTab({ matches, currentUserId, initialSelectedHero, onHeroC
                 </div>
               </div>
 
+              {(hero.abilityTitle || hero.abilityDescription) && (
+                <div className="space-y-2 pt-2 border-t">
+                  <p className="text-sm font-semibold text-muted-foreground">Special Ability</p>
+                  {hero.abilityTitle && (
+                    <p className="text-base font-bold text-primary">{hero.abilityTitle}</p>
+                  )}
+                  {hero.abilityDescription && (
+                    <p className="text-sm text-foreground leading-relaxed">{hero.abilityDescription}</p>
+                  )}
+                </div>
+              )}
+
               {hero.sidekicks && hero.sidekicks.length > 0 && (
                 <div className="space-y-2 pt-2 border-t">
                   <p className="text-sm font-semibold text-muted-foreground">Sidekicks</p>
