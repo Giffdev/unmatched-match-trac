@@ -310,6 +310,32 @@ export function HeroesTab({ matches, currentUserId, initialSelectedHero, onHeroC
         </Card>
       )}
 
+      <div className="flex items-center justify-between gap-4 mb-4">
+        <div className="flex items-center gap-3">
+          <div className="rounded-full bg-primary/10 p-2">
+            <UserIcon className="w-5 h-5 text-primary" weight="fill" />
+          </div>
+          <div>
+            <h3 className="text-sm font-medium text-muted-foreground">Player Statistics</h3>
+            {selectedPlayerName && (
+              <p className="text-sm text-foreground font-semibold">{selectedPlayerName}</p>
+            )}
+          </div>
+        </div>
+        <Select value={selectedPlayerName} onValueChange={setSelectedPlayerName}>
+          <SelectTrigger className="w-[200px]">
+            <SelectValue placeholder="Choose player..." />
+          </SelectTrigger>
+          <SelectContent>
+            {availablePlayers.map((playerName) => (
+              <SelectItem key={playerName} value={playerName}>
+                {playerName}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         <Card className="p-6">
           <div className="flex items-center gap-3 mb-2">
@@ -356,19 +382,7 @@ export function HeroesTab({ matches, currentUserId, initialSelectedHero, onHeroC
           </div>
           {!selectedPlayerName ? (
             <div className="space-y-2">
-              <p className="text-sm text-muted-foreground">Select a player to view their win rate</p>
-              <Select value={selectedPlayerName} onValueChange={setSelectedPlayerName}>
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Choose player..." />
-                </SelectTrigger>
-                <SelectContent>
-                  {availablePlayers.map((playerName) => (
-                    <SelectItem key={playerName} value={playerName}>
-                      {playerName}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <p className="text-sm text-muted-foreground">Select a player above to view their win rate</p>
             </div>
           ) : userPersonalStats.totalGames > 0 ? (
             <>
@@ -379,28 +393,10 @@ export function HeroesTab({ matches, currentUserId, initialSelectedHero, onHeroC
                 </span>
               </div>
               <Progress value={userPersonalStats.winRate} className="mt-2 h-2" />
-              <div className="mt-2">
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  onClick={() => setSelectedPlayerName('')}
-                  className="text-xs text-muted-foreground hover:text-foreground"
-                >
-                  Change player
-                </Button>
-              </div>
             </>
           ) : (
             <div className="space-y-2">
               <p className="text-sm text-muted-foreground">{selectedPlayerName} hasn't played this hero yet</p>
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                onClick={() => setSelectedPlayerName('')}
-                className="text-xs"
-              >
-                Change player
-              </Button>
             </div>
           )}
         </Card>
