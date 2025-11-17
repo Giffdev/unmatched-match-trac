@@ -119,20 +119,20 @@ export function HeroMatchupHeatmap({ matches, onHeroClick, isLoading }: HeroMatc
   }
 
   return (
-    <div className="overflow-auto">
-      <div className="inline-block min-w-full">
-        <table className="border-collapse text-xs">
+    <div className="overflow-auto -mx-3 md:mx-0">
+      <div className="inline-block min-w-full px-3 md:px-0">
+        <table className="border-collapse text-[10px] md:text-xs">
           <thead>
             <tr>
-              <th className="sticky left-0 z-20 bg-background border border-border p-2 min-w-[140px] text-left font-semibold">
+              <th className="sticky left-0 z-20 bg-background border border-border p-1 md:p-2 min-w-[100px] md:min-w-[140px] text-left font-semibold text-[10px] md:text-xs">
                 Winner
               </th>
               {heroesWithData.map(hero => (
                 <th
                   key={hero.id}
-                  className="border border-border p-1 min-w-[60px] bg-muted/50"
+                  className="border border-border p-0.5 md:p-1 min-w-[40px] md:min-w-[60px] bg-muted/50"
                 >
-                  <div className="writing-mode-vertical transform -rotate-180 whitespace-nowrap py-2 text-xs font-medium">
+                  <div className="writing-mode-vertical transform -rotate-180 whitespace-nowrap py-1 md:py-2 text-[9px] md:text-xs font-medium">
                     {hero.name}
                   </div>
                 </th>
@@ -143,7 +143,7 @@ export function HeroMatchupHeatmap({ matches, onHeroClick, isLoading }: HeroMatc
             {heroesWithData.map(rowHero => (
               <tr key={rowHero.id}>
                 <td 
-                  className="sticky left-0 z-10 bg-background border border-border p-2 font-medium text-left cursor-pointer hover:bg-accent/10 transition-colors"
+                  className="sticky left-0 z-10 bg-background border border-border p-1 md:p-2 font-medium text-left cursor-pointer hover:bg-accent/10 transition-colors text-[10px] md:text-xs"
                   onClick={() => onHeroClick(rowHero.id)}
                 >
                   <span className="text-primary hover:underline">
@@ -155,9 +155,9 @@ export function HeroMatchupHeatmap({ matches, onHeroClick, isLoading }: HeroMatc
                     return (
                       <td
                         key={colHero.id}
-                        className="border border-border p-2 text-center bg-muted/30"
+                        className="border border-border p-1 md:p-2 text-center bg-muted/30"
                       >
-                        <span className="text-muted-foreground">-</span>
+                        <span className="text-muted-foreground text-[10px] md:text-xs">-</span>
                       </td>
                     )
                   }
@@ -168,21 +168,21 @@ export function HeroMatchupHeatmap({ matches, onHeroClick, isLoading }: HeroMatc
                   return (
                     <td
                       key={colHero.id}
-                      className="border border-border p-2 text-center transition-all hover:scale-105"
+                      className="border border-border p-1 md:p-2 text-center transition-all hover:scale-105"
                       style={{ backgroundColor: bgColor }}
                       title={`${rowHero.name} vs ${colHero.name}: ${data.wins}/${data.total} (${data.winRate.toFixed(0)}%)`}
                     >
                       {data.total > 0 ? (
                         <span 
                           className={cn(
-                            "font-semibold",
+                            "font-semibold text-[10px] md:text-xs",
                             data.winRate < 40 ? "text-foreground" : "text-foreground"
                           )}
                         >
                           {data.winRate.toFixed(0)}%
                         </span>
                       ) : (
-                        <span className="text-muted-foreground/50">-</span>
+                        <span className="text-muted-foreground/50 text-[10px] md:text-xs">-</span>
                       )}
                     </td>
                   )

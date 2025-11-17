@@ -101,28 +101,28 @@ export function GlobalResultsTab({ matches, currentUserId, onHeroClick }: Global
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="space-y-4 md:space-y-6">
+      <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <div>
-          <h2 className="text-2xl font-semibold mb-2">Global Matchup Results</h2>
-          <p className="text-muted-foreground">
+          <h2 className="text-xl md:text-2xl font-semibold mb-1 md:mb-2">Global Matchup Results</h2>
+          <p className="text-xs md:text-sm text-muted-foreground">
             Win rates across all logged matches
           </p>
         </div>
-        <Card className="px-4 py-2">
-          <div className="text-sm text-muted-foreground">Total Matches</div>
-          <div className="text-2xl font-bold text-primary">{totalMatches}</div>
+        <Card className="px-3 py-2 md:px-4 w-fit">
+          <div className="text-xs md:text-sm text-muted-foreground">Total Matches</div>
+          <div className="text-xl md:text-2xl font-bold text-primary">{totalMatches}</div>
         </Card>
       </div>
 
       <HeroMatchupHeatmap matches={allMatches || []} onHeroClick={onHeroClick} isLoading={isLoading} />
 
-      <Card className="p-6">
-        <h3 className="text-lg font-semibold mb-4">How to Read the Heatmap</h3>
-        <div className="grid gap-4 md:grid-cols-2">
+      <Card className="p-4 md:p-6">
+        <h3 className="text-base md:text-lg font-semibold mb-3 md:mb-4">How to Read the Heatmap</h3>
+        <div className="grid gap-3 md:gap-4 md:grid-cols-2">
           <div>
-            <h4 className="font-medium mb-2">Understanding the Data</h4>
-            <ul className="text-sm text-muted-foreground space-y-1">
+            <h4 className="font-medium mb-2 text-sm md:text-base">Understanding the Data</h4>
+            <ul className="text-xs md:text-sm text-muted-foreground space-y-1">
               <li>• Each cell shows the win rate of the row hero vs the column hero</li>
               <li>• Percentages are calculated from all logged matches</li>
               <li>• Click on any hero name to view detailed statistics</li>
@@ -130,23 +130,23 @@ export function GlobalResultsTab({ matches, currentUserId, onHeroClick }: Global
             </ul>
           </div>
           <div>
-            <h4 className="font-medium mb-2">Color Scale</h4>
+            <h4 className="font-medium mb-2 text-sm md:text-base">Color Scale</h4>
             <div className="space-y-2">
               <div className="flex items-center gap-2">
-                <div className="w-6 h-6 rounded" style={{ backgroundColor: 'oklch(0.35 0.1 20)' }}></div>
-                <span className="text-sm text-muted-foreground">0-25% (Poor matchup)</span>
+                <div className="w-5 h-5 md:w-6 md:h-6 rounded flex-shrink-0" style={{ backgroundColor: 'oklch(0.35 0.1 20)' }}></div>
+                <span className="text-xs md:text-sm text-muted-foreground">0-25% (Poor matchup)</span>
               </div>
               <div className="flex items-center gap-2">
-                <div className="w-6 h-6 rounded" style={{ backgroundColor: 'oklch(0.60 0.08 50)' }}></div>
-                <span className="text-sm text-muted-foreground">25-50% (Unfavorable)</span>
+                <div className="w-5 h-5 md:w-6 md:h-6 rounded flex-shrink-0" style={{ backgroundColor: 'oklch(0.60 0.08 50)' }}></div>
+                <span className="text-xs md:text-sm text-muted-foreground">25-50% (Unfavorable)</span>
               </div>
               <div className="flex items-center gap-2">
-                <div className="w-6 h-6 rounded" style={{ backgroundColor: 'oklch(0.75 0.05 120)' }}></div>
-                <span className="text-sm text-muted-foreground">50-75% (Favorable)</span>
+                <div className="w-5 h-5 md:w-6 md:h-6 rounded flex-shrink-0" style={{ backgroundColor: 'oklch(0.75 0.05 120)' }}></div>
+                <span className="text-xs md:text-sm text-muted-foreground">50-75% (Favorable)</span>
               </div>
               <div className="flex items-center gap-2">
-                <div className="w-6 h-6 rounded" style={{ backgroundColor: 'oklch(0.55 0.15 195)' }}></div>
-                <span className="text-sm text-muted-foreground">75-100% (Strong matchup)</span>
+                <div className="w-5 h-5 md:w-6 md:h-6 rounded flex-shrink-0" style={{ backgroundColor: 'oklch(0.55 0.15 195)' }}></div>
+                <span className="text-xs md:text-sm text-muted-foreground">75-100% (Strong matchup)</span>
               </div>
             </div>
           </div>

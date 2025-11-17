@@ -354,9 +354,9 @@ export function HeroesTab({ matches, currentUserId, initialSelectedHero, onHeroC
         </Card>
       </div>
 
-      <Card className="p-6">
-        <h3 className="text-lg font-semibold mb-4">Matchup Statistics</h3>
-        <p className="text-sm text-muted-foreground mb-4">
+      <Card className="p-4 md:p-6">
+        <h3 className="text-base md:text-lg font-semibold mb-3 md:mb-4">Matchup Statistics</h3>
+        <p className="text-xs md:text-sm text-muted-foreground mb-3 md:mb-4">
           Performance against other heroes
         </p>
         
@@ -369,38 +369,44 @@ export function HeroesTab({ matches, currentUserId, initialSelectedHero, onHeroC
             </p>
           </div>
         ) : (
-          <div className="border rounded-lg overflow-hidden">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Opponent</TableHead>
-                  <TableHead className="text-center">Games</TableHead>
-                  <TableHead className="text-center">Wins</TableHead>
-                  <TableHead className="text-center">Losses</TableHead>
-                  <TableHead>Win Rate</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {matchupEntries.map((matchup) => (
-                  <TableRow key={matchup.hero!.id}>
-                    <TableCell className="font-medium">{matchup.hero!.name}</TableCell>
-                    <TableCell className="text-center">{matchup.total}</TableCell>
-                    <TableCell className="text-center text-accent">{matchup.wins}</TableCell>
-                    <TableCell className="text-center text-destructive">
-                      {matchup.total - matchup.wins}
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-3">
-                        <Progress value={matchup.winRate} className="flex-1" />
-                        <span className="text-sm font-medium min-w-[48px] text-right">
-                          {matchup.winRate.toFixed(0)}%
-                        </span>
-                      </div>
-                    </TableCell>
+          <div className="border rounded-lg overflow-hidden -mx-4 md:mx-0">
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="text-xs md:text-sm">Opponent</TableHead>
+                    <TableHead className="text-center text-xs md:text-sm">Games</TableHead>
+                    <TableHead className="text-center text-xs md:text-sm">W</TableHead>
+                    <TableHead className="text-center text-xs md:text-sm">L</TableHead>
+                    <TableHead className="text-xs md:text-sm hidden sm:table-cell">Win Rate</TableHead>
+                    <TableHead className="sm:hidden text-xs">WR</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  {matchupEntries.map((matchup) => (
+                    <TableRow key={matchup.hero!.id}>
+                      <TableCell className="font-medium text-xs md:text-sm">{matchup.hero!.name}</TableCell>
+                      <TableCell className="text-center text-xs md:text-sm">{matchup.total}</TableCell>
+                      <TableCell className="text-center text-xs md:text-sm text-accent">{matchup.wins}</TableCell>
+                      <TableCell className="text-center text-xs md:text-sm text-destructive">
+                        {matchup.total - matchup.wins}
+                      </TableCell>
+                      <TableCell className="hidden sm:table-cell">
+                        <div className="flex items-center gap-3">
+                          <Progress value={matchup.winRate} className="flex-1" />
+                          <span className="text-sm font-medium min-w-[48px] text-right">
+                            {matchup.winRate.toFixed(0)}%
+                          </span>
+                        </div>
+                      </TableCell>
+                      <TableCell className="sm:hidden text-center text-xs font-medium">
+                        {matchup.winRate.toFixed(0)}%
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
           </div>
         )}
       </Card>
