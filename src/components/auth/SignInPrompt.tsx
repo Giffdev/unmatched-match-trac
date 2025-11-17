@@ -101,23 +101,23 @@ export function SignInPrompt({ onUserChange }: SignInPromptProps) {
   }
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6 md:space-y-8">
       <Card className="max-w-md mx-auto shadow-lg">
-        <CardHeader>
-          <CardTitle className="text-2xl">
+        <CardHeader className="px-4 md:px-6">
+          <CardTitle className="text-xl md:text-2xl">
             {mode === 'signin' ? 'Welcome Back' : 'Create Account'}
           </CardTitle>
-          <CardDescription>
+          <CardDescription className="text-sm">
             {mode === 'signin' 
               ? 'Sign in to access your match history, statistics, and collection.'
               : 'Create a new account to start tracking your Unmatched games.'
             }
           </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="px-4 md:px-6">
           <form onSubmit={mode === 'signin' ? handleSignIn : handleSignUp} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="auth-email">Email</Label>
+              <Label htmlFor="auth-email" className="text-sm">Email</Label>
               <Input
                 id="auth-email"
                 type="email"
@@ -125,10 +125,11 @@ export function SignInPrompt({ onUserChange }: SignInPromptProps) {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
+                className="text-sm md:text-base"
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="auth-password">Password</Label>
+              <Label htmlFor="auth-password" className="text-sm">Password</Label>
               <div className="relative">
                 <Input
                   id="auth-password"
@@ -137,7 +138,7 @@ export function SignInPrompt({ onUserChange }: SignInPromptProps) {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
-                  className="pr-10"
+                  className="pr-10 text-sm md:text-base"
                 />
                 <Button
                   type="button"
@@ -147,16 +148,16 @@ export function SignInPrompt({ onUserChange }: SignInPromptProps) {
                   onClick={() => setShowPassword(!showPassword)}
                 >
                   {showPassword ? (
-                    <EyeClosed className="text-muted-foreground" />
+                    <EyeClosed className="text-muted-foreground" size={18} />
                   ) : (
-                    <Eye className="text-muted-foreground" />
+                    <Eye className="text-muted-foreground" size={18} />
                   )}
                 </Button>
               </div>
             </div>
             {mode === 'signup' && (
               <div className="space-y-2">
-                <Label htmlFor="confirm-password">Confirm Password</Label>
+                <Label htmlFor="confirm-password" className="text-sm">Confirm Password</Label>
                 <div className="relative">
                   <Input
                     id="confirm-password"
@@ -165,7 +166,7 @@ export function SignInPrompt({ onUserChange }: SignInPromptProps) {
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     required
-                    className="pr-10"
+                    className="pr-10 text-sm md:text-base"
                   />
                   <Button
                     type="button"
@@ -175,9 +176,9 @@ export function SignInPrompt({ onUserChange }: SignInPromptProps) {
                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                   >
                     {showConfirmPassword ? (
-                      <EyeClosed className="text-muted-foreground" />
+                      <EyeClosed className="text-muted-foreground" size={18} />
                     ) : (
-                      <Eye className="text-muted-foreground" />
+                      <Eye className="text-muted-foreground" size={18} />
                     )}
                   </Button>
                 </div>
@@ -186,12 +187,12 @@ export function SignInPrompt({ onUserChange }: SignInPromptProps) {
             <Button type="submit" className="w-full" size="lg">
               {mode === 'signin' ? (
                 <>
-                  <SignIn className="mr-2" />
+                  <SignIn className="mr-2" size={18} />
                   Sign In
                 </>
               ) : (
                 <>
-                  <UserPlus className="mr-2" />
+                  <UserPlus className="mr-2" size={18} />
                   Create Account
                 </>
               )}
@@ -203,7 +204,7 @@ export function SignInPrompt({ onUserChange }: SignInPromptProps) {
               type="button"
               variant="link"
               onClick={toggleMode}
-              className="text-sm text-muted-foreground"
+              className="text-xs md:text-sm text-muted-foreground"
             >
               {mode === 'signin' 
                 ? "Don't have an account? Sign up" 
@@ -215,18 +216,24 @@ export function SignInPrompt({ onUserChange }: SignInPromptProps) {
       </Card>
       
       <Tabs value={currentTab} onValueChange={setCurrentTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-3 mb-6">
-          <TabsTrigger value="stats">
-            <ChartBar className="mr-2" size={18} />
-            Community Stats
+        <TabsList className="grid w-full grid-cols-3 mb-4 md:mb-6">
+          <TabsTrigger value="stats" className="text-xs md:text-sm flex-col md:flex-row gap-1 md:gap-2 py-2">
+            <ChartBar size={16} className="md:hidden" />
+            <ChartBar size={18} className="hidden md:block" />
+            <span className="hidden sm:inline">Community Stats</span>
+            <span className="sm:hidden">Stats</span>
           </TabsTrigger>
-          <TabsTrigger value="heroes">
-            <MagnifyingGlass className="mr-2" size={18} />
-            Hero Browser
+          <TabsTrigger value="heroes" className="text-xs md:text-sm flex-col md:flex-row gap-1 md:gap-2 py-2">
+            <MagnifyingGlass size={16} className="md:hidden" />
+            <MagnifyingGlass size={18} className="hidden md:block" />
+            <span className="hidden sm:inline">Hero Browser</span>
+            <span className="sm:hidden">Heroes</span>
           </TabsTrigger>
-          <TabsTrigger value="heatmap">
-            <GridFour className="mr-2" size={18} />
-            Matchup Heatmap
+          <TabsTrigger value="heatmap" className="text-xs md:text-sm flex-col md:flex-row gap-1 md:gap-2 py-2">
+            <GridFour size={16} className="md:hidden" />
+            <GridFour size={18} className="hidden md:block" />
+            <span className="hidden sm:inline">Matchup Heatmap</span>
+            <span className="sm:hidden">Heatmap</span>
           </TabsTrigger>
         </TabsList>
         

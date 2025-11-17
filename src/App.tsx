@@ -75,33 +75,34 @@ function App() {
   }, [currentUserId, matchesData.length])
 
   return (
-    <div className="min-h-screen bg-background pb-20 md:pb-0">
+    <div className="min-h-screen bg-background pb-16 md:pb-0">
       <Toaster />
       <DataCleanup />
       
-      <header className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-10">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
+      <header className="border-b border-border bg-card/50 backdrop-blur-sm">
+        <div className="container mx-auto px-3 md:px-4 py-3 md:py-4">
+          <div className="flex items-center justify-between gap-2">
             <div 
-              className={currentView === 'collection' ? 'cursor-pointer' : ''}
+              className={`flex-1 min-w-0 ${currentView === 'collection' ? 'cursor-pointer' : ''}`}
               onClick={currentView === 'collection' ? navigateToMain : undefined}
             >
-              <h1 className="text-3xl font-bold tracking-tight text-foreground">
+              <h1 className="text-xl md:text-3xl font-bold tracking-tight text-foreground truncate">
                 Unmatched Tracker
               </h1>
-              <p className="text-sm text-muted-foreground mt-1">
+              <p className="text-xs md:text-sm text-muted-foreground mt-0.5 md:mt-1 hidden sm:block">
                 Log matches, analyze statistics, and discover perfect matchups
               </p>
             </div>
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2 md:gap-4 flex-shrink-0">
               {currentUserId && currentView === 'main' && (
                 <Button 
                   variant="ghost" 
                   size="sm"
                   onClick={navigateToCollection}
-                  className="text-muted-foreground hover:text-foreground"
+                  className="text-muted-foreground hover:text-foreground text-xs md:text-sm px-2 md:px-4"
                 >
-                  Manage Collection
+                  <span className="hidden sm:inline">Manage Collection</span>
+                  <span className="sm:hidden">Collection</span>
                 </Button>
               )}
               {currentUserId && <UserProfile onImportMatches={handleImportMatches} />}
@@ -110,7 +111,7 @@ function App() {
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-6">
+      <main className="container mx-auto px-3 md:px-4 py-4 md:py-6">
         {!currentUserId ? (
           <SignInPrompt onUserChange={handleUserChange} />
         ) : currentView === 'collection' ? (
@@ -173,65 +174,65 @@ function App() {
 
       {isMobile && currentUserId && currentView === 'main' && (
         <nav className="fixed bottom-0 left-0 right-0 bg-card border-t border-border z-20">
-          <div className="grid grid-cols-5 h-16">
+          <div className="grid grid-cols-5 h-14">
             <button
               onClick={() => setCurrentTab('matches')}
-              className={`flex flex-col items-center justify-center gap-1 transition-colors ${
+              className={`flex flex-col items-center justify-center gap-0.5 transition-colors ${
                 currentTab === 'matches' 
                   ? 'text-primary' 
                   : 'text-muted-foreground'
               }`}
             >
-              <ListChecks size={24} weight={currentTab === 'matches' ? 'fill' : 'regular'} />
-              <span className="text-xs">Matches</span>
+              <ListChecks size={20} weight={currentTab === 'matches' ? 'fill' : 'regular'} />
+              <span className="text-[10px] leading-tight">Matches</span>
             </button>
             
             <button
               onClick={() => setCurrentTab('players')}
-              className={`flex flex-col items-center justify-center gap-1 transition-colors ${
+              className={`flex flex-col items-center justify-center gap-0.5 transition-colors ${
                 currentTab === 'players' 
                   ? 'text-primary' 
                   : 'text-muted-foreground'
               }`}
             >
-              <Users size={24} weight={currentTab === 'players' ? 'fill' : 'regular'} />
-              <span className="text-xs">Players</span>
+              <Users size={20} weight={currentTab === 'players' ? 'fill' : 'regular'} />
+              <span className="text-[10px] leading-tight">Players</span>
             </button>
             
             <button
               onClick={() => setCurrentTab('heroes')}
-              className={`flex flex-col items-center justify-center gap-1 transition-colors ${
+              className={`flex flex-col items-center justify-center gap-0.5 transition-colors ${
                 currentTab === 'heroes' 
                   ? 'text-primary' 
                   : 'text-muted-foreground'
               }`}
             >
-              <User size={24} weight={currentTab === 'heroes' ? 'fill' : 'regular'} />
-              <span className="text-xs">Heroes</span>
+              <User size={20} weight={currentTab === 'heroes' ? 'fill' : 'regular'} />
+              <span className="text-[10px] leading-tight">Heroes</span>
             </button>
             
             <button
               onClick={() => setCurrentTab('global')}
-              className={`flex flex-col items-center justify-center gap-1 transition-colors ${
+              className={`flex flex-col items-center justify-center gap-0.5 transition-colors ${
                 currentTab === 'global' 
                   ? 'text-primary' 
                   : 'text-muted-foreground'
               }`}
             >
-              <Globe size={24} weight={currentTab === 'global' ? 'fill' : 'regular'} />
-              <span className="text-xs">Stats</span>
+              <Globe size={20} weight={currentTab === 'global' ? 'fill' : 'regular'} />
+              <span className="text-[10px] leading-tight">Stats</span>
             </button>
             
             <button
               onClick={() => setCurrentTab('randomizer')}
-              className={`flex flex-col items-center justify-center gap-1 transition-colors ${
+              className={`flex flex-col items-center justify-center gap-0.5 transition-colors ${
                 currentTab === 'randomizer' 
                   ? 'text-primary' 
                   : 'text-muted-foreground'
               }`}
             >
-              <Shuffle size={24} weight={currentTab === 'randomizer' ? 'fill' : 'regular'} />
-              <span className="text-xs">Random</span>
+              <Shuffle size={20} weight={currentTab === 'randomizer' ? 'fill' : 'regular'} />
+              <span className="text-[10px] leading-tight">Random</span>
             </button>
           </div>
         </nav>

@@ -92,9 +92,9 @@ export function UserProfile({ onImportMatches }: UserProfileProps) {
     <>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="ghost" className="relative h-10 w-10 rounded-full">
-            <Avatar className="h-10 w-10">
-              <AvatarFallback className="bg-primary text-primary-foreground">
+          <Button variant="ghost" className="relative h-8 w-8 md:h-10 md:w-10 rounded-full p-0">
+            <Avatar className="h-8 w-8 md:h-10 md:w-10">
+              <AvatarFallback className="bg-primary text-primary-foreground text-xs md:text-sm">
                 {initials}
               </AvatarFallback>
             </Avatar>
@@ -116,22 +116,22 @@ export function UserProfile({ onImportMatches }: UserProfileProps) {
           </DropdownMenuLabel>
           <DropdownMenuSeparator />
           <DropdownMenuItem onClick={() => setShowPlayerNameDialog(true)}>
-            <UserIconPhosphor className="mr-2" />
+            <UserIconPhosphor className="mr-2" size={16} />
             Set Player Name
           </DropdownMenuItem>
           <DropdownMenuItem onClick={() => setShowImportDialog(true)}>
-            <Upload className="mr-2" />
+            <Upload className="mr-2" size={16} />
             Import from CSV
           </DropdownMenuItem>
           <DropdownMenuItem onClick={handleSignOut}>
-            <SignOut className="mr-2" />
+            <SignOut className="mr-2" size={16} />
             Sign Out
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
 
       <Dialog open={showPlayerNameDialog} onOpenChange={setShowPlayerNameDialog}>
-        <DialogContent>
+        <DialogContent className="w-[calc(100%-2rem)] max-w-md">
           <DialogHeader>
             <DialogTitle>Set Your Player Name</DialogTitle>
             <DialogDescription>
@@ -161,7 +161,7 @@ export function UserProfile({ onImportMatches }: UserProfileProps) {
       </Dialog>
 
       <Dialog open={showImportDialog} onOpenChange={setShowImportDialog}>
-        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="w-[calc(100%-2rem)] max-w-3xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Import Matches from CSV</DialogTitle>
             <DialogDescription>
