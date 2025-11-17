@@ -229,9 +229,13 @@ export function LogMatchDialog({ open, onOpenChange, onSave, prefilled }: LogMat
   )
   const [winnerId, setWinnerId] = useState<string | undefined>(prefilled?.winnerId)
   const [isDraw, setIsDraw] = useState(prefilled?.isDraw || false)
-  const [selectedDate, setSelectedDate] = useState<Date | undefined>(
-    prefilled?.date ? new Date(prefilled.date) : new Date()
-  )
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(() => {
+    if (prefilled?.date) {
+      const [year, month, day] = prefilled.date.split('-').map(Number)
+      return new Date(year, month - 1, day)
+    }
+    return new Date()
+  })
   const [currentUserId] = useKV<string | null>('current-user-id', null)
 
   const isCooperative = mode === 'cooperative'

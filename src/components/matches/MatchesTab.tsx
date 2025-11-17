@@ -18,8 +18,13 @@ export function MatchesTab({ matches, setMatches, onHeroClick }: MatchesTabProps
   const [currentUserId] = useKV<string | null>('current-user-id', null)
 
   const sortedMatches = [...matches].sort((a, b) => {
-    const dateA = new Date(a.date).getTime()
-    const dateB = new Date(b.date).getTime()
+    const parseDate = (dateString: string) => {
+      const [year, month, day] = dateString.split('-').map(Number)
+      return new Date(year, month - 1, day).getTime()
+    }
+    
+    const dateA = parseDate(a.date)
+    const dateB = parseDate(b.date)
     
     if (isNaN(dateA) && isNaN(dateB)) return 0
     if (isNaN(dateA)) return 1

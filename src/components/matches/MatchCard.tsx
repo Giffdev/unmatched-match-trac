@@ -32,7 +32,8 @@ export function MatchCard({ match, onDelete, onEdit, onHeroClick }: MatchCardPro
 
   const formatMatchDate = (dateString: string): string => {
     try {
-      const date = new Date(dateString)
+      const [year, month, day] = dateString.split('-').map(Number)
+      const date = new Date(year, month - 1, day)
       if (isNaN(date.getTime())) {
         return dateString
       }
