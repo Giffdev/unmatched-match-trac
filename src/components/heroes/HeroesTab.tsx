@@ -3,7 +3,7 @@ import type { Match, User } from '@/lib/types'
 import { Card } from '@/components/ui/card'
 import { getSelectableHeroes, getHeroById } from '@/lib/data'
 import { calculateHeroStats, calculateUserHeroStats } from '@/lib/stats'
-import { Sword, Trophy, Target, CaretUpDown, Check, Globe, User as UserIcon } from '@phosphor-icons/react'
+import { Sword, CaretUpDown, Check, Globe, User as UserIcon } from '@phosphor-icons/react'
 import { Progress } from '@/components/ui/progress'
 import { Badge } from '@/components/ui/badge'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
@@ -153,12 +153,12 @@ export function HeroesTab({ matches, currentUserId, initialSelectedHero, onHeroC
     )
   }
 
-  const userStats = calculateUserHeroStats(matches, selectedHero, currentUser?.playerName)
-  const userAllHeroStats = calculateUserHeroStats(matches, selectedHero)
+  const userPersonalStats = calculateUserHeroStats(matches, selectedHero, currentUser?.playerName)
+  const userLoggedMatchesStats = calculateUserHeroStats(matches, selectedHero)
   const globalStats = calculateHeroStats(allMatches || [], selectedHero)
   const hero = getHeroById(selectedHero)
 
-  const matchupEntries = Object.entries(userAllHeroStats.vsMatchups)
+  const matchupEntries = Object.entries(userLoggedMatchesStats.vsMatchups)
     .map(([opponentId, data]) => ({
       hero: getHeroById(opponentId),
       wins: data.wins,
@@ -295,7 +295,7 @@ export function HeroesTab({ matches, currentUserId, initialSelectedHero, onHeroC
         </Card>
       )}
 
-      <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-5">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         <Card className="p-6">
           <div className="flex items-center gap-3 mb-2">
             <div className="rounded-full bg-primary/10 p-2">
@@ -303,37 +303,29 @@ export function HeroesTab({ matches, currentUserId, initialSelectedHero, onHeroC
             </div>
             <span className="text-sm text-muted-foreground">Total Games</span>
           </div>
-          <div className="flex items-baseline gap-2">
-            <div className="flex items-center gap-1">
-              <UserIcon className="w-4 h-4 text-primary" />
-              <p className="text-3xl font-bold">{userAllHeroStats.totalGames}</p>
+          <div className="space-y-2">
+            <div className="flex items-baseline gap-2">
+              <div className="flex items-center gap-1">
+                <UserIcon className="w-4 h-4 text-primary" weight="fill" />
+                <span className="text-xs text-muted-foreground">You:</span>
+              </div>
+              <p className="text-2xl font-bold">{userPersonalStats.totalGames}</p>
             </div>
-            <span className="text-muted-foreground">/</span>
-            <div className="flex items-center gap-1">
-              <Globe className="w-4 h-4 text-accent" />
-              <p className="text-3xl font-bold text-accent">{globalStats.totalGames}</p>
+            <div className="flex items-baseline gap-2">
+              <div className="flex items-center gap-1">
+                <UserIcon className="w-4 h-4 text-primary" />
+                <span className="text-xs text-muted-foreground">Your logs:</span>
+              </div>
+              <p className="text-2xl font-bold">{userLoggedMatchesStats.totalGames}</p>
+            </div>
+            <div className="flex items-baseline gap-2">
+              <div className="flex items-center gap-1">
+                <Globe className="w-4 h-4 text-accent" />
+                <span className="text-xs text-muted-foreground">Global:</span>
+              </div>
+              <p className="text-2xl font-bold text-accent">{globalStats.totalGames}</p>
             </div>
           </div>
-        </Card>
-
-        <Card className="p-6">
-          <div className="flex items-center gap-3 mb-2">
-            <div className="rounded-full bg-accent/10 p-2">
-              <Trophy className="w-5 h-5 text-accent" />
-            </div>
-            <span className="text-sm text-muted-foreground">Wins</span>
-          </div>
-          <p className="text-3xl font-bold text-accent">{userAllHeroStats.wins}</p>
-        </Card>
-
-        <Card className="p-6">
-          <div className="flex items-center gap-3 mb-2">
-            <div className="rounded-full bg-destructive/10 p-2">
-              <Target className="w-5 h-5 text-destructive" />
-            </div>
-            <span className="text-sm text-muted-foreground">Losses</span>
-          </div>
-          <p className="text-3xl font-bold text-destructive">{userAllHeroStats.losses}</p>
         </Card>
 
         <Card className="p-6">
@@ -343,8 +335,19 @@ export function HeroesTab({ matches, currentUserId, initialSelectedHero, onHeroC
             </div>
             <span className="text-sm text-muted-foreground">Your Win Rate</span>
           </div>
-          <p className="text-3xl font-bold">{userAllHeroStats.winRate.toFixed(1)}%</p>
-          <Progress value={userAllHeroStats.winRate} className="mt-2 h-2" />
+          {userPersonalStats.totalGames > 0 ? (
+            <>
+              <div className="flex items-baseline gap-2 mb-1">
+                <p className="text-3xl font-bold">{userPersonalStats.winRate.toFixed(1)}%</p>
+                <span className="text-sm text-muted-foreground">
+                  ({userPersonalStats.wins}W-{userPersonalStats.losses}L)
+                </span>
+              </div>
+              <Progress value={userPersonalStats.winRate} className="mt-2 h-2" />
+            </>
+          ) : (
+            <p className="text-sm text-muted-foreground mt-2">No games played yet</p>
+          )}
         </Card>
 
         <Card className="p-6">
@@ -356,7 +359,12 @@ export function HeroesTab({ matches, currentUserId, initialSelectedHero, onHeroC
           </div>
           {globalStats.totalGames > 0 ? (
             <>
-              <p className="text-3xl font-bold text-accent">{globalStats.winRate.toFixed(1)}%</p>
+              <div className="flex items-baseline gap-2 mb-1">
+                <p className="text-3xl font-bold text-accent">{globalStats.winRate.toFixed(1)}%</p>
+                <span className="text-sm text-muted-foreground">
+                  ({globalStats.wins}W-{globalStats.losses}L)
+                </span>
+              </div>
               <Progress value={globalStats.winRate} className="mt-2 h-2" />
             </>
           ) : (
