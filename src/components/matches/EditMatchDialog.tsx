@@ -226,6 +226,7 @@ export function EditMatchDialog({ open, onOpenChange, onSave, match, existingMat
   const [players, setPlayers] = useState<PlayerAssignment[]>(match.players)
   const [winnerId, setWinnerId] = useState<string | undefined>(match.winnerId)
   const [isDraw, setIsDraw] = useState(match.isDraw)
+  const [cooperativeResult, setCooperativeResult] = useState<'win' | 'loss' | undefined>(match.cooperativeResult)
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(() => {
     try {
       const date = new Date(match.date)
@@ -247,6 +248,7 @@ export function EditMatchDialog({ open, onOpenChange, onSave, match, existingMat
       setPlayers(match.players)
       setWinnerId(match.winnerId)
       setIsDraw(match.isDraw)
+      setCooperativeResult(match.cooperativeResult)
       try {
         const date = new Date(match.date)
         if (!isNaN(date.getTime())) {
@@ -321,6 +323,11 @@ export function EditMatchDialog({ open, onOpenChange, onSave, match, existingMat
       return
     }
 
+    if (isCooperative && !cooperativeResult) {
+      toast.error('Please select win or loss')
+      return
+    }
+
     if (!selectedDate) {
       toast.error('Please select a date')
       return
@@ -344,6 +351,7 @@ export function EditMatchDialog({ open, onOpenChange, onSave, match, existingMat
       players: normalizedPlayers,
       winnerId: isCooperative || isDraw ? undefined : winnerId,
       isDraw: isCooperative ? false : isDraw,
+      cooperativeResult: isCooperative ? cooperativeResult : undefined,
     }
 
     onSave(updatedMatch)
@@ -518,6 +526,28 @@ export function EditMatchDialog({ open, onOpenChange, onSave, match, existingMat
                   </div>
                 </RadioGroup>
               )}
+            </div>
+          )}
+
+          {isCooperative && (
+            <div className="space-y-3">
+              <Label>Result</Label>
+              <RadioGroup value={cooperativeResult} onValueChange={(v) => setCooperativeResult(v as 'win' | 'loss')}>
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <RadioGroupItem value="win" id="coop-win" />
+                    <Label htmlFor="coop-win" className="cursor-pointer font-normal">
+                      Win
+                    </Label>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <RadioGroupItem value="loss" id="coop-loss" />
+                    <Label htmlFor="coop-loss" className="cursor-pointer font-normal">
+                      Loss
+                    </Label>
+                  </div>
+                </div>
+              </RadioGroup>
             </div>
           )}
         </div>

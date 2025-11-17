@@ -105,6 +105,16 @@ export function MatchCard({ match, onDelete, onEdit, onHeroClick, existingMatche
                   </div>
                 )
               })}
+            {match.mode === 'cooperative' && match.cooperativeResult && (
+              <div className="mt-3 pt-3 border-t border-border">
+                <Badge 
+                  variant={match.cooperativeResult === 'win' ? 'default' : 'destructive'}
+                  className="font-medium"
+                >
+                  {match.cooperativeResult === 'win' ? 'Victory' : 'Defeat'}
+                </Badge>
+              </div>
+            )}
           </div>
           </div>
 

@@ -62,6 +62,7 @@ export type Match = {
   winnerId?: string
   isDraw: boolean
   userId: string
+  cooperativeResult?: 'win' | 'loss'
 }
 
 export type PlayerStats = {
