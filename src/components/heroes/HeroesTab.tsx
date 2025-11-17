@@ -13,6 +13,7 @@ import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { useKV } from '@github/spark/hooks'
 import { HeroImage } from './HeroImage'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 
 type HeroesTabProps = {
   matches: Match[]
@@ -28,15 +29,29 @@ export function HeroesTab({ matches, currentUserId, initialSelectedHero, onHeroC
   const [allMatches, setAllMatches] = useKV<Match[]>('community-all-matches', [])
   const [users] = useKV<User[]>('users', [])
   const [currentUser, setCurrentUser] = useState<User | null>(null)
+  const [selectedPlayerName, setSelectedPlayerName] = useState<string>('')
 
   useEffect(() => {
     if (currentUserId && users) {
       const user = users.find(u => u.id === currentUserId)
       setCurrentUser(user || null)
+      if (user?.playerName && !selectedPlayerName) {
+        setSelectedPlayerName(user.playerName)
+      }
     } else {
       setCurrentUser(null)
     }
   }, [currentUserId, users])
+
+  const availablePlayers = useMemo(() => {
+    const playerSet = new Set<string>()
+    matches.forEach(match => {
+      match.players.forEach(player => {
+        playerSet.add(player.playerName)
+      })
+    })
+    return Array.from(playerSet).sort()
+  }, [matches])
 
   useEffect(() => {
     if (initialSelectedHero) {
@@ -153,7 +168,7 @@ export function HeroesTab({ matches, currentUserId, initialSelectedHero, onHeroC
     )
   }
 
-  const userPersonalStats = calculateUserHeroStats(matches, selectedHero, currentUser?.playerName)
+  const userPersonalStats = calculateUserHeroStats(matches, selectedHero, selectedPlayerName || undefined)
   const userLoggedMatchesStats = calculateUserHeroStats(matches, selectedHero)
   const globalStats = calculateHeroStats(allMatches || [], selectedHero)
   const hero = getHeroById(selectedHero)
@@ -307,7 +322,9 @@ export function HeroesTab({ matches, currentUserId, initialSelectedHero, onHeroC
             <div className="flex items-baseline gap-2">
               <div className="flex items-center gap-1">
                 <UserIcon className="w-4 h-4 text-primary" weight="fill" />
-                <span className="text-xs text-muted-foreground">You:</span>
+                <span className="text-xs text-muted-foreground">
+                  {selectedPlayerName ? `${selectedPlayerName}:` : 'Select player:'}
+                </span>
               </div>
               <p className="text-2xl font-bold">{userPersonalStats.totalGames}</p>
             </div>
@@ -333,9 +350,27 @@ export function HeroesTab({ matches, currentUserId, initialSelectedHero, onHeroC
             <div className="rounded-full bg-primary/10 p-2">
               <UserIcon className="w-5 h-5 text-primary" />
             </div>
-            <span className="text-sm text-muted-foreground">Your Win Rate</span>
+            <span className="text-sm text-muted-foreground">
+              {selectedPlayerName ? `${selectedPlayerName}'s Win Rate` : 'Player Win Rate'}
+            </span>
           </div>
-          {userPersonalStats.totalGames > 0 ? (
+          {!selectedPlayerName ? (
+            <div className="space-y-2">
+              <p className="text-sm text-muted-foreground">Select a player to view their win rate</p>
+              <Select value={selectedPlayerName} onValueChange={setSelectedPlayerName}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Choose player..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {availablePlayers.map((playerName) => (
+                    <SelectItem key={playerName} value={playerName}>
+                      {playerName}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          ) : userPersonalStats.totalGames > 0 ? (
             <>
               <div className="flex items-baseline gap-2 mb-1">
                 <p className="text-3xl font-bold">{userPersonalStats.winRate.toFixed(1)}%</p>
@@ -344,9 +379,29 @@ export function HeroesTab({ matches, currentUserId, initialSelectedHero, onHeroC
                 </span>
               </div>
               <Progress value={userPersonalStats.winRate} className="mt-2 h-2" />
+              <div className="mt-2">
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={() => setSelectedPlayerName('')}
+                  className="text-xs text-muted-foreground hover:text-foreground"
+                >
+                  Change player
+                </Button>
+              </div>
             </>
           ) : (
-            <p className="text-sm text-muted-foreground mt-2">No games played yet</p>
+            <div className="space-y-2">
+              <p className="text-sm text-muted-foreground">{selectedPlayerName} hasn't played this hero yet</p>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={() => setSelectedPlayerName('')}
+                className="text-xs"
+              >
+                Change player
+              </Button>
+            </div>
           )}
         </Card>
 
