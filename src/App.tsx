@@ -114,7 +114,11 @@ function App() {
         {!currentUserId ? (
           <SignInPrompt onUserChange={handleUserChange} />
         ) : currentView === 'collection' ? (
-          <CollectionTab ownedSets={ownedSetsData} setOwnedSets={setOwnedSets} />
+          <CollectionTab 
+            ownedSets={ownedSetsData} 
+            setOwnedSets={setOwnedSets}
+            onBack={navigateToMain}
+          />
         ) : (
           <Tabs value={currentTab} onValueChange={setCurrentTab} className="w-full">
             {!isMobile && (

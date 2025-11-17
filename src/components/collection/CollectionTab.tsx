@@ -3,15 +3,16 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { Button } from '@/components/ui/button'
 import { UNMATCHED_SETS, getHeroesBySet, FRANCHISES, getSetsByFranchise } from '@/lib/data'
 import { Badge } from '@/components/ui/badge'
-import { Package, CheckSquare, Square, Funnel } from '@phosphor-icons/react'
+import { Package, CheckSquare, Square, Funnel, ArrowLeft } from '@phosphor-icons/react'
 import { useState } from 'react'
 
 type CollectionTabProps = {
   ownedSets: string[]
   setOwnedSets: (updater: (sets: string[]) => string[]) => void
+  onBack?: () => void
 }
 
-export function CollectionTab({ ownedSets, setOwnedSets }: CollectionTabProps) {
+export function CollectionTab({ ownedSets, setOwnedSets, onBack }: CollectionTabProps) {
   const [selectedFranchise, setSelectedFranchise] = useState<string | null>(null)
 
   const toggleSet = (setName: string) => {
@@ -44,6 +45,18 @@ export function CollectionTab({ ownedSets, setOwnedSets }: CollectionTabProps) {
 
   return (
     <div className="space-y-6">
+      {onBack && (
+        <Button 
+          variant="ghost" 
+          size="sm"
+          onClick={onBack}
+          className="gap-2 -ml-2 mb-2"
+        >
+          <ArrowLeft />
+          Back to Dashboard
+        </Button>
+      )}
+      
       <div className="flex items-center justify-between flex-wrap gap-4">
         <div>
           <h2 className="text-2xl font-semibold">My Collection</h2>
