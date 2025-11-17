@@ -3,7 +3,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Input } from '@/components/ui/input'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import type { Match, GameMode, PlayerAssignment } from '@/lib/types'
 import { HEROES, MAPS, getMapsByPlayerCount, getCooperativeMaps, getSelectableHeroes } from '@/lib/data'
@@ -15,12 +14,14 @@ import { Check, CaretUpDown, Plus, Trash, CalendarBlank } from '@phosphor-icons/
 import { cn, normalizePlayerName } from '@/lib/utils'
 import { Calendar } from '@/components/ui/calendar'
 import { format } from 'date-fns'
+import { PlayerNameInput } from './PlayerNameInput'
 
 type LogMatchDialogProps = {
   open: boolean
   onOpenChange: (open: boolean) => void
   onSave: (match: Match) => void
   prefilled?: Partial<Match>
+  existingMatches?: Match[]
 }
 
 type MapSelectorProps = {
@@ -220,7 +221,7 @@ function HeroSelector({ value, onChange, variant, onVariantChange }: HeroSelecto
   )
 }
 
-export function LogMatchDialog({ open, onOpenChange, onSave, prefilled }: LogMatchDialogProps) {
+export function LogMatchDialog({ open, onOpenChange, onSave, prefilled, existingMatches = [] }: LogMatchDialogProps) {
   const [mode, setMode] = useState<GameMode>(prefilled?.mode || '1v1')
   const [mapId, setMapId] = useState(prefilled?.mapId || '')
   const [players, setPlayers] = useState<PlayerAssignment[]>(
@@ -429,14 +430,14 @@ export function LogMatchDialog({ open, onOpenChange, onSave, prefilled }: LogMat
                   {index + 1}
                 </div>
                 <div className="flex-1 space-y-3">
-                  <Input
-                    placeholder="Player name"
+                  <PlayerNameInput
                     value={player.playerName}
-                    onChange={(e) => {
+                    onChange={(value) => {
                       const newPlayers = [...players]
-                      newPlayers[index].playerName = e.target.value
+                      newPlayers[index].playerName = value
                       setPlayers(newPlayers)
                     }}
+                    matches={existingMatches}
                   />
                   <HeroSelector
                     value={player.heroId}

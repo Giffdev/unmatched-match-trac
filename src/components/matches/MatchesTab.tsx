@@ -81,6 +81,7 @@ export function MatchesTab({ matches, setMatches, onHeroClick }: MatchesTabProps
                 current.map(m => m.id === updatedMatch.id ? updatedMatch : m)
               )}
               onHeroClick={onHeroClick}
+              existingMatches={matches}
             />
           ))}
         </div>
@@ -90,6 +91,7 @@ export function MatchesTab({ matches, setMatches, onHeroClick }: MatchesTabProps
         open={dialogOpen} 
         onOpenChange={setDialogOpen}
         onSave={(match) => setMatches(current => [...current, match])}
+        existingMatches={matches}
       />
     </div>
   )

@@ -14,6 +14,7 @@ type MatchCardProps = {
   onDelete: (id: string) => void
   onEdit: (match: Match) => void
   onHeroClick: (heroId: string) => void
+  existingMatches?: Match[]
 }
 
 const MODE_LABELS: Record<string, string> = {
@@ -24,7 +25,7 @@ const MODE_LABELS: Record<string, string> = {
   'ffa4': '4P FFA',
 }
 
-export function MatchCard({ match, onDelete, onEdit, onHeroClick }: MatchCardProps) {
+export function MatchCard({ match, onDelete, onEdit, onHeroClick, existingMatches = [] }: MatchCardProps) {
   const [editDialogOpen, setEditDialogOpen] = useState(false)
   const map = getMapById(match.mapId)
   const winner = match.players.find(p => p.heroId === match.winnerId)
@@ -133,6 +134,7 @@ export function MatchCard({ match, onDelete, onEdit, onHeroClick }: MatchCardPro
         onOpenChange={setEditDialogOpen}
         onSave={onEdit}
         match={match}
+        existingMatches={existingMatches}
       />
     </>
   )
