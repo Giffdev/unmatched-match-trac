@@ -6,7 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Input } from '@/components/ui/input'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import type { Match, GameMode, PlayerAssignment } from '@/lib/types'
-import { HEROES, MAPS, getMapsByPlayerCount, getCooperativeMaps } from '@/lib/data'
+import { HEROES, MAPS, getMapsByPlayerCount, getCooperativeMaps, getSelectableHeroes } from '@/lib/data'
 import { toast } from 'sonner'
 import { useKV } from '@github/spark/hooks'
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command'
@@ -124,15 +124,17 @@ function HeroSelector({ value, onChange, variant, onVariantChange }: HeroSelecto
   const [open, setOpen] = useState(false)
   const [search, setSearch] = useState('')
 
+  const selectableHeroes = getSelectableHeroes()
+
   const filteredHeroes = useMemo(() => {
-    if (!search) return HEROES
+    if (!search) return selectableHeroes
     const searchLower = search.toLowerCase()
-    return HEROES.filter(
+    return selectableHeroes.filter(
       hero =>
         hero.name.toLowerCase().includes(searchLower) ||
         hero.set.toLowerCase().includes(searchLower)
     )
-  }, [search])
+  }, [search, selectableHeroes])
 
   const selectedHero = HEROES.find(h => h.id === value)
   const isYenneferTriss = value === 'yennefer-triss'

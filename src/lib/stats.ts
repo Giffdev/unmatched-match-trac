@@ -1,4 +1,5 @@
 import type { Match, PlayerStats, HeroStats, CommunityData } from './types'
+import { normalizeHeroId } from './utils'
 
 export function calculatePlayerStats(matches: Match[], playerName: string): PlayerStats {
   const playerMatches = matches.filter(m => 
@@ -27,7 +28,7 @@ export function calculatePlayerStats(matches: Match[], playerName: string): Play
       vsPlayers[opponent.playerName].total++
     }
 
-    const heroId = player.heroId
+    const heroId = normalizeHeroId(player.heroId)
     heroesPlayed[heroId] = (heroesPlayed[heroId] || 0) + 1
 
     if (!heroWinRates[heroId]) {
@@ -82,11 +83,14 @@ export function calculatePlayerStats(matches: Match[], playerName: string): Play
 }
 
 export function calculateHeroStats(matches: Match[], heroId: string, filterByHeroId?: string): HeroStats {
-  let relevantMatches = matches.filter(m => m.players.some(p => p.heroId === heroId))
+  const normalizedHeroId = normalizeHeroId(heroId)
+  const normalizedFilterHeroId = filterByHeroId ? normalizeHeroId(filterByHeroId) : undefined
   
-  if (filterByHeroId) {
+  let relevantMatches = matches.filter(m => m.players.some(p => normalizeHeroId(p.heroId) === normalizedHeroId))
+  
+  if (normalizedFilterHeroId) {
     relevantMatches = relevantMatches.filter(m => 
-      m.players.some(p => p.heroId === filterByHeroId)
+      m.players.some(p => normalizeHeroId(p.heroId) === normalizedFilterHeroId)
     )
   }
 
@@ -96,21 +100,23 @@ export function calculateHeroStats(matches: Match[], heroId: string, filterByHer
   const vsMatchups: Record<string, { wins: number; total: number }> = {}
 
   for (const match of relevantMatches) {
-    const opponents = match.players.filter(p => p.heroId !== heroId)
+    const opponents = match.players.filter(p => normalizeHeroId(p.heroId) !== normalizedHeroId)
     
     for (const opponent of opponents) {
-      if (!vsMatchups[opponent.heroId]) {
-        vsMatchups[opponent.heroId] = { wins: 0, total: 0 }
+      const normalizedOpponentId = normalizeHeroId(opponent.heroId)
+      if (!vsMatchups[normalizedOpponentId]) {
+        vsMatchups[normalizedOpponentId] = { wins: 0, total: 0 }
       }
-      vsMatchups[opponent.heroId].total++
+      vsMatchups[normalizedOpponentId].total++
     }
 
     if (match.isDraw) {
       draws++
-    } else if (match.winnerId === heroId) {
+    } else if (match.winnerId && normalizeHeroId(match.winnerId) === normalizedHeroId) {
       wins++
       for (const opponent of opponents) {
-        vsMatchups[opponent.heroId].wins++
+        const normalizedOpponentId = normalizeHeroId(opponent.heroId)
+        vsMatchups[normalizedOpponentId].wins++
       }
     } else {
       losses++
@@ -118,7 +124,7 @@ export function calculateHeroStats(matches: Match[], heroId: string, filterByHer
   }
 
   return {
-    heroId,
+    heroId: normalizedHeroId,
     totalGames: relevantMatches.length,
     wins,
     losses,
@@ -129,15 +135,16 @@ export function calculateHeroStats(matches: Match[], heroId: string, filterByHer
 }
 
 export function calculateUserHeroStats(userMatches: Match[], heroId: string, playerName?: string): HeroStats {
+  const normalizedHeroId = normalizeHeroId(heroId)
   let relevantMatches: Match[]
   
   if (playerName) {
     relevantMatches = userMatches.filter(m => 
-      m.players.some(p => p.heroId === heroId && p.playerName.toLowerCase() === playerName.toLowerCase())
+      m.players.some(p => normalizeHeroId(p.heroId) === normalizedHeroId && p.playerName.toLowerCase() === playerName.toLowerCase())
     )
   } else {
     relevantMatches = userMatches.filter(m => 
-      m.players.some(p => p.heroId === heroId)
+      m.players.some(p => normalizeHeroId(p.heroId) === normalizedHeroId)
     )
   }
 
@@ -150,9 +157,9 @@ export function calculateUserHeroStats(userMatches: Match[], heroId: string, pla
     let heroPlayer: typeof match.players[0] | undefined
     
     if (playerName) {
-      heroPlayer = match.players.find(p => p.heroId === heroId && p.playerName.toLowerCase() === playerName.toLowerCase())
+      heroPlayer = match.players.find(p => normalizeHeroId(p.heroId) === normalizedHeroId && p.playerName.toLowerCase() === playerName.toLowerCase())
     } else {
-      heroPlayer = match.players.find(p => p.heroId === heroId)
+      heroPlayer = match.players.find(p => normalizeHeroId(p.heroId) === normalizedHeroId)
     }
     
     if (!heroPlayer) continue
@@ -160,35 +167,39 @@ export function calculateUserHeroStats(userMatches: Match[], heroId: string, pla
     const opponents = match.players.filter(p => 
       playerName 
         ? p.playerName.toLowerCase() !== playerName.toLowerCase()
-        : p.heroId !== heroId
+        : normalizeHeroId(p.heroId) !== normalizedHeroId
     )
     
     for (const opponent of opponents) {
-      if (!vsMatchups[opponent.heroId]) {
-        vsMatchups[opponent.heroId] = { wins: 0, total: 0 }
+      const normalizedOpponentId = normalizeHeroId(opponent.heroId)
+      if (!vsMatchups[normalizedOpponentId]) {
+        vsMatchups[normalizedOpponentId] = { wins: 0, total: 0 }
       }
-      vsMatchups[opponent.heroId].total++
+      vsMatchups[normalizedOpponentId].total++
     }
 
     if (match.isDraw) {
       draws++
-    } else {
-      const winningPlayer = match.players.find(p => p.heroId === match.winnerId)
+    } else if (match.winnerId) {
+      const normalizedWinnerId = normalizeHeroId(match.winnerId)
+      const winningPlayer = match.players.find(p => normalizeHeroId(p.heroId) === normalizedWinnerId)
       if (winningPlayer) {
         if (playerName) {
           if (winningPlayer.playerName.toLowerCase() === playerName.toLowerCase()) {
             wins++
             for (const opponent of opponents) {
-              vsMatchups[opponent.heroId].wins++
+              const normalizedOpponentId = normalizeHeroId(opponent.heroId)
+              vsMatchups[normalizedOpponentId].wins++
             }
           } else {
             losses++
           }
         } else {
-          if (winningPlayer.heroId === heroId) {
+          if (normalizeHeroId(winningPlayer.heroId) === normalizedHeroId) {
             wins++
             for (const opponent of opponents) {
-              vsMatchups[opponent.heroId].wins++
+              const normalizedOpponentId = normalizeHeroId(opponent.heroId)
+              vsMatchups[normalizedOpponentId].wins++
             }
           } else {
             losses++
@@ -199,7 +210,7 @@ export function calculateUserHeroStats(userMatches: Match[], heroId: string, pla
   }
 
   return {
-    heroId,
+    heroId: normalizedHeroId,
     totalGames: relevantMatches.length,
     wins,
     losses,
@@ -225,7 +236,7 @@ export function aggregateCommunityData(allMatches: Match[]): CommunityData {
 
   for (const match of allMatches) {
     for (const player of match.players) {
-      heroIds.add(player.heroId)
+      heroIds.add(normalizeHeroId(player.heroId))
     }
   }
 

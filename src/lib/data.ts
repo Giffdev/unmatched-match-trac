@@ -144,7 +144,8 @@ export const MAPS: Map[] = [
 ]
 
 export function getHeroById(id: string): Hero | undefined {
-  return HEROES.find(h => h.id === id)
+  const normalizedId = id === 'bruce-lee-ali' ? 'bruce-lee' : id
+  return HEROES.find(h => h.id === normalizedId)
 }
 
 export function getMapById(id: string): Map | undefined {
@@ -167,4 +168,8 @@ export const ADVENTURE_SETS = ['Adventures: Tales to Amaze', 'Unmatched Adventur
 
 export function getCooperativeMaps(): Map[] {
   return MAPS.filter(m => ADVENTURE_SETS.includes(m.set))
+}
+
+export function getSelectableHeroes(): Hero[] {
+  return HEROES.filter(h => h.id !== 'bruce-lee-ali')
 }

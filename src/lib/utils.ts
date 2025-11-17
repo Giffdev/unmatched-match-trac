@@ -15,6 +15,14 @@ const PLAYER_NAME_MAP: Record<string, string> = {
   'jordan': 'Jordan',
 }
 
+const HERO_ID_MAP: Record<string, string> = {
+  'bruce-lee-ali': 'bruce-lee',
+}
+
+export function normalizeHeroId(heroId: string): string {
+  return HERO_ID_MAP[heroId] || heroId
+}
+
 export function getHeroDisplayName(player: PlayerAssignment): string {
   const hero = getHeroById(player.heroId)
   if (!hero) return 'Unknown Hero'
@@ -38,7 +46,9 @@ export function normalizeMatchPlayerNames(match: Match): Match {
     ...match,
     players: match.players.map(player => ({
       ...player,
-      playerName: normalizePlayerName(player.playerName)
-    }))
+      playerName: normalizePlayerName(player.playerName),
+      heroId: normalizeHeroId(player.heroId)
+    })),
+    winnerId: match.winnerId ? normalizeHeroId(match.winnerId) : match.winnerId
   }
 }

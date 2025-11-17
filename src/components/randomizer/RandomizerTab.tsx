@@ -6,7 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
 import { Shuffle, DiceSix, Sparkle, ArrowsClockwise } from '@phosphor-icons/react'
-import { getHeroById, getMapById, getHeroesBySet, getMapsByPlayerCount, getMapsBySet, HEROES } from '@/lib/data'
+import { getHeroById, getMapById, getHeroesBySet, getMapsByPlayerCount, getMapsBySet, getSelectableHeroes } from '@/lib/data'
 import { aggregateCommunityData, getBalancedRandomHero, getBalancedMatchupHero } from '@/lib/stats'
 import { LogMatchDialog } from '@/components/matches/LogMatchDialog'
 import { toast } from 'sonner'
@@ -35,7 +35,7 @@ export function RandomizerTab({ ownedSets, matches, setMatches }: RandomizerTabP
 
   const availableHeroes = useCollectionOnly 
     ? ownedSets.flatMap(set => getHeroesBySet(set))
-    : HEROES
+    : getSelectableHeroes()
 
   const handleRandomize = () => {
     if (availableHeroes.length === 0) {

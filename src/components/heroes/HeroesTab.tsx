@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect } from 'react'
 import type { Match, User } from '@/lib/types'
 import { Card } from '@/components/ui/card'
-import { HEROES, getHeroById } from '@/lib/data'
+import { getSelectableHeroes, getHeroById } from '@/lib/data'
 import { calculateHeroStats, calculateUserHeroStats } from '@/lib/stats'
 import { Sword, Trophy, Target, CaretUpDown, Check, Globe, User as UserIcon } from '@phosphor-icons/react'
 import { Progress } from '@/components/ui/progress'
@@ -66,18 +66,20 @@ export function HeroesTab({ matches, currentUserId, initialSelectedHero, onHeroC
     updateCommunityMatches()
   }, [matches.length, currentUserId])
 
+  const selectableHeroes = getSelectableHeroes()
+
   const filteredHeroes = useMemo(() => {
     const searchLower = search.toLowerCase()
     const filtered = search 
-      ? HEROES.filter(
+      ? selectableHeroes.filter(
           hero =>
             hero.name.toLowerCase().includes(searchLower) ||
             hero.set.toLowerCase().includes(searchLower)
         )
-      : HEROES
+      : selectableHeroes
     
     return [...filtered].sort((a, b) => a.name.localeCompare(b.name))
-  }, [search])
+  }, [search, selectableHeroes])
 
   if (!selectedHero) {
     return (

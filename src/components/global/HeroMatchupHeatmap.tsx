@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
 import type { Match } from '@/lib/types'
-import { HEROES, getHeroById } from '@/lib/data'
+import { getSelectableHeroes, getHeroById } from '@/lib/data'
 import { cn } from '@/lib/utils'
 
 type HeroMatchupHeatmapProps = {
@@ -16,12 +16,14 @@ type MatchupData = {
 }
 
 export function HeroMatchupHeatmap({ matches, onHeroClick, isLoading }: HeroMatchupHeatmapProps) {
+  const selectableHeroes = getSelectableHeroes()
+  
   const matchupMatrix = useMemo(() => {
     const matrix: Record<string, Record<string, MatchupData>> = {}
     
-    HEROES.forEach(hero => {
+    selectableHeroes.forEach(hero => {
       matrix[hero.id] = {}
-      HEROES.forEach(opponent => {
+      selectableHeroes.forEach(opponent => {
         if (hero.id !== opponent.id) {
           matrix[hero.id][opponent.id] = { wins: 0, total: 0, winRate: 0 }
         }
@@ -71,11 +73,11 @@ export function HeroMatchupHeatmap({ matches, onHeroClick, isLoading }: HeroMatc
   }, [matches])
 
   const heroesWithData = useMemo(() => {
-    return HEROES.filter(hero => {
+    return selectableHeroes.filter(hero => {
       const hasData = Object.values(matchupMatrix[hero.id] || {}).some(m => m.total > 0)
       return hasData
     }).sort((a, b) => a.name.localeCompare(b.name))
-  }, [matchupMatrix])
+  }, [matchupMatrix, selectableHeroes])
 
   const getWinRateColor = (winRate: number, total: number) => {
     if (total === 0) {

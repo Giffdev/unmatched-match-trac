@@ -66,7 +66,7 @@ function App() {
       const hasChanges = JSON.stringify(matchesData) !== JSON.stringify(normalizedMatches)
       
       if (hasChanges) {
-        console.log('Normalizing player names in existing matches...')
+        console.log('Normalizing player names and hero IDs in existing matches...')
         setMatches(normalizedMatches)
       }
     }

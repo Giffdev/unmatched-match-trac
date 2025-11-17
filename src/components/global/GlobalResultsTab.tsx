@@ -3,7 +3,7 @@ import { Card } from '@/components/ui/card'
 import { Globe } from '@phosphor-icons/react'
 import { useKV } from '@github/spark/hooks'
 import type { Match } from '@/lib/types'
-import { HEROES } from '@/lib/data'
+import { getSelectableHeroes } from '@/lib/data'
 import { HeroMatchupHeatmap } from './HeroMatchupHeatmap'
 
 type GlobalResultsTabProps = {

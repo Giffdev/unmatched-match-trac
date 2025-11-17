@@ -5,7 +5,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Switch } from '@/components/ui/switch'
 import { Label } from '@/components/ui/label'
 import { getAllPlayerNames, calculatePlayerStats } from '@/lib/stats'
-import { getHeroById, getMapById, HEROES, MAPS } from '@/lib/data'
+import { getHeroById, getMapById, getSelectableHeroes, MAPS } from '@/lib/data'
 import { Trophy, Target, Sword, MapPin, Users } from '@phosphor-icons/react'
 import { Progress } from '@/components/ui/progress'
 import { Badge } from '@/components/ui/badge'
@@ -44,7 +44,8 @@ export function PlayersTab({ matches, ownedSets = [], onHeroClick }: PlayersTabP
   const stats = calculatePlayerStats(matches, selectedPlayer)
   const heroesPlayedEntries = Object.entries(stats.heroesPlayed).sort((a, b) => b[1] - a[1])
   
-  let neverPlayedHeroes = HEROES.filter(h => !stats.heroesPlayed[h.id])
+  const selectableHeroes = getSelectableHeroes()
+  let neverPlayedHeroes = selectableHeroes.filter(h => !stats.heroesPlayed[h.id])
   if (showOnlyOwnedHeroes && ownedSets.length > 0) {
     neverPlayedHeroes = neverPlayedHeroes.filter(h => ownedSets.includes(h.set))
   }
