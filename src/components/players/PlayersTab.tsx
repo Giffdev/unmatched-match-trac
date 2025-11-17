@@ -117,7 +117,7 @@ export function PlayersTab({ matches, ownedSets = [], onHeroClick }: PlayersTabP
       </div>
 
       <div className="grid gap-4 md:gap-6 md:grid-cols-2">
-        <Card className="p-4 md:p-6">
+        <Card className="p-4 md:p-6 overflow-hidden">
           <h3 className="text-base md:text-lg font-semibold mb-3 md:mb-4">Most Played Heroes</h3>
           <div className="space-y-3">
             {heroesPlayedEntries.slice(0, 10).map(([heroId, count]) => {
@@ -160,7 +160,7 @@ export function PlayersTab({ matches, ownedSets = [], onHeroClick }: PlayersTabP
           </div>
         </Card>
 
-        <Card className="p-4 md:p-6">
+        <Card className="p-4 md:p-6 overflow-hidden">
           <div className="flex flex-col gap-3 mb-3 md:mb-4 md:flex-row md:items-center md:justify-between">
             <h3 className="text-base md:text-lg font-semibold">Never Played Heroes</h3>
             <div className="flex items-center gap-2">
@@ -174,45 +174,47 @@ export function PlayersTab({ matches, ownedSets = [], onHeroClick }: PlayersTabP
               </Label>
             </div>
           </div>
-          <div className="max-h-[400px] overflow-y-auto -mx-4 md:mx-0">
+          <div className="max-h-[400px] overflow-y-auto">
             {neverPlayedHeroes.length === 0 ? (
-              <p className="text-sm text-muted-foreground text-center py-4 px-4">
+              <p className="text-sm text-muted-foreground text-center py-4">
                 {showOnlyOwnedHeroes && ownedSets.length > 0 
                   ? "You've played all heroes in your collection! 🎉"
                   : "You've played all heroes! 🎉"}
               </p>
             ) : (
-              <div className="overflow-x-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead className="text-xs md:text-sm">Hero</TableHead>
-                      <TableHead className="text-xs md:text-sm hidden sm:table-cell">Sidekick</TableHead>
-                      <TableHead className="text-xs md:text-sm">Set</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {neverPlayedHeroes.map((hero) => (
-                      <TableRow 
-                        key={hero.id}
-                        className={onHeroClick ? 'cursor-pointer hover:bg-muted/50 transition-colors' : ''}
-                        onClick={() => onHeroClick?.(hero.id)}
-                      >
-                        <TableCell className="font-medium text-xs md:text-sm">{hero.name}</TableCell>
-                        <TableCell className="text-xs md:text-sm text-muted-foreground hidden sm:table-cell">
-                          {hero.sidekicks && hero.sidekicks.length > 0 ? hero.sidekicks.map(sk => sk.name).join(', ') : '—'}
-                        </TableCell>
-                        <TableCell className="text-xs md:text-sm text-muted-foreground">{hero.set}</TableCell>
+              <div className="overflow-x-auto -mx-4 md:mx-0">
+                <div className="inline-block min-w-full px-4 md:px-0">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="text-xs md:text-sm">Hero</TableHead>
+                        <TableHead className="text-xs md:text-sm hidden sm:table-cell">Sidekick</TableHead>
+                        <TableHead className="text-xs md:text-sm">Set</TableHead>
                       </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+                    </TableHeader>
+                    <TableBody>
+                      {neverPlayedHeroes.map((hero) => (
+                        <TableRow 
+                          key={hero.id}
+                          className={onHeroClick ? 'cursor-pointer hover:bg-muted/50 transition-colors' : ''}
+                          onClick={() => onHeroClick?.(hero.id)}
+                        >
+                          <TableCell className="font-medium text-xs md:text-sm">{hero.name}</TableCell>
+                          <TableCell className="text-xs md:text-sm text-muted-foreground hidden sm:table-cell">
+                            {hero.sidekicks && hero.sidekicks.length > 0 ? hero.sidekicks.map(sk => sk.name).join(', ') : '—'}
+                          </TableCell>
+                          <TableCell className="text-xs md:text-sm text-muted-foreground">{hero.set}</TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
               </div>
             )}
           </div>
         </Card>
 
-        <Card className="p-4 md:p-6">
+        <Card className="p-4 md:p-6 overflow-hidden">
           <div className="flex items-center gap-2 mb-3 md:mb-4">
             <MapPin className="w-4 h-4 md:w-5 md:h-5 text-primary" />
             <h3 className="text-base md:text-lg font-semibold">Most Played Maps</h3>
