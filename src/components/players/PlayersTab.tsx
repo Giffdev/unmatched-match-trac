@@ -10,6 +10,7 @@ import { Trophy, Target, Sword, MapPin, Users } from '@phosphor-icons/react'
 import { Progress } from '@/components/ui/progress'
 import { Badge } from '@/components/ui/badge'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import { useKV } from '@github/spark/hooks'
 
 type PlayersTabProps = {
   matches: Match[]
@@ -20,8 +21,8 @@ type PlayersTabProps = {
 export function PlayersTab({ matches, ownedSets = [], onHeroClick }: PlayersTabProps) {
   const playerNames = getAllPlayerNames(matches)
   const [selectedPlayer, setSelectedPlayer] = useState(playerNames[0] || '')
-  const [showOnlyOwnedHeroes, setShowOnlyOwnedHeroes] = useState(false)
-  const [showOnlyOwnedMaps, setShowOnlyOwnedMaps] = useState(false)
+  const [showOnlyOwnedHeroes, setShowOnlyOwnedHeroes] = useKV<boolean>('player-filter-collection-heroes', false)
+  const [showOnlyOwnedMaps, setShowOnlyOwnedMaps] = useKV<boolean>('player-filter-collection-maps', false)
 
   if (playerNames.length === 0) {
     return (
@@ -46,14 +47,14 @@ export function PlayersTab({ matches, ownedSets = [], onHeroClick }: PlayersTabP
   
   const selectableHeroes = getSelectableHeroes()
   let neverPlayedHeroes = selectableHeroes.filter(h => !stats.heroesPlayed[h.id])
-  if (showOnlyOwnedHeroes && ownedSets.length > 0) {
+  if ((showOnlyOwnedHeroes ?? false) && ownedSets.length > 0) {
     neverPlayedHeroes = neverPlayedHeroes.filter(h => ownedSets.includes(h.set))
   }
   neverPlayedHeroes = neverPlayedHeroes.sort((a, b) => a.name.localeCompare(b.name))
   
   const mapsPlayedEntries = Object.entries(stats.mapsPlayed).sort((a, b) => b[1] - a[1])
   let neverPlayedMaps = MAPS.filter(m => !stats.mapsPlayed[m.id])
-  if (showOnlyOwnedMaps && ownedSets.length > 0) {
+  if ((showOnlyOwnedMaps ?? false) && ownedSets.length > 0) {
     neverPlayedMaps = neverPlayedMaps.filter(m => ownedSets.includes(m.set))
   }
   const vsPlayersEntries = Object.entries(stats.vsPlayers).sort((a, b) => b[1].total - a[1].total)
@@ -166,7 +167,7 @@ export function PlayersTab({ matches, ownedSets = [], onHeroClick }: PlayersTabP
             <div className="flex items-center gap-2">
               <Switch 
                 id="owned-only" 
-                checked={showOnlyOwnedHeroes}
+                checked={showOnlyOwnedHeroes ?? false}
                 onCheckedChange={setShowOnlyOwnedHeroes}
               />
               <Label htmlFor="owned-only" className="text-xs md:text-sm cursor-pointer whitespace-nowrap">
@@ -177,7 +178,7 @@ export function PlayersTab({ matches, ownedSets = [], onHeroClick }: PlayersTabP
           <div className="max-h-[400px] overflow-y-auto">
             {neverPlayedHeroes.length === 0 ? (
               <p className="text-sm text-muted-foreground text-center py-4">
-                {showOnlyOwnedHeroes && ownedSets.length > 0 
+                {(showOnlyOwnedHeroes ?? false) && ownedSets.length > 0 
                   ? "You've played all heroes in your collection! 🎉"
                   : "You've played all heroes! 🎉"}
               </p>
@@ -259,7 +260,7 @@ export function PlayersTab({ matches, ownedSets = [], onHeroClick }: PlayersTabP
             <div className="flex items-center gap-2">
               <Switch 
                 id="maps-owned-only" 
-                checked={showOnlyOwnedMaps}
+                checked={showOnlyOwnedMaps ?? false}
                 onCheckedChange={setShowOnlyOwnedMaps}
               />
               <Label htmlFor="maps-owned-only" className="text-xs md:text-sm cursor-pointer whitespace-nowrap">
@@ -275,7 +276,7 @@ export function PlayersTab({ matches, ownedSets = [], onHeroClick }: PlayersTabP
             ))}
             {neverPlayedMaps.length === 0 && (
               <p className="text-sm text-muted-foreground text-center py-4 w-full">
-                {showOnlyOwnedMaps && ownedSets.length > 0
+                {(showOnlyOwnedMaps ?? false) && ownedSets.length > 0
                   ? "You've played all maps in your collection! 🎉"
                   : "You've played all maps! 🎉"}
               </p>
