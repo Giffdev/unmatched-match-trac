@@ -59,11 +59,11 @@ export function PlayersTab({ matches, ownedSets = [], onHeroClick }: PlayersTabP
   const vsPlayersEntries = Object.entries(stats.vsPlayers).sort((a, b) => b[1].total - a[1].total)
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 md:space-y-6">
       <div>
-        <h2 className="text-2xl font-semibold mb-4">Player Statistics</h2>
+        <h2 className="text-xl md:text-2xl font-semibold mb-3 md:mb-4">Player Statistics</h2>
         <Select value={selectedPlayer} onValueChange={setSelectedPlayer}>
-          <SelectTrigger className="max-w-xs">
+          <SelectTrigger className="w-full md:max-w-xs">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -76,49 +76,49 @@ export function PlayersTab({ matches, ownedSets = [], onHeroClick }: PlayersTabP
         </Select>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-4">
-        <Card className="p-6">
-          <div className="flex items-center gap-3 mb-2">
-            <div className="rounded-full bg-primary/10 p-2">
-              <Sword className="w-5 h-5 text-primary" />
+      <div className="grid gap-3 grid-cols-2 md:grid-cols-4 md:gap-4">
+        <Card className="p-4 md:p-6">
+          <div className="flex flex-col gap-2 mb-2">
+            <div className="rounded-full bg-primary/10 p-1.5 md:p-2 w-fit">
+              <Sword className="w-4 h-4 md:w-5 md:h-5 text-primary" />
             </div>
-            <span className="text-sm text-muted-foreground">Total Games</span>
+            <span className="text-xs md:text-sm text-muted-foreground">Total Games</span>
           </div>
-          <p className="text-3xl font-bold">{stats.totalGames}</p>
+          <p className="text-2xl md:text-3xl font-bold">{stats.totalGames}</p>
         </Card>
 
-        <Card className="p-6">
-          <div className="flex items-center gap-3 mb-2">
-            <div className="rounded-full bg-accent/10 p-2">
-              <Trophy className="w-5 h-5 text-accent" />
+        <Card className="p-4 md:p-6">
+          <div className="flex flex-col gap-2 mb-2">
+            <div className="rounded-full bg-accent/10 p-1.5 md:p-2 w-fit">
+              <Trophy className="w-4 h-4 md:w-5 md:h-5 text-accent" />
             </div>
-            <span className="text-sm text-muted-foreground">Wins</span>
+            <span className="text-xs md:text-sm text-muted-foreground">Wins</span>
           </div>
-          <p className="text-3xl font-bold text-accent">{stats.wins}</p>
+          <p className="text-2xl md:text-3xl font-bold text-accent">{stats.wins}</p>
         </Card>
 
-        <Card className="p-6">
-          <div className="flex items-center gap-3 mb-2">
-            <div className="rounded-full bg-destructive/10 p-2">
-              <Target className="w-5 h-5 text-destructive" />
+        <Card className="p-4 md:p-6">
+          <div className="flex flex-col gap-2 mb-2">
+            <div className="rounded-full bg-destructive/10 p-1.5 md:p-2 w-fit">
+              <Target className="w-4 h-4 md:w-5 md:h-5 text-destructive" />
             </div>
-            <span className="text-sm text-muted-foreground">Losses</span>
+            <span className="text-xs md:text-sm text-muted-foreground">Losses</span>
           </div>
-          <p className="text-3xl font-bold text-destructive">{stats.losses}</p>
+          <p className="text-2xl md:text-3xl font-bold text-destructive">{stats.losses}</p>
         </Card>
 
-        <Card className="p-6">
-          <div className="flex items-center gap-3 mb-2">
-            <span className="text-sm text-muted-foreground">Win Rate</span>
+        <Card className="p-4 md:p-6">
+          <div className="flex flex-col gap-2 mb-2">
+            <span className="text-xs md:text-sm text-muted-foreground">Win Rate</span>
           </div>
-          <p className="text-3xl font-bold">{stats.winRate.toFixed(1)}%</p>
+          <p className="text-2xl md:text-3xl font-bold">{stats.winRate.toFixed(1)}%</p>
           <Progress value={stats.winRate} className="mt-2" />
         </Card>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2">
-        <Card className="p-6">
-          <h3 className="text-lg font-semibold mb-4">Most Played Heroes</h3>
+      <div className="grid gap-4 md:gap-6 md:grid-cols-2">
+        <Card className="p-4 md:p-6">
+          <h3 className="text-base md:text-lg font-semibold mb-3 md:mb-4">Most Played Heroes</h3>
           <div className="space-y-3">
             {heroesPlayedEntries.slice(0, 10).map(([heroId, count]) => {
               const hero = getHeroById(heroId)
@@ -127,23 +127,23 @@ export function PlayersTab({ matches, ownedSets = [], onHeroClick }: PlayersTabP
 
               return (
                 <div key={heroId} className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <div className="flex flex-col">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex flex-col min-w-0 flex-1">
                       <span 
-                        className={`text-sm font-medium ${onHeroClick ? 'cursor-pointer hover:text-primary transition-colors' : ''}`}
+                        className={`text-sm font-medium truncate ${onHeroClick ? 'cursor-pointer hover:text-primary transition-colors' : ''}`}
                         onClick={() => onHeroClick?.(heroId)}
                       >
                         {hero?.name}
                       </span>
                       {hero?.sidekicks && hero.sidekicks.length > 0 && (
-                        <span className="text-xs text-muted-foreground">{hero.sidekicks.map(sk => sk.name).join(', ')}</span>
+                        <span className="text-xs text-muted-foreground truncate">{hero.sidekicks.map(sk => sk.name).join(', ')}</span>
                       )}
                     </div>
-                    <div className="flex items-center gap-2">
-                      <Badge variant="secondary" className="text-xs">
+                    <div className="flex flex-col items-end gap-1 flex-shrink-0">
+                      <Badge variant="secondary" className="text-xs whitespace-nowrap">
                         {count} {count === 1 ? 'game' : 'games'}
                       </Badge>
-                      <span className="text-sm text-muted-foreground">
+                      <span className="text-xs md:text-sm text-muted-foreground whitespace-nowrap">
                         {winPercentage.toFixed(0)}% WR
                       </span>
                     </div>
@@ -160,60 +160,62 @@ export function PlayersTab({ matches, ownedSets = [], onHeroClick }: PlayersTabP
           </div>
         </Card>
 
-        <Card className="p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold">Never Played Heroes</h3>
+        <Card className="p-4 md:p-6">
+          <div className="flex flex-col gap-3 mb-3 md:mb-4 md:flex-row md:items-center md:justify-between">
+            <h3 className="text-base md:text-lg font-semibold">Never Played Heroes</h3>
             <div className="flex items-center gap-2">
               <Switch 
                 id="owned-only" 
                 checked={showOnlyOwnedHeroes}
                 onCheckedChange={setShowOnlyOwnedHeroes}
               />
-              <Label htmlFor="owned-only" className="text-sm cursor-pointer">
+              <Label htmlFor="owned-only" className="text-xs md:text-sm cursor-pointer whitespace-nowrap">
                 Collection only
               </Label>
             </div>
           </div>
-          <div className="max-h-[400px] overflow-y-auto">
+          <div className="max-h-[400px] overflow-y-auto -mx-4 md:mx-0">
             {neverPlayedHeroes.length === 0 ? (
-              <p className="text-sm text-muted-foreground text-center py-4">
+              <p className="text-sm text-muted-foreground text-center py-4 px-4">
                 {showOnlyOwnedHeroes && ownedSets.length > 0 
                   ? "You've played all heroes in your collection! 🎉"
                   : "You've played all heroes! 🎉"}
               </p>
             ) : (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Hero</TableHead>
-                    <TableHead>Sidekick</TableHead>
-                    <TableHead>Set</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {neverPlayedHeroes.map((hero) => (
-                    <TableRow 
-                      key={hero.id}
-                      className={onHeroClick ? 'cursor-pointer hover:bg-muted/50 transition-colors' : ''}
-                      onClick={() => onHeroClick?.(hero.id)}
-                    >
-                      <TableCell className="font-medium">{hero.name}</TableCell>
-                      <TableCell className="text-sm text-muted-foreground">
-                        {hero.sidekicks && hero.sidekicks.length > 0 ? hero.sidekicks.map(sk => sk.name).join(', ') : '—'}
-                      </TableCell>
-                      <TableCell className="text-sm text-muted-foreground">{hero.set}</TableCell>
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="text-xs md:text-sm">Hero</TableHead>
+                      <TableHead className="text-xs md:text-sm hidden sm:table-cell">Sidekick</TableHead>
+                      <TableHead className="text-xs md:text-sm">Set</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+                  </TableHeader>
+                  <TableBody>
+                    {neverPlayedHeroes.map((hero) => (
+                      <TableRow 
+                        key={hero.id}
+                        className={onHeroClick ? 'cursor-pointer hover:bg-muted/50 transition-colors' : ''}
+                        onClick={() => onHeroClick?.(hero.id)}
+                      >
+                        <TableCell className="font-medium text-xs md:text-sm">{hero.name}</TableCell>
+                        <TableCell className="text-xs md:text-sm text-muted-foreground hidden sm:table-cell">
+                          {hero.sidekicks && hero.sidekicks.length > 0 ? hero.sidekicks.map(sk => sk.name).join(', ') : '—'}
+                        </TableCell>
+                        <TableCell className="text-xs md:text-sm text-muted-foreground">{hero.set}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
             )}
           </div>
         </Card>
 
-        <Card className="p-6">
-          <div className="flex items-center gap-2 mb-4">
-            <MapPin className="w-5 h-5 text-primary" />
-            <h3 className="text-lg font-semibold">Most Played Maps</h3>
+        <Card className="p-4 md:p-6">
+          <div className="flex items-center gap-2 mb-3 md:mb-4">
+            <MapPin className="w-4 h-4 md:w-5 md:h-5 text-primary" />
+            <h3 className="text-base md:text-lg font-semibold">Most Played Maps</h3>
           </div>
           <div className="space-y-3">
             {mapsPlayedEntries.slice(0, 10).map(([mapId, count]) => {
@@ -223,13 +225,13 @@ export function PlayersTab({ matches, ownedSets = [], onHeroClick }: PlayersTabP
 
               return (
                 <div key={mapId} className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium">{map?.name}</span>
-                    <div className="flex items-center gap-2">
-                      <Badge variant="secondary" className="text-xs">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-sm font-medium truncate flex-1 min-w-0">{map?.name}</span>
+                    <div className="flex flex-col items-end gap-1 flex-shrink-0">
+                      <Badge variant="secondary" className="text-xs whitespace-nowrap">
                         {count} {count === 1 ? 'game' : 'games'}
                       </Badge>
-                      <span className="text-sm text-muted-foreground">
+                      <span className="text-xs md:text-sm text-muted-foreground whitespace-nowrap">
                         {winPercentage.toFixed(0)}% WR
                       </span>
                     </div>
@@ -246,11 +248,11 @@ export function PlayersTab({ matches, ownedSets = [], onHeroClick }: PlayersTabP
           </div>
         </Card>
 
-        <Card className="p-6">
-          <div className="flex items-center justify-between mb-4">
+        <Card className="p-4 md:p-6">
+          <div className="flex flex-col gap-3 mb-3 md:mb-4 md:flex-row md:items-center md:justify-between">
             <div className="flex items-center gap-2">
-              <MapPin className="w-5 h-5 text-muted-foreground" />
-              <h3 className="text-lg font-semibold">Never Played Maps</h3>
+              <MapPin className="w-4 h-4 md:w-5 md:h-5 text-muted-foreground" />
+              <h3 className="text-base md:text-lg font-semibold">Never Played Maps</h3>
             </div>
             <div className="flex items-center gap-2">
               <Switch 
@@ -258,14 +260,14 @@ export function PlayersTab({ matches, ownedSets = [], onHeroClick }: PlayersTabP
                 checked={showOnlyOwnedMaps}
                 onCheckedChange={setShowOnlyOwnedMaps}
               />
-              <Label htmlFor="maps-owned-only" className="text-sm cursor-pointer">
+              <Label htmlFor="maps-owned-only" className="text-xs md:text-sm cursor-pointer whitespace-nowrap">
                 Collection only
               </Label>
             </div>
           </div>
           <div className="flex flex-wrap gap-2 max-h-[400px] overflow-y-auto">
             {neverPlayedMaps.map((map) => (
-              <Badge key={map.id} variant="outline">
+              <Badge key={map.id} variant="outline" className="text-xs">
                 {map.name}
               </Badge>
             ))}
@@ -281,22 +283,22 @@ export function PlayersTab({ matches, ownedSets = [], onHeroClick }: PlayersTabP
       </div>
 
       {vsPlayersEntries.length > 0 && (
-        <Card className="p-6">
-          <div className="flex items-center gap-2 mb-4">
-            <Users className="w-5 h-5 text-primary" />
-            <h3 className="text-lg font-semibold">Head-to-Head Records</h3>
+        <Card className="p-4 md:p-6">
+          <div className="flex items-center gap-2 mb-3 md:mb-4">
+            <Users className="w-4 h-4 md:w-5 md:h-5 text-primary" />
+            <h3 className="text-base md:text-lg font-semibold">Head-to-Head Records</h3>
           </div>
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto -mx-4 md:mx-0">
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Opponent</TableHead>
-                  <TableHead className="text-center">Games</TableHead>
-                  <TableHead className="text-center">Wins</TableHead>
-                  <TableHead className="text-center">Losses</TableHead>
-                  <TableHead className="text-center">Draws</TableHead>
-                  <TableHead className="text-center">Win Rate</TableHead>
-                  <TableHead>Record</TableHead>
+                  <TableHead className="text-xs md:text-sm">Opponent</TableHead>
+                  <TableHead className="text-center text-xs md:text-sm">Games</TableHead>
+                  <TableHead className="text-center text-xs md:text-sm">W</TableHead>
+                  <TableHead className="text-center text-xs md:text-sm">L</TableHead>
+                  <TableHead className="text-center text-xs md:text-sm hidden sm:table-cell">Draws</TableHead>
+                  <TableHead className="text-center text-xs md:text-sm hidden md:table-cell">Win Rate</TableHead>
+                  <TableHead className="hidden lg:table-cell">Record</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -304,21 +306,21 @@ export function PlayersTab({ matches, ownedSets = [], onHeroClick }: PlayersTabP
                   const winRate = record.total > 0 ? (record.wins / record.total) * 100 : 0
                   return (
                     <TableRow key={opponentName}>
-                      <TableCell className="font-medium">{opponentName}</TableCell>
-                      <TableCell className="text-center">{record.total}</TableCell>
-                      <TableCell className="text-center">
+                      <TableCell className="font-medium text-xs md:text-sm">{opponentName}</TableCell>
+                      <TableCell className="text-center text-xs md:text-sm">{record.total}</TableCell>
+                      <TableCell className="text-center text-xs md:text-sm">
                         <span className="text-accent font-medium">{record.wins}</span>
                       </TableCell>
-                      <TableCell className="text-center">
+                      <TableCell className="text-center text-xs md:text-sm">
                         <span className="text-destructive font-medium">{record.losses}</span>
                       </TableCell>
-                      <TableCell className="text-center">
+                      <TableCell className="text-center text-xs md:text-sm hidden sm:table-cell">
                         <span className="text-muted-foreground">{record.draws}</span>
                       </TableCell>
-                      <TableCell className="text-center">
+                      <TableCell className="text-center text-xs md:text-sm hidden md:table-cell">
                         <span className="font-medium">{winRate.toFixed(1)}%</span>
                       </TableCell>
-                      <TableCell>
+                      <TableCell className="hidden lg:table-cell">
                         <Progress value={winRate} className="h-2 w-24" />
                       </TableCell>
                     </TableRow>
