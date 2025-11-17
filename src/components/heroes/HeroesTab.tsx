@@ -35,13 +35,13 @@ export function HeroesTab({ matches, currentUserId, initialSelectedHero, onHeroC
     if (currentUserId && users) {
       const user = users.find(u => u.id === currentUserId)
       setCurrentUser(user || null)
-      if (user?.playerName && !selectedPlayerName) {
+      if (user?.playerName) {
         setSelectedPlayerName(user.playerName)
       }
     } else {
       setCurrentUser(null)
     }
-  }, [currentUserId, users])
+  }, [currentUserId, users, users?.find(u => u.id === currentUserId)?.playerName])
 
   const availablePlayers = useMemo(() => {
     const playerSet = new Set<string>()
