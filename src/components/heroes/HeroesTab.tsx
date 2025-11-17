@@ -154,10 +154,11 @@ export function HeroesTab({ matches, currentUserId, initialSelectedHero, onHeroC
   }
 
   const userStats = calculateUserHeroStats(matches, selectedHero, currentUser?.playerName)
+  const userAllHeroStats = calculateUserHeroStats(matches, selectedHero)
   const globalStats = calculateHeroStats(allMatches || [], selectedHero)
   const hero = getHeroById(selectedHero)
 
-  const matchupEntries = Object.entries(userStats.vsMatchups)
+  const matchupEntries = Object.entries(userAllHeroStats.vsMatchups)
     .map(([opponentId, data]) => ({
       hero: getHeroById(opponentId),
       wins: data.wins,
@@ -302,7 +303,17 @@ export function HeroesTab({ matches, currentUserId, initialSelectedHero, onHeroC
             </div>
             <span className="text-sm text-muted-foreground">Total Games</span>
           </div>
-          <p className="text-3xl font-bold">{userStats.totalGames}</p>
+          <div className="flex items-baseline gap-2">
+            <div className="flex items-center gap-1">
+              <UserIcon className="w-4 h-4 text-primary" />
+              <p className="text-3xl font-bold">{userAllHeroStats.totalGames}</p>
+            </div>
+            <span className="text-muted-foreground">/</span>
+            <div className="flex items-center gap-1">
+              <Globe className="w-4 h-4 text-accent" />
+              <p className="text-3xl font-bold text-accent">{globalStats.totalGames}</p>
+            </div>
+          </div>
         </Card>
 
         <Card className="p-6">
@@ -312,7 +323,7 @@ export function HeroesTab({ matches, currentUserId, initialSelectedHero, onHeroC
             </div>
             <span className="text-sm text-muted-foreground">Wins</span>
           </div>
-          <p className="text-3xl font-bold text-accent">{userStats.wins}</p>
+          <p className="text-3xl font-bold text-accent">{userAllHeroStats.wins}</p>
         </Card>
 
         <Card className="p-6">
@@ -322,7 +333,7 @@ export function HeroesTab({ matches, currentUserId, initialSelectedHero, onHeroC
             </div>
             <span className="text-sm text-muted-foreground">Losses</span>
           </div>
-          <p className="text-3xl font-bold text-destructive">{userStats.losses}</p>
+          <p className="text-3xl font-bold text-destructive">{userAllHeroStats.losses}</p>
         </Card>
 
         <Card className="p-6">
@@ -332,8 +343,8 @@ export function HeroesTab({ matches, currentUserId, initialSelectedHero, onHeroC
             </div>
             <span className="text-sm text-muted-foreground">Your Win Rate</span>
           </div>
-          <p className="text-3xl font-bold">{userStats.winRate.toFixed(1)}%</p>
-          <Progress value={userStats.winRate} className="mt-2 h-2" />
+          <p className="text-3xl font-bold">{userAllHeroStats.winRate.toFixed(1)}%</p>
+          <Progress value={userAllHeroStats.winRate} className="mt-2 h-2" />
         </Card>
 
         <Card className="p-6">
