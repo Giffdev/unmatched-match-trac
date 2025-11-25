@@ -1,11 +1,11 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import type { Map } from '@/lib/types'
 
-  onOpenChange: (open: boolean)
-
-  if (!map) ret
-  return (
- 
+interface MapImageDialogProps {
+  map: Map | null
+  open: boolean
+  onOpenChange: (open: boolean) => void
+}
 
 export function MapImageDialog({ map, open, onOpenChange }: MapImageDialogProps) {
   if (!map) return null
@@ -31,11 +31,6 @@ export function MapImageDialog({ map, open, onOpenChange }: MapImageDialogProps)
     </Dialog>
   )
 }
-
-
-
-
-
 
 
 
