@@ -251,7 +251,7 @@ export function PlayersTab({ matches, ownedSets = [], onHeroClick }: PlayersTabP
           </div>
         </Card>
 
-        <Card className="p-4 md:p-6">
+        <Card className="p-4 md:p-6 overflow-hidden">
           <div className="flex flex-col gap-3 mb-3 md:mb-4 md:flex-row md:items-center md:justify-between">
             <div className="flex items-center gap-2">
               <MapPin className="w-4 h-4 md:w-5 md:h-5 text-muted-foreground" />
@@ -268,18 +268,34 @@ export function PlayersTab({ matches, ownedSets = [], onHeroClick }: PlayersTabP
               </Label>
             </div>
           </div>
-          <div className="flex flex-wrap gap-2 max-h-[400px] overflow-y-auto">
-            {neverPlayedMaps.map((map) => (
-              <Badge key={map.id} variant="outline" className="text-xs">
-                {map.name}
-              </Badge>
-            ))}
-            {neverPlayedMaps.length === 0 && (
-              <p className="text-sm text-muted-foreground text-center py-4 w-full">
+          <div className="max-h-[400px] overflow-y-auto">
+            {neverPlayedMaps.length === 0 ? (
+              <p className="text-sm text-muted-foreground text-center py-4">
                 {(showOnlyOwnedMaps ?? false) && ownedSets.length > 0
                   ? "You've played all maps in your collection! 🎉"
                   : "You've played all maps! 🎉"}
               </p>
+            ) : (
+              <div className="overflow-x-auto -mx-4 md:mx-0">
+                <div className="inline-block min-w-full px-4 md:px-0">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="text-xs md:text-sm">Map</TableHead>
+                        <TableHead className="text-xs md:text-sm">Set</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {neverPlayedMaps.map((map) => (
+                        <TableRow key={map.id}>
+                          <TableCell className="font-medium text-xs md:text-sm">{map.name}</TableCell>
+                          <TableCell className="text-xs md:text-sm text-muted-foreground">{map.set}</TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              </div>
             )}
           </div>
         </Card>
