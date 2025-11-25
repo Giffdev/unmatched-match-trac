@@ -12,11 +12,11 @@ export function HeroImage({ hero, className }: HeroImageProps) {
   const [imageLoaded, setImageLoaded] = useState(false)
   const [imageError, setImageError] = useState(false)
 
-  const imageUrl = `https://unmatched.cards/images/heroes/${hero.id}.jpg`
+  const imageUrl = hero.imageUrl || `https://unmatched.cards/images/heroes/${hero.id}.jpg`
 
   return (
     <div className={cn("relative overflow-hidden rounded-lg border border-border bg-card", className)}>
-      {!imageError ? (
+      {!imageError && imageUrl ? (
         <img
           src={imageUrl}
           alt={hero.name}
