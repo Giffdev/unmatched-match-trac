@@ -299,6 +299,7 @@ export function PlayersTab({ matches, ownedSets = [], onHeroClick }: PlayersTabP
                       <TableRow>
                         <TableHead className="text-xs md:text-sm">Map</TableHead>
                         <TableHead className="text-xs md:text-sm">Set</TableHead>
+                        <TableHead className="text-xs md:text-sm text-center hidden sm:table-cell">Zones/Spaces</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -310,6 +311,9 @@ export function PlayersTab({ matches, ownedSets = [], onHeroClick }: PlayersTabP
                         >
                           <TableCell className="font-medium text-xs md:text-sm">{map.name}</TableCell>
                           <TableCell className="text-xs md:text-sm text-muted-foreground">{map.set}</TableCell>
+                          <TableCell className="text-xs md:text-sm text-muted-foreground text-center hidden sm:table-cell">
+                            {map.zones && map.spaces ? `${map.zones} / ${map.spaces}` : '—'}
+                          </TableCell>
                         </TableRow>
                       ))}
                     </TableBody>
