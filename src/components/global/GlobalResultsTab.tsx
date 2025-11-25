@@ -1,7 +1,6 @@
 import { useMemo, useEffect, useState } from 'react'
 import { Card } from '@/components/ui/card'
 import { Globe } from '@phosphor-icons/react'
-import { useKV } from '@github/spark/hooks'
 import type { Match } from '@/lib/types'
 import { getSelectableHeroes } from '@/lib/data'
 import { HeroMatchupHeatmap } from './HeroMatchupHeatmap'
@@ -13,7 +12,7 @@ type GlobalResultsTabProps = {
 }
 
 export function GlobalResultsTab({ matches, currentUserId, onHeroClick }: GlobalResultsTabProps) {
-  const [allMatches, setAllMatches] = useKV<Match[]>('community-all-matches', [])
+  const [allMatches, setAllMatches] = useState<Match[]>([])
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
@@ -24,26 +23,31 @@ export function GlobalResultsTab({ matches, currentUserId, onHeroClick }: Global
       }
       
       setIsLoading(true)
-      const keys = await window.spark.kv.keys()
-      const matchKeys = keys.filter(k => k.startsWith('matches-'))
-      
-      const allMatchesData: Match[] = []
-      for (const key of matchKeys) {
-        const userMatches = await window.spark.kv.get<Match[]>(key)
-        if (userMatches) {
-          allMatchesData.push(...userMatches)
+      try {
+        const keys = await window.spark.kv.keys()
+        const matchKeys = keys.filter(k => k.startsWith('matches-'))
+        
+        const allMatchesData: Match[] = []
+        for (const key of matchKeys) {
+          const userMatches = await window.spark.kv.get<Match[]>(key)
+          if (userMatches) {
+            allMatchesData.push(...userMatches)
+          }
         }
+        
+        setAllMatches(allMatchesData)
+      } catch (error) {
+        console.error('Error loading global matches:', error)
+      } finally {
+        setIsLoading(false)
       }
-      
-      setAllMatches(allMatchesData)
-      setIsLoading(false)
     }
     
     updateCommunityMatches()
   }, [matches.length, currentUserId])
 
   const totalMatches = useMemo(() => {
-    return allMatches?.length || 0
+    return allMatches.length || 0
   }, [allMatches])
 
   if (!currentUserId) {
@@ -115,7 +119,7 @@ export function GlobalResultsTab({ matches, currentUserId, onHeroClick }: Global
         </Card>
       </div>
 
-      <HeroMatchupHeatmap matches={allMatches || []} onHeroClick={onHeroClick} isLoading={isLoading} />
+      <HeroMatchupHeatmap matches={allMatches} onHeroClick={onHeroClick} isLoading={isLoading} />
 
       <Card className="p-4 md:p-6">
         <h3 className="text-base md:text-lg font-semibold mb-3 md:mb-4">How to Read the Heatmap</h3>
