@@ -2,17 +2,31 @@ import { useState } from 'react'
 import { Sword } from '@phosphor-icons/react'
 import { cn } from '@/lib/utils'
 import type { Hero } from '@/lib/types'
+import BlackbeardImg from '@/assets/images/Blackbeard.png'
+import ChupacabraImg from '@/assets/images/Chupacabra.png'
+import DeadpoolImg from '@/assets/images/Deadpool.png'
+import LokiImg from '@/assets/images/Loki.png'
+import PandoraImg from '@/assets/images/Pandora.png'
 
 type HeroImageProps = {
   hero: Hero
   className?: string
 }
 
+const localHeroImages: Record<string, string> = {
+  'blackbeard': BlackbeardImg,
+  'chupacabra': ChupacabraImg,
+  'deadpool': DeadpoolImg,
+  'loki': LokiImg,
+  'pandora': PandoraImg,
+}
+
 export function HeroImage({ hero, className }: HeroImageProps) {
   const [imageLoaded, setImageLoaded] = useState(false)
   const [imageError, setImageError] = useState(false)
 
-  const imageUrl = hero.imageUrl || `https://unmatched.cards/images/heroes/${hero.id}.jpg`
+  const localImage = localHeroImages[hero.id]
+  const imageUrl = localImage || hero.imageUrl || `https://unmatched.cards/images/heroes/${hero.id}.jpg`
 
   return (
     <div className={cn("relative overflow-hidden rounded-lg border border-border bg-card", className)}>
