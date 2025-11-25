@@ -28,6 +28,7 @@ import DrJekyllImg from '@/assets/images/Dr_Jeykll.png'
 import DrJillTrentImg from '@/assets/images/Dr_Jill_Trent.webp'
 import DraculaImg from '@/assets/images/Dracula.png'
 import ElektraImg from '@/assets/images/Elektra.webp'
+import LeonardoImg from '@/assets/images/Leonardo.webp'
 import EredinImg from '@/assets/images/Eredin.webp'
 import GeraltImg from '@/assets/images/Geralt.webp'
 import GhostRiderImg from '@/assets/images/Ghost_Rider.webp'
@@ -110,7 +111,7 @@ const localHeroImages: Record<string, string> = {
   'invisible-man': InvisibleManImg,
   'jekyll-hyde': DrJekyllImg,
   'king-arthur': KingArthurImg,
-  'leonardo': '',
+  'leonardo': LeonardoImg,
   'little-red': RedRidingHoodImg,
   'loki': LokiImg,
   'luke-cage': LukeCageImg,
