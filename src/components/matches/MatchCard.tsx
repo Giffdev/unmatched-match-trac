@@ -14,6 +14,7 @@ type MatchCardProps = {
   onDelete: (id: string) => void
   onEdit: (match: Match) => void
   onHeroClick: (heroId: string) => void
+  onMapClick?: (mapId: string) => void
   existingMatches?: Match[]
 }
 
@@ -25,7 +26,7 @@ const MODE_LABELS: Record<string, string> = {
   'ffa4': '4P FFA',
 }
 
-export function MatchCard({ match, onDelete, onEdit, onHeroClick, existingMatches = [] }: MatchCardProps) {
+export function MatchCard({ match, onDelete, onEdit, onHeroClick, onMapClick, existingMatches = [] }: MatchCardProps) {
   const [editDialogOpen, setEditDialogOpen] = useState(false)
   const map = getMapById(match.mapId)
   const winner = match.players.find(p => p.heroId === match.winnerId)
@@ -57,7 +58,12 @@ export function MatchCard({ match, onDelete, onEdit, onHeroClick, existingMatche
               <div className="flex items-center gap-1 text-xs md:text-sm text-muted-foreground">
                 <MapPin size={14} className="md:hidden" />
                 <MapPin size={16} className="hidden md:block" />
-                <span className="truncate">{map?.name || 'Unknown Map'}</span>
+                <span 
+                  className={`truncate ${onMapClick ? 'cursor-pointer hover:text-primary transition-colors' : ''}`}
+                  onClick={() => onMapClick?.(match.mapId)}
+                >
+                  {map?.name || 'Unknown Map'}
+                </span>
               </div>
             </div>
             {map && (

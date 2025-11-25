@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import type { Match, GameMode, PlayerAssignment, HeroStats } from '@/lib/types'
+import type { Match, GameMode, PlayerAssignment, HeroStats, Map } from '@/lib/types'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
@@ -12,6 +12,7 @@ import { LogMatchDialog } from '@/components/matches/LogMatchDialog'
 import { toast } from 'sonner'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { Switch } from '@/components/ui/switch'
+import { MapImageDialog } from '@/components/players/MapImageDialog'
 
 type RandomizerTabProps = {
   ownedSets: string[]
@@ -32,6 +33,16 @@ export function RandomizerTab({ ownedSets, matches, setMatches }: RandomizerTabP
   const [dialogOpen, setDialogOpen] = useState(false)
   const [useCollectionOnly, setUseCollectionOnly] = useState(true)
   const [restrictMapsToHeroSets, setRestrictMapsToHeroSets] = useState(false)
+  const [selectedMap, setSelectedMap] = useState<Map | null>(null)
+  const [isMapDialogOpen, setIsMapDialogOpen] = useState(false)
+
+  const handleMapClick = (mapId: string) => {
+    const map = getMapById(mapId)
+    if (map) {
+      setSelectedMap(map)
+      setIsMapDialogOpen(true)
+    }
+  }
 
   const availableHeroes = useCollectionOnly 
     ? ownedSets.flatMap(set => getHeroesBySet(set))
@@ -303,7 +314,12 @@ export function RandomizerTab({ ownedSets, matches, setMatches }: RandomizerTabP
                 <div className="flex items-center justify-between p-4 bg-card rounded-lg border">
                   <div>
                     <p className="text-sm text-muted-foreground mb-1">Map</p>
-                    <p className="font-semibold">{getMapById(result.mapId)?.name}</p>
+                    <p 
+                      className="font-semibold cursor-pointer hover:text-primary transition-colors"
+                      onClick={() => handleMapClick(result.mapId)}
+                    >
+                      {getMapById(result.mapId)?.name}
+                    </p>
                     <p className="text-xs text-muted-foreground mt-1">
                       {getMapById(result.mapId)?.minPlayers === getMapById(result.mapId)?.maxPlayers 
                         ? `${getMapById(result.mapId)?.minPlayers} players` 
@@ -399,6 +415,12 @@ export function RandomizerTab({ ownedSets, matches, setMatches }: RandomizerTabP
           }}
         />
       )}
+
+      <MapImageDialog 
+        map={selectedMap}
+        open={isMapDialogOpen}
+        onOpenChange={setIsMapDialogOpen}
+      />
     </div>
   )
 }

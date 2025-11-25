@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import type { Match } from '@/lib/types'
+import type { Match, Map } from '@/lib/types'
 import { Card } from '@/components/ui/card'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Switch } from '@/components/ui/switch'
@@ -11,6 +11,7 @@ import { Progress } from '@/components/ui/progress'
 import { Badge } from '@/components/ui/badge'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { useKV } from '@github/spark/hooks'
+import { MapImageDialog } from './MapImageDialog'
 
 type PlayersTabProps = {
   matches: Match[]
@@ -23,6 +24,16 @@ export function PlayersTab({ matches, ownedSets = [], onHeroClick }: PlayersTabP
   const [selectedPlayer, setSelectedPlayer] = useState(playerNames[0] || '')
   const [showOnlyOwnedHeroes, setShowOnlyOwnedHeroes] = useKV<boolean>('player-filter-collection-heroes', false)
   const [showOnlyOwnedMaps, setShowOnlyOwnedMaps] = useKV<boolean>('player-filter-collection-maps', false)
+  const [selectedMap, setSelectedMap] = useState<Map | null>(null)
+  const [isMapDialogOpen, setIsMapDialogOpen] = useState(false)
+
+  const handleMapClick = (mapId: string) => {
+    const map = getMapById(mapId)
+    if (map) {
+      setSelectedMap(map)
+      setIsMapDialogOpen(true)
+    }
+  }
 
   if (playerNames.length === 0) {
     return (
@@ -229,7 +240,12 @@ export function PlayersTab({ matches, ownedSets = [], onHeroClick }: PlayersTabP
               return (
                 <div key={mapId} className="space-y-2">
                   <div className="flex items-center justify-between gap-2">
-                    <span className="text-sm font-medium truncate flex-1 min-w-0">{map?.name}</span>
+                    <span 
+                      className="text-sm font-medium truncate flex-1 min-w-0 cursor-pointer hover:text-primary transition-colors"
+                      onClick={() => handleMapClick(mapId)}
+                    >
+                      {map?.name}
+                    </span>
                     <div className="flex flex-col items-end gap-1 flex-shrink-0">
                       <Badge variant="secondary" className="text-xs whitespace-nowrap">
                         {count} {count === 1 ? 'game' : 'games'}
@@ -287,7 +303,11 @@ export function PlayersTab({ matches, ownedSets = [], onHeroClick }: PlayersTabP
                     </TableHeader>
                     <TableBody>
                       {neverPlayedMaps.map((map) => (
-                        <TableRow key={map.id}>
+                        <TableRow 
+                          key={map.id}
+                          className="cursor-pointer hover:bg-muted/50 transition-colors"
+                          onClick={() => handleMapClick(map.id)}
+                        >
                           <TableCell className="font-medium text-xs md:text-sm">{map.name}</TableCell>
                           <TableCell className="text-xs md:text-sm text-muted-foreground">{map.set}</TableCell>
                         </TableRow>
@@ -350,6 +370,12 @@ export function PlayersTab({ matches, ownedSets = [], onHeroClick }: PlayersTabP
           </div>
         </Card>
       )}
+
+      <MapImageDialog 
+        map={selectedMap}
+        open={isMapDialogOpen}
+        onOpenChange={setIsMapDialogOpen}
+      />
     </div>
   )
 }

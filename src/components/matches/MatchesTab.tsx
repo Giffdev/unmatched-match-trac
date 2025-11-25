@@ -1,11 +1,13 @@
 import { useState } from 'react'
-import type { Match } from '@/lib/types'
+import type { Match, Map } from '@/lib/types'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Plus, Trophy } from '@phosphor-icons/react'
 import { LogMatchDialog } from './LogMatchDialog'
 import { MatchCard } from './MatchCard'
 import { useKV } from '@github/spark/hooks'
+import { getMapById } from '@/lib/data'
+import { MapImageDialog } from '@/components/players/MapImageDialog'
 
 type MatchesTabProps = {
   matches: Match[]
@@ -16,6 +18,16 @@ type MatchesTabProps = {
 export function MatchesTab({ matches, setMatches, onHeroClick }: MatchesTabProps) {
   const [dialogOpen, setDialogOpen] = useState(false)
   const [currentUserId] = useKV<string | null>('current-user-id', null)
+  const [selectedMap, setSelectedMap] = useState<Map | null>(null)
+  const [isMapDialogOpen, setIsMapDialogOpen] = useState(false)
+
+  const handleMapClick = (mapId: string) => {
+    const map = getMapById(mapId)
+    if (map) {
+      setSelectedMap(map)
+      setIsMapDialogOpen(true)
+    }
+  }
 
   const sortedMatches = [...matches].sort((a, b) => {
     const parseDate = (dateString: string) => {
@@ -81,6 +93,7 @@ export function MatchesTab({ matches, setMatches, onHeroClick }: MatchesTabProps
                 current.map(m => m.id === updatedMatch.id ? updatedMatch : m)
               )}
               onHeroClick={onHeroClick}
+              onMapClick={handleMapClick}
               existingMatches={matches}
             />
           ))}
@@ -92,6 +105,12 @@ export function MatchesTab({ matches, setMatches, onHeroClick }: MatchesTabProps
         onOpenChange={setDialogOpen}
         onSave={(match) => setMatches(current => [...current, match])}
         existingMatches={matches}
+      />
+
+      <MapImageDialog 
+        map={selectedMap}
+        open={isMapDialogOpen}
+        onOpenChange={setIsMapDialogOpen}
       />
     </div>
   )
