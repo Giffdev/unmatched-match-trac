@@ -164,6 +164,8 @@ export const MAPS: Map[] = [
   { id: 'streets-of-novigrad', name: 'Streets of Novigrad', set: 'The Witcher – Realms Fall', minPlayers: 2, maxPlayers: 4, zones: 8, spaces: 34, imageUrl: StreetsOfNovigrad },
   { id: 'fayrlund-forest', name: 'Fayrlund Forest', set: 'The Witcher – Steel & Silver', minPlayers: 2, maxPlayers: 4, zones: 8, spaces: 30, imageUrl: FayrlundForest },
   { id: 'kaer-morhen', name: 'Kaer Morhen', set: 'The Witcher – Steel & Silver', minPlayers: 2, maxPlayers: 4, zones: 8, spaces: 32, imageUrl: KaerMorhen },
+  { id: 'tsing-shan-monastery', name: 'Tsing Shan Monastery', set: 'Muhammad Ali vs. Bruce Lee', minPlayers: 2, maxPlayers: 2, zones: 7, spaces: 30 },
+  { id: 'thrilla-in-manila', name: 'Thrilla In Manila', set: 'Muhammad Ali vs. Bruce Lee', minPlayers: 2, maxPlayers: 2, zones: 7, spaces: 30 },
   { id: 'technodrome', name: 'Technodrome', set: 'Unmatched Adventures: Teenage Mutant Ninja Turtles', minPlayers: 2, maxPlayers: 4 },
   { id: 'new-york-city', name: 'New York City', set: 'Unmatched Adventures: Teenage Mutant Ninja Turtles', minPlayers: 2, maxPlayers: 4 },
   { id: 'technodrome-sk', name: 'Technodrome', set: 'TMNT: Shredder and Krang', minPlayers: 2, maxPlayers: 4 },
