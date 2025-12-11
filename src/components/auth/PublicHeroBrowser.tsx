@@ -192,7 +192,12 @@ export function PublicHeroBrowser({ selectedHeroId: initialSelectedHeroId }: Pub
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <div className="space-y-2 max-h-[600px] overflow-y-auto pr-2">
-              {filteredHeroes.map((hero) => (
+              {filteredHeroes.map((hero) => {
+                const heroImage = localHeroImages[hero.id]
+                const hasLocalImage = heroImage && heroImage !== ''
+                const hasRemoteImage = hero.imageUrl && hero.imageUrl !== ''
+                
+                return (
                 <button
                   key={hero.id}
                   onClick={() => setSelectedHeroId(hero.id)}
@@ -204,14 +209,17 @@ export function PublicHeroBrowser({ selectedHeroId: initialSelectedHeroId }: Pub
                   )}
                 >
                   <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 rounded overflow-hidden flex-shrink-0 bg-muted">
-                      {localHeroImages[hero.id] ? (
+                    <div className="w-12 h-12 rounded overflow-hidden flex-shrink-0 bg-muted flex items-center justify-center">
+                      {hasLocalImage ? (
                         <img 
-                          src={localHeroImages[hero.id]} 
+                          src={heroImage} 
                           alt={hero.name}
                           className="w-full h-full object-cover"
+                          onError={(e) => {
+                            e.currentTarget.style.display = 'none'
+                          }}
                         />
-                      ) : hero.imageUrl ? (
+                      ) : hasRemoteImage ? (
                         <img 
                           src={hero.imageUrl} 
                           alt={hero.name}
@@ -220,7 +228,9 @@ export function PublicHeroBrowser({ selectedHeroId: initialSelectedHeroId }: Pub
                             e.currentTarget.style.display = 'none'
                           }}
                         />
-                      ) : null}
+                      ) : (
+                        <span className="text-xs text-muted-foreground text-center px-1">No img</span>
+                      )}
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="font-semibold text-foreground">{hero.name}</div>
@@ -229,7 +239,7 @@ export function PublicHeroBrowser({ selectedHeroId: initialSelectedHeroId }: Pub
                     <ArrowRight className="text-muted-foreground flex-shrink-0" />
                   </div>
                 </button>
-              ))}
+              )})}
               {filteredHeroes.length === 0 && (
                 <div className="text-center py-8 text-muted-foreground">
                   No heroes found

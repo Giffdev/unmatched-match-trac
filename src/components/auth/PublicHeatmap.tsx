@@ -16,6 +16,12 @@ export function PublicHeatmap({ onHeroClick }: PublicHeatmapProps) {
     const loadCommunityMatches = async () => {
       setIsLoading(true)
       try {
+        if (!window.spark || !window.spark.kv) {
+          console.error('Spark KV API not available')
+          setIsLoading(false)
+          return
+        }
+
         const keys = await window.spark.kv.keys()
         const matchKeys = keys.filter(k => k.startsWith('matches-'))
         

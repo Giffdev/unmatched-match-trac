@@ -117,8 +117,10 @@ const localHeroImages: Record<string, string> = {
   'luke-cage': LukeCageImg,
   'medusa': MedusaImg,
   'michaelangelo': MichaelangeloImg,
+  'michelangelo': MichaelangeloImg,
   'moon-knight': MoonKnightImg,
   'ms-marvel': MsMarvelImg,
+  'muhammad-ali': BruceLeeImg,
   'nikola-tesla': NikolaTeslaImg,
   'oda-nobunaga': OdaNobunagaImg,
   'pandora': PandoraImg,
@@ -151,7 +153,9 @@ export function HeroImage({ hero, className }: HeroImageProps) {
   const [imageError, setImageError] = useState(false)
 
   const localImage = localHeroImages[hero.id]
-  const imageUrl = (localImage && localImage !== '') ? localImage : (hero.imageUrl || `https://unmatched.cards/images/heroes/${hero.id}.jpg`)
+  const hasLocalImage = localImage && localImage !== ''
+  const hasRemoteImage = hero.imageUrl && hero.imageUrl !== ''
+  const imageUrl = hasLocalImage ? localImage : (hasRemoteImage ? hero.imageUrl : '')
 
   return (
     <div className={cn("relative overflow-hidden rounded-lg border border-border bg-card", className)}>

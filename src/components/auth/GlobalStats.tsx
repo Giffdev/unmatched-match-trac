@@ -30,6 +30,12 @@ export function GlobalStats() {
   useEffect(() => {
     const loadGlobalStats = async () => {
       try {
+        if (!window.spark || !window.spark.kv) {
+          console.error('Spark KV API not available')
+          setLoading(false)
+          return
+        }
+
         const allKeys = await window.spark.kv.keys()
         const matchKeys = allKeys.filter(key => key.startsWith('matches-'))
         
