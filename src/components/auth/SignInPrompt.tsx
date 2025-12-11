@@ -100,8 +100,6 @@ export function SignInPrompt({ onUserChange }: SignInPromptProps) {
     setCurrentTab('heroes')
   }
 
-  return (
-    <div className="space-y-6 md:space-y-8">
       <Card className="max-w-md mx-auto shadow-lg">
         <CardHeader className="px-4 md:px-6">
           <CardTitle className="text-xl md:text-2xl">
@@ -231,14 +229,12 @@ export function SignInPrompt({ onUserChange }: SignInPromptProps) {
           </TabsTrigger>
           <TabsTrigger value="heatmap" className="text-xs md:text-sm flex-col md:flex-row gap-1 md:gap-2 py-2">
             <GridFour size={16} className="md:hidden" />
+          <TabsTrigger value="heatmap" className="text-xs md:text-sm flex-col md:flex-row gap-1 md:gap-2 py-2">
+            <GridFour size={16} className="md:hidden" />
             <GridFour size={18} className="hidden md:block" />
             <span className="hidden sm:inline">Matchup Heatmap</span>
             <span className="sm:hidden">Heatmap</span>
           </TabsTrigger>
-        </TabsList>
-        
-        <TabsContent value="stats">
-          <GlobalStats />
         </TabsContent>
         
         <TabsContent value="heroes">
@@ -249,6 +245,6 @@ export function SignInPrompt({ onUserChange }: SignInPromptProps) {
           <PublicHeatmap onHeroClick={handleHeroClick} />
         </TabsContent>
       </Tabs>
-    </div>
-  )
-}
+        <TabsContent value="heatmap">
+          <PublicHeatmap onHeroClick={handleHeroClick} />
+        </TabsContent>
