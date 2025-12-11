@@ -1,105 +1,112 @@
 #!/bin/bash
 
-# Create subdirectories
-mkdir -p src/assets/images/heroes
-mkdir -p src/assets/images/maps
+# Script to organize images into heroes and maps subdirectories
+
+cd "$(dirname "$0")/src/assets/images"
 
 # Move hero images
-mv src/assets/images/Achilles.gif src/assets/images/heroes/
-mv src/assets/images/Alice.png src/assets/images/heroes/
-mv src/assets/images/Ancient_Leshen.webp src/assets/images/heroes/
-mv src/assets/images/Angel.webp src/assets/images/heroes/
-mv src/assets/images/Annie_Christmas.webp src/assets/images/heroes/
-mv src/assets/images/Beowulf.webp src/assets/images/heroes/
-mv src/assets/images/Bigfoot.jpg src/assets/images/heroes/
-mv src/assets/images/Black_Panther.webp src/assets/images/heroes/
-mv src/assets/images/Black_Widow.webp src/assets/images/heroes/
-mv src/assets/images/Blackbeard.webp src/assets/images/heroes/
-mv src/assets/images/Bloody_Mary.gif src/assets/images/heroes/
-mv src/assets/images/Bruce_Lee.jpg src/assets/images/heroes/
-mv src/assets/images/Buffy.webp src/assets/images/heroes/
-mv src/assets/images/Bullseye.webp src/assets/images/heroes/
-mv src/assets/images/Chupacabra.webp src/assets/images/heroes/
-mv src/assets/images/Ciri.webp src/assets/images/heroes/
-mv src/assets/images/Cloak_Dagger.webp src/assets/images/heroes/
-mv src/assets/images/Daredevil.webp src/assets/images/heroes/
-mv src/assets/images/Deadpool.webp src/assets/images/heroes/
-mv src/assets/images/Doctor_Strange.webp src/assets/images/heroes/
-mv src/assets/images/Donatello.webp src/assets/images/heroes/
-mv src/assets/images/Dr._Sattler.webp src/assets/images/heroes/
-mv src/assets/images/Dr_Jeykll.png src/assets/images/heroes/
-mv src/assets/images/Dr_Jill_Trent.webp src/assets/images/heroes/
-mv src/assets/images/Dracula.png src/assets/images/heroes/
-mv src/assets/images/Elektra.webp src/assets/images/heroes/
-mv src/assets/images/Eredin.webp src/assets/images/heroes/
-mv src/assets/images/Geralt.webp src/assets/images/heroes/
-mv src/assets/images/Ghost_Rider.webp src/assets/images/heroes/
-mv src/assets/images/Golden_Bat.webp src/assets/images/heroes/
-mv src/assets/images/Hamlet.webp src/assets/images/heroes/
-mv src/assets/images/Houdini.webp src/assets/images/heroes/
-mv src/assets/images/Invisible_Man.png src/assets/images/heroes/
-mv src/assets/images/King_Arthur.png src/assets/images/heroes/
-mv src/assets/images/Leonardo.webp src/assets/images/heroes/
-mv src/assets/images/Loki.webp src/assets/images/heroes/
-mv src/assets/images/Luke_Cage.webp src/assets/images/heroes/
-mv src/assets/images/Medusa.png src/assets/images/heroes/
-mv src/assets/images/Michaelangelo.webp src/assets/images/heroes/
-mv src/assets/images/Moon_Knight.webp src/assets/images/heroes/
-mv src/assets/images/Ms_Marvel.webp src/assets/images/heroes/
-mv src/assets/images/Nikola_Tesla.webp src/assets/images/heroes/
-mv src/assets/images/Oda_Nobunaga.webp src/assets/images/heroes/
-mv src/assets/images/Pandora.webp src/assets/images/heroes/
-mv src/assets/images/Philippa.webp src/assets/images/heroes/
-mv src/assets/images/Raphael.webp src/assets/images/heroes/
-mv src/assets/images/Raptors.webp src/assets/images/heroes/
-mv src/assets/images/Red_Riding_Hood.webp src/assets/images/heroes/
-mv src/assets/images/Robert_Muldoon.webp src/assets/images/heroes/
-mv src/assets/images/Robin_Hood.jpg src/assets/images/heroes/
-mv src/assets/images/Shakespeare.webp src/assets/images/heroes/
-mv src/assets/images/She-Hulk.webp src/assets/images/heroes/
-mv src/assets/images/Sherlock_Holmes.png src/assets/images/heroes/
-mv src/assets/images/Sinbad.png src/assets/images/heroes/
-mv src/assets/images/Spider-Man.webp src/assets/images/heroes/
-mv src/assets/images/Spike.webp src/assets/images/heroes/
-mv src/assets/images/Squirrel_Girl.webp src/assets/images/heroes/
-mv src/assets/images/Sun_Wukong.jpg src/assets/images/heroes/
-mv src/assets/images/T_Rex.webp src/assets/images/heroes/
-mv src/assets/images/The_Genie.webp src/assets/images/heroes/
-mv src/assets/images/The_Wayward_Sisters.webp src/assets/images/heroes/
-mv src/assets/images/Titania.webp src/assets/images/heroes/
-mv src/assets/images/Tomoe_Gozen.webp src/assets/images/heroes/
-mv src/assets/images/Triss.webp src/assets/images/heroes/
-mv src/assets/images/Willow.webp src/assets/images/heroes/
-mv src/assets/images/Winter_Soldier.webp src/assets/images/heroes/
-mv src/assets/images/Yennefer.webp src/assets/images/heroes/
-mv src/assets/images/Yennenga.jpg src/assets/images/heroes/
+echo "Moving hero images..."
+mv Achilles.gif heroes/ 2>/dev/null
+mv Alice.png heroes/ 2>/dev/null
+mv Ancient_Leshen.webp heroes/ 2>/dev/null
+mv Angel.webp heroes/ 2>/dev/null
+mv Annie_Christmas.webp heroes/ 2>/dev/null
+mv Beowulf.webp heroes/ 2>/dev/null
+mv Bigfoot.jpg heroes/ 2>/dev/null
+mv Black_Panther.webp heroes/ 2>/dev/null
+mv Black_Widow.webp heroes/ 2>/dev/null
+mv Blackbeard.png heroes/ 2>/dev/null
+mv Blackbeard.webp heroes/ 2>/dev/null
+mv Bloody_Mary.gif heroes/ 2>/dev/null
+mv Bruce_Lee.jpg heroes/ 2>/dev/null
+mv Buffy.webp heroes/ 2>/dev/null
+mv Bullseye.webp heroes/ 2>/dev/null
+mv Chupacabra.png heroes/ 2>/dev/null
+mv Chupacabra.webp heroes/ 2>/dev/null
+mv Ciri.webp heroes/ 2>/dev/null
+mv Cloak_Dagger.webp heroes/ 2>/dev/null
+mv Daredevil.webp heroes/ 2>/dev/null
+mv Deadpool.png heroes/ 2>/dev/null
+mv Deadpool.webp heroes/ 2>/dev/null
+mv Doctor_Strange.webp heroes/ 2>/dev/null
+mv Donatello.webp heroes/ 2>/dev/null
+mv Dr._Sattler.webp heroes/ 2>/dev/null
+mv Dr_Jeykll.png heroes/ 2>/dev/null
+mv Dr_Jill_Trent.webp heroes/ 2>/dev/null
+mv Dracula.png heroes/ 2>/dev/null
+mv Elektra.webp heroes/ 2>/dev/null
+mv Eredin.webp heroes/ 2>/dev/null
+mv Geralt.webp heroes/ 2>/dev/null
+mv Ghost_Rider.webp heroes/ 2>/dev/null
+mv Golden_Bat.webp heroes/ 2>/dev/null
+mv Hamlet.webp heroes/ 2>/dev/null
+mv Houdini.webp heroes/ 2>/dev/null
+mv Invisible_Man.png heroes/ 2>/dev/null
+mv King_Arthur.png heroes/ 2>/dev/null
+mv Leonardo.webp heroes/ 2>/dev/null
+mv Loki.png heroes/ 2>/dev/null
+mv Loki.webp heroes/ 2>/dev/null
+mv Luke_Cage.webp heroes/ 2>/dev/null
+mv Medusa.png heroes/ 2>/dev/null
+mv Michaelangelo.webp heroes/ 2>/dev/null
+mv Moon_Knight.webp heroes/ 2>/dev/null
+mv Ms_Marvel.webp heroes/ 2>/dev/null
+mv Nikola_Tesla.webp heroes/ 2>/dev/null
+mv Oda_Nobunaga.webp heroes/ 2>/dev/null
+mv Pandora.png heroes/ 2>/dev/null
+mv Pandora.webp heroes/ 2>/dev/null
+mv Philippa.webp heroes/ 2>/dev/null
+mv Raphael.webp heroes/ 2>/dev/null
+mv Raptors.webp heroes/ 2>/dev/null
+mv Red_Riding_Hood.webp heroes/ 2>/dev/null
+mv Robert_Muldoon.webp heroes/ 2>/dev/null
+mv Robin_Hood.jpg heroes/ 2>/dev/null
+mv Shakespeare.webp heroes/ 2>/dev/null
+mv She-Hulk.webp heroes/ 2>/dev/null
+mv Sherlock_Holmes.png heroes/ 2>/dev/null
+mv Sinbad.png heroes/ 2>/dev/null
+mv Spider-Man.webp heroes/ 2>/dev/null
+mv Spike.webp heroes/ 2>/dev/null
+mv Squirrel_Girl.webp heroes/ 2>/dev/null
+mv Sun_Wukong.jpg heroes/ 2>/dev/null
+mv T_Rex.webp heroes/ 2>/dev/null
+mv The_Genie.webp heroes/ 2>/dev/null
+mv The_Wayward_Sisters.webp heroes/ 2>/dev/null
+mv Titania.webp heroes/ 2>/dev/null
+mv Tomoe_Gozen.webp heroes/ 2>/dev/null
+mv Triss.webp heroes/ 2>/dev/null
+mv Willow.webp heroes/ 2>/dev/null
+mv Winter_Soldier.webp heroes/ 2>/dev/null
+mv Yennefer.webp heroes/ 2>/dev/null
+mv Yennenga.jpg heroes/ 2>/dev/null
 
 # Move map images
-mv src/assets/images/Azuchi_Castle.webp src/assets/images/maps/
-mv src/assets/images/Baskerville_Manor.webp src/assets/images/maps/
-mv src/assets/images/Fayrlund_Forest.webp src/assets/images/maps/
-mv src/assets/images/Globe_Theater.webp src/assets/images/maps/
-mv src/assets/images/Hanging_Gardens.webp src/assets/images/maps/
-mv src/assets/images/Helicarrier.webp src/assets/images/maps/
-mv "src/assets/images/Hell's_Kitchen.webp" src/assets/images/maps/
-mv src/assets/images/Heorot.webp src/assets/images/maps/
-mv src/assets/images/Kaer_Morhen.webp src/assets/images/maps/
-mv "src/assets/images/King_Solomon's_Mine.webp" src/assets/images/maps/
-mv src/assets/images/Marmoreal.webp src/assets/images/maps/
-mv src/assets/images/McMinnville_OR.webp src/assets/images/maps/
-mv src/assets/images/Naglfar.webp src/assets/images/maps/
-mv src/assets/images/Navy_Pier.webp src/assets/images/maps/
-mv src/assets/images/Point_Pleasant.webp src/assets/images/maps/
-mv src/assets/images/Raptor_Paddock.webp src/assets/images/maps/
-mv src/assets/images/Sanctum_Santorum.webp src/assets/images/maps/
-mv src/assets/images/Sarpedon.webp src/assets/images/maps/
-mv src/assets/images/Sherwood_Forest.webp src/assets/images/maps/
-mv src/assets/images/Soho.webp src/assets/images/maps/
-mv src/assets/images/Streets_of_Novigrad.webp src/assets/images/maps/
-mv src/assets/images/Sunnydale_High.webp src/assets/images/maps/
-mv src/assets/images/The_Bronze.webp src/assets/images/maps/
-mv src/assets/images/The_Raft.webp src/assets/images/maps/
-mv src/assets/images/T_Rex_Paddock.webp src/assets/images/maps/
-mv src/assets/images/Yukon.webp src/assets/images/maps/
+echo "Moving map images..."
+mv Azuchi_Castle.webp maps/ 2>/dev/null
+mv Baskerville_Manor.webp maps/ 2>/dev/null
+mv Fayrlund_Forest.webp maps/ 2>/dev/null
+mv Globe_Theater.webp maps/ 2>/dev/null
+mv Hanging_Gardens.webp maps/ 2>/dev/null
+mv Helicarrier.webp maps/ 2>/dev/null
+mv "Hell's_Kitchen.webp" maps/ 2>/dev/null
+mv Heorot.webp maps/ 2>/dev/null
+mv Kaer_Morhen.webp maps/ 2>/dev/null
+mv "King_Solomon's_Mine.webp" maps/ 2>/dev/null
+mv Marmoreal.webp maps/ 2>/dev/null
+mv McMinnville_OR.webp maps/ 2>/dev/null
+mv Naglfar.webp maps/ 2>/dev/null
+mv Navy_Pier.webp maps/ 2>/dev/null
+mv Point_Pleasant.webp maps/ 2>/dev/null
+mv Raptor_Paddock.webp maps/ 2>/dev/null
+mv Sanctum_Santorum.webp maps/ 2>/dev/null
+mv Sarpedon.webp maps/ 2>/dev/null
+mv Sherwood_Forest.webp maps/ 2>/dev/null
+mv Soho.webp maps/ 2>/dev/null
+mv Streets_of_Novigrad.webp maps/ 2>/dev/null
+mv Sunnydale_High.webp maps/ 2>/dev/null
+mv The_Bronze.webp maps/ 2>/dev/null
+mv The_Raft.webp maps/ 2>/dev/null
+mv T_Rex_Paddock.webp maps/ 2>/dev/null
+mv Yukon.webp maps/ 2>/dev/null
 
-echo "Images organized successfully!"
+echo "Done! Images have been organized into heroes/ and maps/ subdirectories."
