@@ -237,6 +237,8 @@ export const MAPS: Map[] = [
   { id: 'thrilla-in-manila', name: 'Thrilla In Manila', set: 'Muhammad Ali vs. Bruce Lee', minPlayers: 2, maxPlayers: 2, zones: 7, spaces: 30 },
   { id: 'technodrome', name: 'Technodrome', set: 'Unmatched Adventures: Teenage Mutant Ninja Turtles', minPlayers: 2, maxPlayers: 4 },
   { id: 'new-york-city', name: 'New York City', set: 'Unmatched Adventures: Teenage Mutant Ninja Turtles', minPlayers: 2, maxPlayers: 4 },
+]
+
 export function getHeroById(id: string): Hero | undefined {
   const normalizedId = id === 'bruce-lee-ali' ? 'bruce-lee' : id
   return HEROES.find(h => h.id === normalizedId)
