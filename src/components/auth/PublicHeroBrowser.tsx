@@ -72,6 +72,7 @@ import WillowImg from '@/assets/images/Willow.webp'
 import WinterSoldierImg from '@/assets/images/Winter_Soldier.webp'
 import YenneferImg from '@/assets/images/Yennefer.webp'
 import YennengaImg from '@/assets/images/Yennenga.jpg'
+import LeonardoImg from '@/assets/images/Leonardo.webp'
 
 const localHeroImages: Record<string, string> = {
   'achilles': AchillesImg,
@@ -108,13 +109,16 @@ const localHeroImages: Record<string, string> = {
   'invisible-man': InvisibleManImg,
   'jekyll-hyde': DrJekyllImg,
   'king-arthur': KingArthurImg,
+  'leonardo': LeonardoImg,
   'little-red': RedRidingHoodImg,
   'loki': LokiImg,
   'luke-cage': LukeCageImg,
   'medusa': MedusaImg,
   'michaelangelo': MichaelangeloImg,
+  'michelangelo': MichaelangeloImg,
   'moon-knight': MoonKnightImg,
   'ms-marvel': MsMarvelImg,
+  'muhammad-ali': BruceLeeImg,
   'nikola-tesla': NikolaTeslaImg,
   'oda-nobunaga': OdaNobunagaImg,
   'pandora': PandoraImg,
