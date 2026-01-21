@@ -359,12 +359,12 @@ export function LogMatchDialog({ open, onOpenChange, onSave, prefilled, existing
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
+      <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col p-0">
+        <DialogHeader className="px-6 pt-6 pb-0 shrink-0">
           <DialogTitle>Log Match</DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-6 py-4">
+        <div className="space-y-6 py-4 px-6 overflow-y-auto flex-1 min-h-0">
           <div className="space-y-2">
             <Label>Date</Label>
             <Popover>
@@ -550,7 +550,7 @@ export function LogMatchDialog({ open, onOpenChange, onSave, prefilled, existing
           )}
         </div>
 
-        <DialogFooter>
+        <DialogFooter className="px-6 pb-6 pt-4 shrink-0 border-t">
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Cancel
           </Button>
