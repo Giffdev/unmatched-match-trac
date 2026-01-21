@@ -151,7 +151,7 @@ function HeroSelector({ value, onChange, variant, onVariantChange }: HeroSelecto
             className="w-full justify-between"
           >
             {selectedHero ? (
-              <span className="truncate">
+              <span className="truncate flex-1 text-left min-w-0">
                 {selectedHero.name}
                 <span className="text-xs text-muted-foreground ml-2">({selectedHero.set})</span>
               </span>
