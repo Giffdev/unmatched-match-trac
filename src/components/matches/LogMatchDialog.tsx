@@ -53,10 +53,10 @@ function MapSelector({ value, onChange, availableMaps }: MapSelectorProps) {
           variant="outline"
           role="combobox"
           aria-expanded={open}
-          className="w-full justify-between"
+          className="w-full justify-between min-w-0 whitespace-normal text-left h-auto min-h-9 py-2"
         >
           {selectedMap ? (
-            <span className="truncate">
+            <span className="truncate flex-1 text-left min-w-0 block">
               {selectedMap.name}
               <span className="text-xs text-muted-foreground ml-2">
                 ({selectedMap.minPlayers === selectedMap.maxPlayers 
@@ -65,7 +65,7 @@ function MapSelector({ value, onChange, availableMaps }: MapSelectorProps) {
               </span>
             </span>
           ) : (
-            "Select map..."
+            <span className="whitespace-nowrap">Select map...</span>
           )}
           <CaretUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
@@ -148,15 +148,14 @@ function HeroSelector({ value, onChange, variant, onVariantChange }: HeroSelecto
             variant="outline"
             role="combobox"
             aria-expanded={open}
-            className="w-full justify-between"
+            className="w-full justify-between min-w-0 whitespace-normal text-left h-auto min-h-9 py-2"
           >
             {selectedHero ? (
-              <span className="truncate flex-1 text-left min-w-0">
-                {selectedHero.name}
-                <span className="text-xs text-muted-foreground ml-2">({selectedHero.set})</span>
+              <span className="truncate flex-1 text-left min-w-0 block">
+                {selectedHero.name} <span className="text-xs text-muted-foreground">({selectedHero.set})</span>
               </span>
             ) : (
-              "Select hero..."
+              <span className="whitespace-nowrap">Select hero...</span>
             )}
             <CaretUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
           </Button>
@@ -433,11 +432,11 @@ export function LogMatchDialog({ open, onOpenChange, onSave, prefilled, existing
               )}
             </div>
             {players.map((player, index) => (
-              <div key={index} className="flex gap-3 items-start p-4 rounded-lg border bg-card">
-                <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 text-primary font-semibold text-sm">
+              <div key={index} className="flex gap-3 items-start p-4 rounded-lg border bg-card min-w-0">
+                <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 text-primary font-semibold text-sm shrink-0">
                   {index + 1}
                 </div>
-                <div className="flex-1 space-y-3">
+                <div className="flex-1 space-y-3 min-w-0">
                   <PlayerNameInput
                     value={player.playerName}
                     onChange={(value) => {
@@ -473,7 +472,7 @@ export function LogMatchDialog({ open, onOpenChange, onSave, prefilled, existing
                     variant="ghost"
                     size="icon"
                     onClick={() => handleRemovePlayer(index)}
-                    className="mt-1"
+                    className="mt-1 shrink-0"
                   >
                     <Trash className="h-4 w-4" />
                   </Button>
