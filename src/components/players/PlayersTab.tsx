@@ -194,30 +194,27 @@ export function PlayersTab({ matches, ownedSets = [], onHeroClick }: PlayersTabP
                   : "You've played all heroes! 🎉"}
               </p>
             ) : (
-              <Table className="table-fixed">
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="text-xs md:text-sm w-[40%] py-2">Hero</TableHead>
-                    <TableHead className="text-xs md:text-sm hidden sm:table-cell w-[30%] py-2">Sidekick</TableHead>
-                    <TableHead className="text-xs md:text-sm w-[30%] sm:w-[30%] py-2">Set</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {neverPlayedHeroes.map((hero) => (
-                    <TableRow 
-                      key={hero.id}
-                      className={onHeroClick ? 'cursor-pointer hover:bg-muted/50 transition-colors' : ''}
-                      onClick={() => onHeroClick?.(hero.id)}
-                    >
-                      <TableCell className="font-medium text-xs md:text-sm py-2">{hero.name}</TableCell>
-                      <TableCell className="text-xs md:text-sm text-muted-foreground hidden sm:table-cell py-2">
-                        {hero.sidekicks && hero.sidekicks.length > 0 ? hero.sidekicks.map(sk => sk.name).join(', ') : '—'}
-                      </TableCell>
-                      <TableCell className="text-xs md:text-sm text-muted-foreground py-2 leading-tight">{hero.set}</TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+              <div className="divide-y">
+                {neverPlayedHeroes.map((hero) => (
+                  <div
+                    key={hero.id}
+                    className={`flex items-center justify-between gap-2 py-2 px-1 ${onHeroClick ? 'cursor-pointer hover:bg-muted/50 transition-colors rounded' : ''}`}
+                    onClick={() => onHeroClick?.(hero.id)}
+                  >
+                    <div className="min-w-0 flex-1">
+                      <span className="font-medium text-xs md:text-sm block truncate">{hero.name}</span>
+                      {hero.sidekicks && hero.sidekicks.length > 0 && (
+                        <span className="text-[11px] md:text-xs text-muted-foreground block truncate">
+                          w/ {hero.sidekicks.map(sk => sk.name).join(', ')}
+                        </span>
+                      )}
+                    </div>
+                    <span className="text-[11px] md:text-xs text-muted-foreground whitespace-nowrap flex-shrink-0">
+                      {hero.set}
+                    </span>
+                  </div>
+                ))}
+              </div>
             )}
           </div>
         </Card>
@@ -288,30 +285,25 @@ export function PlayersTab({ matches, ownedSets = [], onHeroClick }: PlayersTabP
                   : "You've played all maps! 🎉"}
               </p>
             ) : (
-              <Table className="table-fixed">
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="text-xs md:text-sm w-[35%]">Map</TableHead>
-                    <TableHead className="text-xs md:text-sm w-[40%]">Set</TableHead>
-                    <TableHead className="text-xs md:text-sm text-center hidden sm:table-cell w-[25%]">Zones/Spaces</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {neverPlayedMaps.map((map) => (
-                    <TableRow 
-                      key={map.id}
-                      className="cursor-pointer hover:bg-muted/50 transition-colors"
-                      onClick={() => handleMapClick(map.id)}
-                    >
-                      <TableCell className="font-medium text-xs md:text-sm whitespace-normal">{map.name}</TableCell>
-                      <TableCell className="text-xs md:text-sm text-muted-foreground whitespace-normal">{map.set}</TableCell>
-                      <TableCell className="text-xs md:text-sm text-muted-foreground text-center hidden sm:table-cell">
-                        {map.zones && map.spaces ? `${map.zones} / ${map.spaces}` : '—'}
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+              <div className="divide-y">
+                {neverPlayedMaps.map((map) => (
+                  <div
+                    key={map.id}
+                    className="flex items-center justify-between gap-2 py-2 px-1 cursor-pointer hover:bg-muted/50 transition-colors rounded"
+                    onClick={() => handleMapClick(map.id)}
+                  >
+                    <div className="min-w-0 flex-1">
+                      <span className="font-medium text-xs md:text-sm block truncate">{map.name}</span>
+                      <span className="text-[11px] md:text-xs text-muted-foreground block truncate">{map.set}</span>
+                    </div>
+                    {map.zones && map.spaces && (
+                      <span className="text-[11px] md:text-xs text-muted-foreground whitespace-nowrap flex-shrink-0 hidden sm:inline">
+                        {map.zones}z / {map.spaces}s
+                      </span>
+                    )}
+                  </div>
+                ))}
+              </div>
             )}
           </div>
         </Card>
