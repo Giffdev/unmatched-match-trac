@@ -228,10 +228,6 @@ export function EditMatchDialog({ open, onOpenChange, onSave, match, existingMat
   const [cooperativeResult, setCooperativeResult] = useState<'win' | 'loss' | undefined>(match.cooperativeResult)
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(() => {
     try {
-      const date = new Date(match.date)
-      if (!isNaN(date.getTime())) {
-        return date
-      }
       const [year, month, day] = match.date.split('-').map(Number)
       const parsedDate = new Date(year, month - 1, day)
       return !isNaN(parsedDate.getTime()) ? parsedDate : new Date()
@@ -249,14 +245,9 @@ export function EditMatchDialog({ open, onOpenChange, onSave, match, existingMat
       setIsDraw(match.isDraw)
       setCooperativeResult(match.cooperativeResult)
       try {
-        const date = new Date(match.date)
-        if (!isNaN(date.getTime())) {
-          setSelectedDate(date)
-        } else {
-          const [year, month, day] = match.date.split('-').map(Number)
-          const parsedDate = new Date(year, month - 1, day)
-          setSelectedDate(!isNaN(parsedDate.getTime()) ? parsedDate : new Date())
-        }
+        const [year, month, day] = match.date.split('-').map(Number)
+        const parsedDate = new Date(year, month - 1, day)
+        setSelectedDate(!isNaN(parsedDate.getTime()) ? parsedDate : new Date())
       } catch {
         setSelectedDate(new Date())
       }
