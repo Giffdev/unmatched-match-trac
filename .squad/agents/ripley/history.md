@@ -65,3 +65,16 @@ Full audit written to `.squad/decisions/inbox/ripley-codebase-audit.md`.
 - **Build:** ✅ Passes cleanly
 - **API:** Unchanged
 
+### 2026-04-28T23:31 UTC — Firestore Migration Plan Designed (Ripley)
+- **Status:** 📋 PLAN WRITTEN — Awaiting team review
+- **Decision:** Option A (subcollection model) chosen over chunked docs or hybrid
+- **Path change:** `users/{userId}/data/matches` → `users/{userId}/matches/{matchId}`
+- **Key insight:** Match object is ~500-800 bytes. Ceiling is ~1,000 matches, not 500 as initially estimated. Still critical.
+- **Migration strategy:** Lazy migration on login, version flag in `matches-meta` doc, idempotent retry
+- **Safety invariant:** Legacy document NEVER deleted until subcollection verified. Two-week bake period.
+- **Performance win:** Individual doc writes (500B) vs full-array writes (500KB) = 1000x less write data
+- **Bonus:** collectionGroup query for getAllUserMatches is actually faster than current N-sequential-reads
+- **Implementation:** 4 incremental PRs, each independently shippable and rollbackable
+- **Eliminates:** The debounce race condition entirely (atomic per-match writes replace full-array overwrites)
+- **Plan location:** `.squad/decisions/inbox/ripley-firestore-migration-plan.md`
+

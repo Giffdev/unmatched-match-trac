@@ -12,6 +12,7 @@ import { MapsTab } from '@/components/maps/MapsTab'
 import { UserProfile } from '@/components/auth/UserProfile'
 import { SignInPrompt } from '@/components/auth/SignInPrompt'
 import { DataCleanup } from '@/components/auth/DataCleanup'
+import { ErrorBoundary } from '@/components/ErrorBoundary'
 import { Toaster } from '@/components/ui/sonner'
 import { ListChecks, Users, User, Shuffle, MapTrifold } from '@phosphor-icons/react'
 import type { Match } from '@/lib/types'
@@ -141,10 +142,11 @@ function App() {
       </header>
 
       <main className="container mx-auto px-3 md:px-4 py-4 md:py-6">
+        <ErrorBoundary fallbackTitle="Something went wrong">
         {!currentUserId ? (
           <SignInPrompt />
         ) : currentView === 'collection' ? (
-          <CollectionTab 
+          <CollectionTab
             ownedSets={ownedSetsData} 
             setOwnedSets={setOwnedSets}
             onBack={navigateToMain}
@@ -162,39 +164,50 @@ function App() {
             )}
 
             <TabsContent value="matches">
-              <MatchesTab 
-                matches={matchesData} 
-                setMatches={setMatches}
-                onHeroClick={handleHeroClick}
-              />
+              <ErrorBoundary fallbackTitle="Something went wrong in Matches">
+                <MatchesTab 
+                  matches={matchesData} 
+                  setMatches={setMatches}
+                  onHeroClick={handleHeroClick}
+                />
+              </ErrorBoundary>
             </TabsContent>
 
             <TabsContent value="players">
-              <PlayersTab 
-                matches={matchesData}
-                ownedSets={ownedSetsData}
-                onHeroClick={handleHeroClick}
-              />
+              <ErrorBoundary fallbackTitle="Something went wrong in Players">
+                <PlayersTab 
+                  matches={matchesData}
+                  ownedSets={ownedSetsData}
+                  onHeroClick={handleHeroClick}
+                />
+              </ErrorBoundary>
             </TabsContent>
 
             <TabsContent value="heroes">
-              <HeroesTab 
-                matches={matchesData} 
-                currentUserId={currentUserId}
-                initialSelectedHero={selectedHeroId}
-                onHeroChange={() => setSelectedHeroId(null)}
-              />
+              <ErrorBoundary fallbackTitle="Something went wrong in Heroes">
+                <HeroesTab 
+                  matches={matchesData} 
+                  currentUserId={currentUserId}
+                  initialSelectedHero={selectedHeroId}
+                  onHeroChange={() => setSelectedHeroId(null)}
+                />
+              </ErrorBoundary>
             </TabsContent>
 
             <TabsContent value="maps">
-              <MapsTab matches={matchesData} />
+              <ErrorBoundary fallbackTitle="Something went wrong in Maps">
+                <MapsTab matches={matchesData} />
+              </ErrorBoundary>
             </TabsContent>
 
             <TabsContent value="randomizer">
-              <RandomizerTab ownedSets={ownedSetsData} matches={matchesData} setMatches={setMatches} />
+              <ErrorBoundary fallbackTitle="Something went wrong in Randomizer">
+                <RandomizerTab ownedSets={ownedSetsData} matches={matchesData} setMatches={setMatches} />
+              </ErrorBoundary>
             </TabsContent>
           </Tabs>
         )}
+        </ErrorBoundary>
       </main>
 
       {isMobile && currentUserId && currentView === 'main' && (

@@ -1,19 +1,17 @@
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect } from 'react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import type { Match, GameMode, PlayerAssignment } from '@/lib/types'
-import { HEROES, MAPS, getMapsByPlayerCount, getCooperativeMaps, getSelectableHeroes } from '@/lib/data'
+import { getMapsByPlayerCount, getCooperativeMaps } from '@/lib/data'
 import { toast } from 'sonner'
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
-import { Check, CaretUpDown, Plus, Trash, CalendarBlank } from '@phosphor-icons/react'
+import { Plus, CalendarBlank } from '@phosphor-icons/react'
 import { cn, normalizePlayerName } from '@/lib/utils'
 import { Calendar } from '@/components/ui/calendar'
 import { format } from 'date-fns'
-import { PlayerNameInput } from './PlayerNameInput'
+import { MapSelector, PlayerCard, MatchResultSection } from './shared'
 
 type EditMatchDialogProps = {
   open: boolean
@@ -21,202 +19,6 @@ type EditMatchDialogProps = {
   onSave: (match: Match) => void
   match: Match
   existingMatches?: Match[]
-}
-
-type MapSelectorProps = {
-  value: string
-  onChange: (mapId: string) => void
-  availableMaps: typeof MAPS
-}
-
-function MapSelector({ value, onChange, availableMaps }: MapSelectorProps) {
-  const [open, setOpen] = useState(false)
-  const [search, setSearch] = useState('')
-
-  const filteredMaps = useMemo(() => {
-    const maps = !search ? [...availableMaps] : availableMaps.filter(
-      map =>
-        map.name.toLowerCase().includes(search.toLowerCase()) ||
-        map.set.toLowerCase().includes(search.toLowerCase())
-    )
-    return maps.sort((a, b) => a.name.localeCompare(b.name))
-  }, [search, availableMaps])
-
-  const selectedMap = MAPS.find(m => m.id === value)
-
-  return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
-        <Button
-          variant="outline"
-          role="combobox"
-          aria-expanded={open}
-          className="w-full justify-between"
-        >
-          {selectedMap ? (
-            <span className="truncate">
-              {selectedMap.name}
-              <span className="text-xs text-muted-foreground ml-2">
-                ({selectedMap.minPlayers === selectedMap.maxPlayers 
-                  ? `${selectedMap.minPlayers}p` 
-                  : `${selectedMap.minPlayers}-${selectedMap.maxPlayers}p`})
-              </span>
-            </span>
-          ) : (
-            "Select map..."
-          )}
-          <CaretUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent className="w-[400px] p-0" align="start">
-        <Command shouldFilter={false}>
-          <CommandInput 
-            placeholder="Search maps..." 
-            value={search}
-            onValueChange={setSearch}
-          />
-          <CommandList>
-            <CommandEmpty>No map found.</CommandEmpty>
-            <CommandGroup>
-              {filteredMaps.map((map) => (
-                <CommandItem
-                  key={map.id}
-                  value={map.id}
-                  onSelect={() => {
-                    onChange(map.id)
-                    setOpen(false)
-                    setSearch('')
-                  }}
-                >
-                  <Check
-                    className={cn(
-                      "mr-2 h-4 w-4",
-                      value === map.id ? "opacity-100" : "opacity-0"
-                    )}
-                  />
-                  <div className="flex-1">
-                    <div>{map.name}</div>
-                    <div className="text-xs text-muted-foreground">
-                      {map.set} • {map.minPlayers === map.maxPlayers 
-                        ? `${map.minPlayers}p` 
-                        : `${map.minPlayers}-${map.maxPlayers}p`}
-                    </div>
-                  </div>
-                </CommandItem>
-              ))}
-            </CommandGroup>
-          </CommandList>
-        </Command>
-      </PopoverContent>
-    </Popover>
-  )
-}
-
-type HeroSelectorProps = {
-  value: string
-  onChange: (heroId: string) => void
-  variant?: string
-  onVariantChange?: (variant: string) => void
-}
-
-function HeroSelector({ value, onChange, variant, onVariantChange }: HeroSelectorProps) {
-  const [open, setOpen] = useState(false)
-  const [search, setSearch] = useState('')
-
-  const selectableHeroes = getSelectableHeroes()
-
-  const filteredHeroes = useMemo(() => {
-    if (!search) return selectableHeroes
-    const searchLower = search.toLowerCase()
-    return selectableHeroes.filter(
-      hero =>
-        hero.name.toLowerCase().includes(searchLower) ||
-        hero.set.toLowerCase().includes(searchLower)
-    )
-  }, [search, selectableHeroes])
-
-  const selectedHero = HEROES.find(h => h.id === value)
-  const isYenneferTriss = value === 'yennefer-triss'
-
-  return (
-    <div className="space-y-2">
-      <Popover open={open} onOpenChange={setOpen}>
-        <PopoverTrigger asChild>
-          <Button
-            variant="outline"
-            role="combobox"
-            aria-expanded={open}
-            className="w-full justify-between"
-          >
-            {selectedHero ? (
-              <span className="truncate">
-                {selectedHero.name}
-                <span className="text-xs text-muted-foreground ml-2">({selectedHero.set})</span>
-              </span>
-            ) : (
-              "Select hero..."
-            )}
-            <CaretUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-          </Button>
-        </PopoverTrigger>
-        <PopoverContent className="w-[400px] p-0" align="start">
-          <Command shouldFilter={false}>
-            <CommandInput 
-              placeholder="Search heroes..." 
-              value={search}
-              onValueChange={setSearch}
-            />
-            <CommandList>
-              <CommandEmpty>No hero found.</CommandEmpty>
-              <CommandGroup>
-                {filteredHeroes.map((hero) => (
-                  <CommandItem
-                    key={hero.id}
-                    value={hero.id}
-                    onSelect={() => {
-                      onChange(hero.id)
-                      setOpen(false)
-                      setSearch('')
-                    }}
-                  >
-                    <Check
-                      className={cn(
-                        "mr-2 h-4 w-4",
-                        value === hero.id ? "opacity-100" : "opacity-0"
-                      )}
-                    />
-                    <div className="flex-1">
-                      <div>{hero.name}</div>
-                      <div className="text-xs text-muted-foreground">{hero.set}</div>
-                    </div>
-                  </CommandItem>
-                ))}
-              </CommandGroup>
-            </CommandList>
-          </Command>
-        </PopoverContent>
-      </Popover>
-
-      {isYenneferTriss && onVariantChange && (
-        <RadioGroup value={variant || 'yennefer'} onValueChange={onVariantChange}>
-          <div className="flex gap-4 p-3 bg-muted/50 rounded-md">
-            <div className="flex items-center gap-2">
-              <RadioGroupItem value="yennefer" id={`yennefer-${value}`} />
-              <Label htmlFor={`yennefer-${value}`} className="cursor-pointer font-normal">
-                Yennefer (Hero)
-              </Label>
-            </div>
-            <div className="flex items-center gap-2">
-              <RadioGroupItem value="triss" id={`triss-${value}`} />
-              <Label htmlFor={`triss-${value}`} className="cursor-pointer font-normal">
-                Triss (Hero)
-              </Label>
-            </div>
-          </div>
-        </RadioGroup>
-      )}
-    </div>
-  )
 }
 
 export function EditMatchDialog({ open, onOpenChange, onSave, match, existingMatches = [] }: EditMatchDialogProps) {
@@ -425,121 +227,48 @@ export function EditMatchDialog({ open, onOpenChange, onSave, match, existingMat
               )}
             </div>
             {players.map((player, index) => (
-              <div key={index} className="flex gap-3 items-start p-4 rounded-lg border bg-card">
-                <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 text-primary font-semibold text-sm">
-                  {index + 1}
-                </div>
-                <div className="flex-1 space-y-3">
-                  <PlayerNameInput
-                    value={player.playerName}
-                    onChange={(value) => {
-                      const newPlayers = [...players]
-                      newPlayers[index].playerName = value
-                      setPlayers(newPlayers)
-                    }}
-                    matches={existingMatches}
-                  />
-                  <HeroSelector
-                    value={player.heroId}
-                    onChange={(heroId) => {
-                      const newPlayers = [...players]
-                      newPlayers[index].heroId = heroId
-                      if (heroId === 'yennefer-triss' && !newPlayers[index].heroVariant) {
-                        newPlayers[index].heroVariant = 'yennefer'
-                      } else if (heroId !== 'yennefer-triss') {
-                        delete newPlayers[index].heroVariant
-                      }
-                      setPlayers(newPlayers)
-                    }}
-                    variant={player.heroVariant}
-                    onVariantChange={(variant) => {
-                      const newPlayers = [...players]
-                      newPlayers[index].heroVariant = variant
-                      setPlayers(newPlayers)
-                    }}
-                  />
-                </div>
-                {isCooperative && players.length > 1 && (
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => handleRemovePlayer(index)}
-                    className="mt-1"
-                  >
-                    <Trash className="h-4 w-4" />
-                  </Button>
-                )}
-              </div>
+              <PlayerCard
+                key={index}
+                player={player}
+                index={index}
+                isCooperative={isCooperative}
+                canRemove={players.length > 1}
+                existingMatches={existingMatches}
+                onPlayerNameChange={(value) => {
+                  const newPlayers = [...players]
+                  newPlayers[index].playerName = value
+                  setPlayers(newPlayers)
+                }}
+                onHeroChange={(heroId) => {
+                  const newPlayers = [...players]
+                  newPlayers[index].heroId = heroId
+                  if (heroId === 'yennefer-triss' && !newPlayers[index].heroVariant) {
+                    newPlayers[index].heroVariant = 'yennefer'
+                  } else if (heroId !== 'yennefer-triss') {
+                    delete newPlayers[index].heroVariant
+                  }
+                  setPlayers(newPlayers)
+                }}
+                onVariantChange={(variant) => {
+                  const newPlayers = [...players]
+                  newPlayers[index].heroVariant = variant
+                  setPlayers(newPlayers)
+                }}
+                onRemove={() => handleRemovePlayer(index)}
+              />
             ))}
           </div>
 
-          {!isCooperative && (
-            <div className="space-y-3">
-              <Label>Result</Label>
-              <div className="flex items-center gap-4">
-                <div className="flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    id="draw-checkbox"
-                    checked={isDraw}
-                    onChange={(e) => {
-                      setIsDraw(e.target.checked)
-                      if (e.target.checked) setWinnerId(undefined)
-                    }}
-                    className="w-4 h-4 rounded border-input"
-                  />
-                  <Label htmlFor="draw-checkbox" className="cursor-pointer font-normal">
-                    Draw
-                  </Label>
-                </div>
-              </div>
-              
-              {!isDraw && (
-                <RadioGroup value={winnerId} onValueChange={setWinnerId}>
-                  <div className="space-y-2">
-                    {players.map((player, index) => {
-                      const hero = HEROES.find(h => h.id === player.heroId)
-                      const displayName = hero?.id === 'yennefer-triss' 
-                        ? `${hero.name} (${player.heroVariant === 'triss' ? 'Triss as Hero' : 'Yennefer as Hero'})`
-                        : hero?.name || 'No hero selected'
-                      
-                      return (
-                        <div key={index} className="flex items-center gap-2">
-                          <RadioGroupItem value={player.heroId} id={`winner-${index}`} />
-                          <Label htmlFor={`winner-${index}`} className="cursor-pointer font-normal">
-                            {player.playerName || `Player ${index + 1}`} - {displayName}
-                          </Label>
-                        </div>
-                      )
-                    })}
-                  </div>
-                </RadioGroup>
-              )}
-            </div>
-          )}
-
-          {isCooperative && (
-            <div className="space-y-3">
-              <Label>Result</Label>
-              <RadioGroup value={cooperativeResult} onValueChange={(v) => setCooperativeResult(v as 'win' | 'loss')}>
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2">
-                    <RadioGroupItem value="win" id="coop-win" />
-                    <Label htmlFor="coop-win" className="cursor-pointer font-normal">
-                      Win
-                    </Label>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <RadioGroupItem value="loss" id="coop-loss" />
-                    <Label htmlFor="coop-loss" className="cursor-pointer font-normal">
-                      Loss
-                    </Label>
-                  </div>
-                </div>
-              </RadioGroup>
-            </div>
-          )}
+          <MatchResultSection
+            isCooperative={isCooperative}
+            players={players}
+            winnerId={winnerId}
+            setWinnerId={setWinnerId}
+            isDraw={isDraw}
+            setIsDraw={setIsDraw}
+            cooperativeResult={cooperativeResult}
+            setCooperativeResult={setCooperativeResult}
+          />
         </div>
 
         <DialogFooter className="px-6 pb-6 pt-4 shrink-0 border-t">

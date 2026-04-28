@@ -83,93 +83,68 @@ export function calculatePlayerStats(matches: Match[], playerName: string): Play
 }
 
 export function calculateHeroStats(matches: Match[], heroId: string, filterByHeroId?: string): HeroStats {
-  const normalizedHeroId = normalizeHeroId(heroId)
   const normalizedFilterHeroId = filterByHeroId ? normalizeHeroId(filterByHeroId) : undefined
-  
-  let relevantMatches = matches.filter(m => m.players.some(p => normalizeHeroId(p.heroId) === normalizedHeroId))
-  
-  if (normalizedFilterHeroId) {
-    relevantMatches = relevantMatches.filter(m => 
-      m.players.some(p => normalizeHeroId(p.heroId) === normalizedFilterHeroId)
-    )
-  }
-
-  let wins = 0
-  let losses = 0
-  let draws = 0
-  const vsMatchups: Record<string, { wins: number; total: number }> = {}
-
-  for (const match of relevantMatches) {
-    const opponents = match.players.filter(p => normalizeHeroId(p.heroId) !== normalizedHeroId)
-    
-    for (const opponent of opponents) {
-      const normalizedOpponentId = normalizeHeroId(opponent.heroId)
-      if (!vsMatchups[normalizedOpponentId]) {
-        vsMatchups[normalizedOpponentId] = { wins: 0, total: 0 }
-      }
-      vsMatchups[normalizedOpponentId].total++
-    }
-
-    if (match.isDraw) {
-      draws++
-    } else if (match.winnerId && normalizeHeroId(match.winnerId) === normalizedHeroId) {
-      wins++
-      for (const opponent of opponents) {
-        const normalizedOpponentId = normalizeHeroId(opponent.heroId)
-        vsMatchups[normalizedOpponentId].wins++
-      }
-    } else {
-      losses++
-    }
-  }
-
-  return {
-    heroId: normalizedHeroId,
-    totalGames: relevantMatches.length,
-    wins,
-    losses,
-    draws,
-    winRate: relevantMatches.length > 0 ? (wins / relevantMatches.length) * 100 : 0,
-    vsMatchups,
-  }
+  return calculateHeroStatsCore(matches, heroId, {
+    preFilter: normalizedFilterHeroId
+      ? (m) => m.players.some(p => normalizeHeroId(p.heroId) === normalizedFilterHeroId)
+      : undefined,
+  })
 }
 
 export function calculateUserHeroStats(userMatches: Match[], heroId: string, playerName?: string): HeroStats {
+  return calculateHeroStatsCore(userMatches, heroId, { playerName })
+}
+
+interface HeroStatsOptions {
+  /** If provided, filter relevant matches to only those where this player used the hero */
+  playerName?: string
+  /** Additional match filter applied after primary hero filter */
+  preFilter?: (match: Match) => boolean
+}
+
+function calculateHeroStatsCore(matches: Match[], heroId: string, options: HeroStatsOptions = {}): HeroStats {
+  const { playerName, preFilter } = options
   const normalizedHeroId = normalizeHeroId(heroId)
+
+  // Step 1: Filter to matches containing this hero (optionally restricted to a player)
   let relevantMatches: Match[]
-  
   if (playerName) {
-    relevantMatches = userMatches.filter(m => 
+    relevantMatches = matches.filter(m =>
       m.players.some(p => normalizeHeroId(p.heroId) === normalizedHeroId && p.playerName.toLowerCase() === playerName.toLowerCase())
     )
   } else {
-    relevantMatches = userMatches.filter(m => 
+    relevantMatches = matches.filter(m =>
       m.players.some(p => normalizeHeroId(p.heroId) === normalizedHeroId)
     )
   }
 
+  if (preFilter) {
+    relevantMatches = relevantMatches.filter(preFilter)
+  }
+
+  // Step 2: Accumulate stats
   let wins = 0
   let losses = 0
   let draws = 0
   const vsMatchups: Record<string, { wins: number; total: number }> = {}
 
   for (const match of relevantMatches) {
+    // Identify the hero player in this match
     let heroPlayer: typeof match.players[0] | undefined
-    
     if (playerName) {
       heroPlayer = match.players.find(p => normalizeHeroId(p.heroId) === normalizedHeroId && p.playerName.toLowerCase() === playerName.toLowerCase())
     } else {
       heroPlayer = match.players.find(p => normalizeHeroId(p.heroId) === normalizedHeroId)
     }
-    
     if (!heroPlayer) continue
 
-    const opponents = match.players.filter(p => 
-      playerName 
+    // Determine opponents
+    const opponents = match.players.filter(p =>
+      playerName
         ? p.playerName.toLowerCase() !== playerName.toLowerCase()
         : normalizeHeroId(p.heroId) !== normalizedHeroId
     )
-    
+
     for (const opponent of opponents) {
       const normalizedOpponentId = normalizeHeroId(opponent.heroId)
       if (!vsMatchups[normalizedOpponentId]) {
@@ -178,33 +153,28 @@ export function calculateUserHeroStats(userMatches: Match[], heroId: string, pla
       vsMatchups[normalizedOpponentId].total++
     }
 
+    // Determine outcome
     if (match.isDraw) {
       draws++
     } else if (match.winnerId) {
       const normalizedWinnerId = normalizeHeroId(match.winnerId)
       const winningPlayer = match.players.find(p => normalizeHeroId(p.heroId) === normalizedWinnerId)
-      if (winningPlayer) {
-        if (playerName) {
-          if (winningPlayer.playerName.toLowerCase() === playerName.toLowerCase()) {
-            wins++
-            for (const opponent of opponents) {
-              const normalizedOpponentId = normalizeHeroId(opponent.heroId)
-              vsMatchups[normalizedOpponentId].wins++
-            }
-          } else {
-            losses++
-          }
-        } else {
-          if (normalizeHeroId(winningPlayer.heroId) === normalizedHeroId) {
-            wins++
-            for (const opponent of opponents) {
-              const normalizedOpponentId = normalizeHeroId(opponent.heroId)
-              vsMatchups[normalizedOpponentId].wins++
-            }
-          } else {
-            losses++
-          }
+      let isWin = false
+
+      if (playerName) {
+        isWin = !!winningPlayer && winningPlayer.playerName.toLowerCase() === playerName.toLowerCase()
+      } else {
+        isWin = normalizedWinnerId === normalizedHeroId
+      }
+
+      if (isWin) {
+        wins++
+        for (const opponent of opponents) {
+          const normalizedOpponentId = normalizeHeroId(opponent.heroId)
+          vsMatchups[normalizedOpponentId].wins++
         }
+      } else {
+        losses++
       }
     }
   }

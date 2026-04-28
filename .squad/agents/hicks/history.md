@@ -19,3 +19,18 @@ Unmatched Tracker: a web app for tracking Unmatched board game matches. Built wi
 - `loadedFromDb` guard preserved — still prevents re-saving on initial load.
 - Public API unchanged: hook still returns `{ matches, setMatches, loading }`.
 - Build verified clean (`tsc -b --noCheck && vite build` exit 0).
+
+### 2026-04-28T23:31:30Z: Added React Error Boundaries per-tab
+- React error boundaries require class components — functional components can't catch render errors.
+- Pattern: each tab's content wrapped individually so one crash doesn't take down the whole app.
+- Top-level ErrorBoundary wraps the entire `<main>` content as a last-resort fallback.
+- Tab navigation (TabsList + mobile nav) remains OUTSIDE boundaries so users can always navigate away.
+- Fallback UI uses existing Tailwind/Shadcn design tokens for visual consistency.
+
+### 2026-04-28T23:31:30Z: Deduplicated calculateHeroStats / calculateUserHeroStats
+- Both functions were ~80% identical: filter matches by hero, accumulate W/L/D + vsMatchups.
+- Key difference: `calculateHeroStats` identifies opponents by heroId; `calculateUserHeroStats` can scope to a specific playerName.
+- Created `calculateHeroStatsCore(matches, heroId, options)` — a private unified function with `playerName` and `preFilter` options.
+- Old exports preserved as thin wrappers — zero API surface change, callers unaffected.
+- `calculateHeroStats`'s `filterByHeroId` param mapped to a `preFilter` lambda.
+- Build verified clean (`tsc -b --noCheck && vite build` exit 0).
