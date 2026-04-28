@@ -53,6 +53,23 @@ function App() {
     setMatches((currentMatches) => [...(currentMatches || []), ...newMatches])
   }
 
+  const handleReplaceAllMatches = async () => {
+    if (!currentUserId) return
+    const password = prompt('Enter import password:')
+    if (password !== 'alpha837Soup*') {
+      alert('Wrong password')
+      return
+    }
+    try {
+      const { getImportMatchesV2 } = await import('@/lib/import-matches-v2')
+      const newMatches = getImportMatchesV2().map(m => ({ ...m, userId: currentUserId }))
+      setMatches(() => newMatches)
+      alert(`Replaced all matches with ${newMatches.length} matches`)
+    } catch (err) {
+      alert('Import failed: ' + err)
+    }
+  }
+
   useEffect(() => {
     const normalizeExistingMatches = async () => {
       if (normalizationRan.current) return
