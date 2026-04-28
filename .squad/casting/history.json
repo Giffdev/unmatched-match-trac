@@ -1,4 +1,11 @@
 {
-  "universe_usage_history": [],
-  "assignment_cast_snapshots": {}
+  "universe_usage_history": ["alien"],
+  "assignment_cast_snapshots": {
+    "assign-001": {
+      "universe": "alien",
+      "created_at": "2026-04-28T15:30:28Z",
+      "agents": ["ripley", "dallas", "hicks", "lambert"],
+      "reason": "Initial team cast for Unmatched Tracker project"
+    }
+  }
 }

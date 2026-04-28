@@ -56,7 +56,7 @@ function App() {
   const handleReplaceAllMatches = async () => {
     if (!currentUserId) return
     const password = prompt('Enter import password:')
-    if (password !== 'alpha837Soup*') {
+    if (password !== import.meta.env.VITE_IMPORT_PASSWORD) {
       alert('Wrong password')
       return
     }
@@ -69,6 +69,11 @@ function App() {
       alert('Import failed: ' + err)
     }
   }
+
+  // Scroll to top when switching tabs (fixes mobile nav not resetting scroll position)
+  useEffect(() => {
+    window.scrollTo(0, 0)
+  }, [currentTab])
 
   useEffect(() => {
     const normalizeExistingMatches = async () => {

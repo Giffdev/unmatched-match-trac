@@ -1,9 +1,9 @@
 ---
-updated_at: 2026-04-28T21:57:53.968Z
-focus_area: Initial setup
+updated_at: 2026-04-28T22:30:28Z
+focus_area: Codebase audit, refactoring, bug fixes
 active_issues: []
 ---
 
 # What We're Focused On
 
-Getting started. Updated by coordinator at session start.
+Initial codebase audit — refactoring for efficiency, fixing bugs (mobile tab scroll-to-top), and establishing test coverage. Priority: don't break the live site.

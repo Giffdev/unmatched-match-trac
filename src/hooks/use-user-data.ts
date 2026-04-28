@@ -22,18 +22,47 @@ export function useUserMatches(userId: string | null) {
     })
   }, [userId])
 
-  // Persist matches to Firebase whenever they change (but not on initial load)
-  useEffect(() => {
-    if (!userId || !loadedFromDb.current) return
+  // Persist matches to Firebase whenever they change (but not on initial load).
+  // Debounced to prevent race conditions from rapid state updates causing
+  // out-of-order Firestore writes.
+  const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const pendingMatches = useRef<Match[] | null>(null)
+
+  const flushSave = useCallback((uid: string, data: Match[]) => {
     const gen = ++saveGeneration.current
-    setUserMatches(userId, matches).catch(err => {
-      // Only show error for the latest save attempt
+    setUserMatches(uid, data).catch(err => {
       if (gen === saveGeneration.current) {
         console.error('Failed to save matches to Firebase:', err)
         toast.error('Failed to save match data. Please try again.')
       }
     })
-  }, [userId, matches])
+  }, [])
+
+  useEffect(() => {
+    if (!userId || !loadedFromDb.current) return
+    pendingMatches.current = matches
+
+    if (debounceTimer.current) clearTimeout(debounceTimer.current)
+    debounceTimer.current = setTimeout(() => {
+      debounceTimer.current = null
+      if (pendingMatches.current) {
+        flushSave(userId, pendingMatches.current)
+        pendingMatches.current = null
+      }
+    }, 500)
+
+    return () => {
+      // On cleanup (unmount or userId change), flush immediately to avoid data loss
+      if (debounceTimer.current) {
+        clearTimeout(debounceTimer.current)
+        debounceTimer.current = null
+        if (pendingMatches.current) {
+          flushSave(userId, pendingMatches.current)
+          pendingMatches.current = null
+        }
+      }
+    }
+  }, [userId, matches, flushSave])
 
   const setMatches = useCallback((updater: (prev: Match[]) => Match[]) => {
     setMatchesLocal(updater)

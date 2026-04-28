@@ -6,12 +6,15 @@ How to decide who handles what.
 
 | Work Type | Route To | Examples |
 |-----------|----------|----------|
-| {domain 1} | {Name} | {example tasks} |
-| {domain 2} | {Name} | {example tasks} |
-| {domain 3} | {Name} | {example tasks} |
-| Code review | {Name} | Review PRs, check quality, suggest improvements |
-| Testing | {Name} | Write tests, find edge cases, verify fixes |
-| Scope & priorities | {Name} | What to build next, trade-offs, decisions |
+| UI/components/mobile/CSS | Dallas | Fix mobile scroll, responsive layouts, tab navigation |
+| React state/hooks/context | Dallas + Hicks | State management, data flow through components |
+| Firebase/Firestore/auth | Hicks | Data persistence, auth flows, Firestore queries |
+| Performance/refactoring | Hicks | Code optimization, bundle size, lazy loading |
+| Architecture decisions | Ripley | Component structure, data flow, major refactors |
+| Code review | Ripley | Review PRs, approve/reject changes, safety gates |
+| Testing | Lambert | Write tests, find edge cases, verify fixes |
+| Bug investigation | Dallas or Hicks | Route by domain (UI bugs → Dallas, data bugs → Hicks) |
+| Scope & priorities | Ripley | What to build next, trade-offs, decisions |
 | Session logging | Scribe | Automatic — never needs routing |
 
 ## Issue Routing
