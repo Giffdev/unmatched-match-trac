@@ -2,6 +2,19 @@ import { doc, getDoc, setDoc, updateDoc, collection, getDocs } from 'firebase/fi
 import { db } from './firebase'
 import type { Match } from './types'
 
+// Strip undefined values from objects/arrays so Firestore doesn't throw
+function stripUndefined(obj: any): any {
+  if (Array.isArray(obj)) return obj.map(stripUndefined)
+  if (obj !== null && typeof obj === 'object') {
+    const clean: Record<string, any> = {}
+    for (const [k, v] of Object.entries(obj)) {
+      if (v !== undefined) clean[k] = stripUndefined(v)
+    }
+    return clean
+  }
+  return obj
+}
+
 // User matches stored at: users/{userId}/data/matches (as a document with a `matches` array field)
 // User owned sets stored at: users/{userId}/data/owned-sets
 
@@ -13,7 +26,7 @@ export async function getUserMatches(userId: string): Promise<Match[]> {
 
 export async function setUserMatches(userId: string, matches: Match[]): Promise<void> {
   const docRef = doc(db, 'users', userId, 'data', 'matches')
-  await setDoc(docRef, { matches }, { merge: true })
+  await setDoc(docRef, { matches: stripUndefined(matches) }, { merge: true })
 }
 
 export async function getUserOwnedSets(userId: string): Promise<string[]> {
