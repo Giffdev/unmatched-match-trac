@@ -96,3 +96,13 @@ export type CommunityData = {
   lastUpdated: string
   totalMatches: number
 }
+
+export type BalancedResult = {
+  heroId: string
+  confidence: 'high' | 'medium' | 'low'
+  reason: 'direct-matchup' | 'win-rate-similarity' | 'stat-proxy'
+  matchupGames?: number
+  heroAGames?: number
+  heroBGames?: number
+  score: number
+}

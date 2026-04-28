@@ -1,13 +1,14 @@
-import { useState } from 'react'
-import type { Match, GameMode, PlayerAssignment, HeroStats, Map } from '@/lib/types'
+import { useState, useEffect, useMemo } from 'react'
+import type { Match, GameMode, PlayerAssignment, HeroStats, Map, BalancedResult, CommunityData } from '@/lib/types'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
-import { Shuffle, DiceSix, Sparkle, ArrowsClockwise } from '@phosphor-icons/react'
+import { Shuffle, DiceSix, Sparkle, ArrowsClockwise, Info } from '@phosphor-icons/react'
 import { getHeroById, getMapById, getHeroesBySet, getMapsByPlayerCount, getSelectableHeroes } from '@/lib/data'
-import { aggregateCommunityData, getBalancedRandomHero, getBalancedMatchupHero } from '@/lib/stats'
+import { aggregateCommunityData, getBalancedMatchupScored } from '@/lib/stats'
+import { getAllUserMatches } from '@/lib/firestore'
 import { LogMatchDialog } from '@/components/matches/LogMatchDialog'
 import { toast } from 'sonner'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
@@ -24,6 +25,7 @@ type RandomizerResult = {
   mapId: string
   players: PlayerAssignment[]
   heroStats?: Record<string, HeroStats>
+  balancedResults?: BalancedResult[]
 }
 
 export function RandomizerTab({ ownedSets, matches, setMatches }: RandomizerTabProps) {
@@ -34,6 +36,31 @@ export function RandomizerTab({ ownedSets, matches, setMatches }: RandomizerTabP
   const [useCollectionOnly, setUseCollectionOnly] = useState(true)
   const [selectedMap, setSelectedMap] = useState<Map | null>(null)
   const [isMapDialogOpen, setIsMapDialogOpen] = useState(false)
+  const [globalMatches, setGlobalMatches] = useState<Match[]>([])
+  const [loadingGlobal, setLoadingGlobal] = useState(false)
+
+  // Fetch global matches on mount for balanced mode
+  useEffect(() => {
+    setLoadingGlobal(true)
+    getAllUserMatches()
+      .then(m => setGlobalMatches(m))
+      .catch(() => {})
+      .finally(() => setLoadingGlobal(false))
+  }, [])
+
+  // Memoize community data from global 1v1 matches only
+  const globalCommunityData = useMemo<CommunityData | null>(() => {
+    const matches1v1 = globalMatches.filter(m => m.mode === '1v1')
+    if (matches1v1.length === 0) return null
+    return aggregateCommunityData(matches1v1)
+  }, [globalMatches])
+
+  // Hero data lookup for stat proxy
+  const heroDataLookup = (id: string) => {
+    const hero = getHeroById(id)
+    if (!hero) return undefined
+    return { hp: hero.hp, move: hero.move, sidekicks: hero.sidekicks }
+  }
 
   const handleMapClick = (mapId: string) => {
     const map = getMapById(mapId)
@@ -46,6 +73,18 @@ export function RandomizerTab({ ownedSets, matches, setMatches }: RandomizerTabP
   const availableHeroes = useCollectionOnly 
     ? ownedSets.flatMap(set => getHeroesBySet(set))
     : getSelectableHeroes()
+
+  const pickRandomMap = (playerCount: number) => {
+    let suitableMaps = getMapsByPlayerCount(playerCount)
+    if (useCollectionOnly) {
+      suitableMaps = suitableMaps.filter(map => ownedSets.includes(map.set))
+    }
+    if (suitableMaps.length === 0) {
+      toast.error(`No maps available for ${playerCount} players`)
+      return null
+    }
+    return suitableMaps[Math.floor(Math.random() * suitableMaps.length)]
+  }
 
   const handleRandomize = () => {
     if (availableHeroes.length === 0) {
@@ -62,74 +101,51 @@ export function RandomizerTab({ ownedSets, matches, setMatches }: RandomizerTabP
 
     const selectedHeroes: string[] = []
     const players: PlayerAssignment[] = []
-    let communityData
     let heroStats: Record<string, HeroStats> | undefined
 
-    if (randomizationType === 'balanced' && mode === '1v1') {
-      communityData = aggregateCommunityData(matches)
+    if (randomizationType === 'balanced' && mode === '1v1' && globalCommunityData) {
       heroStats = {}
+      const balancedResults: BalancedResult[] = []
 
       const available = availableHeroes.map(h => h.id)
       const firstHeroId = available[Math.floor(Math.random() * available.length)]
       selectedHeroes.push(firstHeroId)
       
-      const firstStats = communityData.heroStats[firstHeroId]
-      if (firstStats) {
-        heroStats[firstHeroId] = firstStats
-      }
+      const firstStats = globalCommunityData.heroStats[firstHeroId]
+      if (firstStats) heroStats[firstHeroId] = firstStats
 
-      players.push({
-        playerName: '',
-        heroId: firstHeroId,
-        turnOrder: 1,
-      })
+      players.push({ playerName: '', heroId: firstHeroId, turnOrder: 1 })
 
       const remainingAvailable = available.filter(h => h !== firstHeroId)
-      const secondHeroId = getBalancedMatchupHero(remainingAvailable, firstHeroId, communityData)
-      selectedHeroes.push(secondHeroId)
+      const balancedResult = getBalancedMatchupScored(remainingAvailable, firstHeroId, globalCommunityData, heroDataLookup)
+      selectedHeroes.push(balancedResult.heroId)
+      balancedResults.push(balancedResult)
       
-      const secondStats = communityData.heroStats[secondHeroId]
-      if (secondStats) {
-        heroStats[secondHeroId] = secondStats
-      }
+      const secondStats = globalCommunityData.heroStats[balancedResult.heroId]
+      if (secondStats) heroStats[balancedResult.heroId] = secondStats
 
-      players.push({
-        playerName: '',
-        heroId: secondHeroId,
-        turnOrder: 2,
-      })
-    } else {
-      for (let i = 0; i < playerCount; i++) {
-        const available = availableHeroes.filter(h => !selectedHeroes.includes(h.id))
-        const randomHero = available[Math.floor(Math.random() * available.length)]
-        selectedHeroes.push(randomHero.id)
-        players.push({
-          playerName: '',
-          heroId: randomHero.id,
-          turnOrder: i + 1,
-        })
-      }
-    }
+      players.push({ playerName: '', heroId: balancedResult.heroId, turnOrder: 2 })
 
-    let suitableMaps = getMapsByPlayerCount(playerCount)
+      const randomMap = pickRandomMap(playerCount)
+      if (!randomMap) return
 
-    if (useCollectionOnly) {
-      suitableMaps = suitableMaps.filter(map => ownedSets.includes(map.set))
-    }
-
-    if (suitableMaps.length === 0) {
-      toast.error(`No maps available for ${playerCount} players`)
+      setResult({ mapId: randomMap.id, players, heroStats, balancedResults })
+      toast.success('Balanced matchup generated!')
       return
     }
 
-    const randomMap = suitableMaps[Math.floor(Math.random() * suitableMaps.length)]
+    // True random or non-1v1 balanced fallback
+    for (let i = 0; i < playerCount; i++) {
+      const available = availableHeroes.filter(h => !selectedHeroes.includes(h.id))
+      const randomHero = available[Math.floor(Math.random() * available.length)]
+      selectedHeroes.push(randomHero.id)
+      players.push({ playerName: '', heroId: randomHero.id, turnOrder: i + 1 })
+    }
 
-    setResult({
-      mapId: randomMap.id,
-      players,
-      heroStats,
-    })
+    const randomMap = pickRandomMap(playerCount)
+    if (!randomMap) return
 
+    setResult({ mapId: randomMap.id, players, heroStats })
     toast.success('Random matchup generated!')
   }
 
@@ -146,16 +162,22 @@ export function RandomizerTab({ ownedSets, matches, setMatches }: RandomizerTabP
 
     let newHeroId: string
     let updatedHeroStats = result.heroStats ? { ...result.heroStats } : undefined
+    let updatedBalancedResults = result.balancedResults ? [...result.balancedResults] : undefined
 
-    if (randomizationType === 'balanced' && mode === '1v1' && matches.length > 0) {
-      const communityData = aggregateCommunityData(matches)
+    if (randomizationType === 'balanced' && mode === '1v1' && globalCommunityData) {
       const availableIds = available.map(h => h.id)
-      
       const otherPlayerIndex = index === 0 ? 1 : 0
       const opponentHeroId = result.players[otherPlayerIndex].heroId
-      newHeroId = getBalancedMatchupHero(availableIds, opponentHeroId, communityData)
+      const balancedResult = getBalancedMatchupScored(availableIds, opponentHeroId, globalCommunityData, heroDataLookup)
+      newHeroId = balancedResult.heroId
       
-      const stats = communityData.heroStats[newHeroId]
+      if (updatedBalancedResults) {
+        updatedBalancedResults = [balancedResult]
+      } else {
+        updatedBalancedResults = [balancedResult]
+      }
+      
+      const stats = globalCommunityData.heroStats[newHeroId]
       if (stats && updatedHeroStats) {
         updatedHeroStats[newHeroId] = stats
       }
@@ -171,23 +193,16 @@ export function RandomizerTab({ ownedSets, matches, setMatches }: RandomizerTabP
       ...result,
       players: newPlayers,
       heroStats: updatedHeroStats,
+      balancedResults: updatedBalancedResults,
     })
   }
 
   const rerollMap = () => {
     if (!result) return
     const playerCount = mode === '1v1' ? 2 : mode === '2v2' ? 4 : mode === 'ffa3' ? 3 : mode === 'ffa4' ? 4 : 2
-    let suitableMaps = getMapsByPlayerCount(playerCount)
-
-    if (useCollectionOnly) {
-      suitableMaps = suitableMaps.filter(map => ownedSets.includes(map.set))
-    }
-
-    const randomMap = suitableMaps[Math.floor(Math.random() * suitableMaps.length)]
-    setResult({
-      ...result,
-      mapId: randomMap.id,
-    })
+    const randomMap = pickRandomMap(playerCount)
+    if (!randomMap) return
+    setResult({ ...result, mapId: randomMap.id })
   }
 
   const handleLogMatch = () => {
@@ -252,7 +267,7 @@ export function RandomizerTab({ ownedSets, matches, setMatches }: RandomizerTabP
                     <RadioGroupItem value="balanced" id="balanced" />
                     <Label htmlFor="balanced" className="cursor-pointer font-normal flex items-center gap-2">
                       <Sparkle className="text-accent" />
-                      Balanced - Head-to-head matchups with close win rates (1v1 only)
+                      Balanced - Pick opponents with close matchup data (1v1 only)
                     </Label>
                   </div>
                 </RadioGroup>
@@ -271,9 +286,15 @@ export function RandomizerTab({ ownedSets, matches, setMatches }: RandomizerTabP
                 </div>
               </div>
 
-              <Button onClick={handleRandomize} size="lg" className="w-full">
+              {randomizationType === 'balanced' && loadingGlobal && (
+                <p className="text-xs text-muted-foreground flex items-center gap-1">
+                  <Info size={12} /> Loading community data for balanced matching...
+                </p>
+              )}
+
+              <Button onClick={handleRandomize} size="lg" className="w-full" disabled={randomizationType === 'balanced' && loadingGlobal}>
                 <Shuffle className="mr-2" />
-                Generate Random Matchup
+                {randomizationType === 'balanced' && loadingGlobal ? 'Loading Community Data...' : 'Generate Random Matchup'}
               </Button>
             </div>
           </Card>
@@ -367,6 +388,33 @@ export function RandomizerTab({ ownedSets, matches, setMatches }: RandomizerTabP
                     )
                   })}
                 </div>
+
+                {/* Balanced confidence indicator */}
+                {randomizationType === 'balanced' && result.balancedResults && result.balancedResults.length > 0 && (
+                  <div className="flex items-start gap-2 p-3 bg-muted/50 rounded-lg text-xs">
+                    <Info size={14} className="text-muted-foreground mt-0.5 shrink-0" />
+                    <div className="text-muted-foreground">
+                      {(() => {
+                        const br = result.balancedResults![0]
+                        const confidenceColors = { high: 'text-green-500', medium: 'text-yellow-500', low: 'text-muted-foreground' }
+                        const confidenceLabel = { high: 'High', medium: 'Medium', low: 'Low' }
+                        return (
+                          <>
+                            <span className={`font-medium ${confidenceColors[br.confidence]}`}>
+                              {confidenceLabel[br.confidence]} confidence
+                            </span>
+                            {' — '}
+                            {br.reason === 'direct-matchup' && br.matchupGames
+                              ? `Based on ${br.matchupGames} community head-to-head game${br.matchupGames > 1 ? 's' : ''}`
+                              : br.reason === 'win-rate-similarity'
+                              ? `Matched by similar community win rates (${br.heroAGames ?? 0} & ${br.heroBGames ?? 0} games)`
+                              : 'Estimated from hero stats (limited community data)'}
+                          </>
+                        )
+                      })()}
+                    </div>
+                  </div>
+                )}
 
                 <div className="flex gap-3 pt-4">
                   <Button onClick={handleRandomize} variant="outline" className="flex-1">

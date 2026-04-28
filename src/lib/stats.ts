@@ -251,6 +251,173 @@ export function aggregateCommunityData(allMatches: Match[]): CommunityData {
   }
 }
 
+// Bayesian smoothing: shrink small-sample win rates toward 50%
+function smoothedWinRate(wins: number, total: number, priorGames: number = 4): number {
+  return ((wins + priorGames * 0.5) / (total + priorGames)) * 100
+}
+
+// Confidence weight: how much to trust a sample of N games (0-1 scale)
+function sampleConfidence(games: number, fullConfidenceAt: number = 20): number {
+  return Math.min(games / fullConfidenceAt, 1)
+}
+
+// Calculate total "power" of a hero including sidekicks
+function heroPowerProxy(hero: { hp: number; move: number; sidekicks?: { count: number; hp?: number }[] }): number {
+  let totalHp = hero.hp
+  if (hero.sidekicks) {
+    for (const sk of hero.sidekicks) {
+      totalHp += (sk.hp ?? 1) * sk.count
+    }
+  }
+  return totalHp + hero.move * 2 // weight movement as proxy for mobility advantage
+}
+
+export function getBalancedMatchupScored(
+  availableHeroes: string[],
+  opponentHeroId: string,
+  communityData: CommunityData,
+  heroDataLookup: (id: string) => { hp: number; move: number; sidekicks?: { count: number; hp?: number }[] } | undefined
+): import('./types').BalancedResult {
+  const opponentStats = communityData.heroStats[opponentHeroId]
+  const opponentHeroData = heroDataLookup(opponentHeroId)
+  const opponentPower = opponentHeroData ? heroPowerProxy(opponentHeroData) : null
+  const opponentWinRate = opponentStats && opponentStats.totalGames >= 2
+    ? smoothedWinRate(opponentStats.wins, opponentStats.totalGames)
+    : 50
+
+  type ScoredCandidate = {
+    heroId: string
+    score: number
+    confidence: 'high' | 'medium' | 'low'
+    reason: 'direct-matchup' | 'win-rate-similarity' | 'stat-proxy'
+    matchupGames?: number
+    heroAGames?: number
+    heroBGames?: number
+  }
+
+  const scored: ScoredCandidate[] = []
+
+  for (const heroId of availableHeroes) {
+    if (heroId === opponentHeroId) continue
+
+    const stats = communityData.heroStats[heroId]
+    const heroData = heroDataLookup(heroId)
+
+    let directScore = 0
+    let directWeight = 0
+    let matchupGames = 0
+
+    // Tier 1: Direct head-to-head data
+    if (stats && opponentStats) {
+      const vsData = stats.vsMatchups[opponentHeroId]
+      if (vsData && vsData.total >= 1) {
+        matchupGames = vsData.total
+        const h2hWinRate = smoothedWinRate(vsData.wins, vsData.total)
+        // Score: how close to 50%. Max score = 100 at exactly 50%
+        directScore = 100 - Math.abs(h2hWinRate - 50) * 2
+        directWeight = sampleConfidence(vsData.total, 10) // full confidence at 10 H2H games
+      }
+    }
+
+    // Tier 2: Overall win rate similarity
+    let winRateScore = 0
+    let winRateWeight = 0
+    if (stats && stats.totalGames >= 2) {
+      const heroWinRate = smoothedWinRate(stats.wins, stats.totalGames)
+      // Score: how close the two overall win rates are. Max = 100 if identical
+      winRateScore = 100 - Math.abs(heroWinRate - opponentWinRate) * 3
+      winRateScore = Math.max(winRateScore, 0)
+      const minGames = Math.min(stats.totalGames, opponentStats?.totalGames ?? 0)
+      winRateWeight = sampleConfidence(minGames, 10) * (1 - directWeight) // fills gap left by direct data
+    }
+
+    // Tier 3: Stat-based proxy
+    let statScore = 50 // neutral default
+    if (heroData && opponentPower !== null) {
+      const heroPower = heroPowerProxy(heroData)
+      const powerDiff = Math.abs(heroPower - opponentPower)
+      // Score: closer power levels = higher score
+      statScore = Math.max(100 - powerDiff * 5, 0)
+    }
+    const statWeight = Math.max(1 - directWeight - winRateWeight, 0.05) // always at least 5%
+
+    // Blended score
+    const totalWeight = directWeight + winRateWeight + statWeight
+    const compositeScore = (
+      directScore * directWeight +
+      winRateScore * winRateWeight +
+      statScore * statWeight
+    ) / totalWeight
+
+    // Determine confidence level and primary reason
+    let confidence: 'high' | 'medium' | 'low'
+    let reason: 'direct-matchup' | 'win-rate-similarity' | 'stat-proxy'
+    if (directWeight >= 0.3) {
+      confidence = matchupGames >= 5 ? 'high' : 'medium'
+      reason = 'direct-matchup'
+    } else if (winRateWeight >= 0.3) {
+      confidence = 'medium'
+      reason = 'win-rate-similarity'
+    } else {
+      confidence = 'low'
+      reason = 'stat-proxy'
+    }
+
+    scored.push({
+      heroId,
+      score: compositeScore,
+      confidence,
+      reason,
+      matchupGames: matchupGames > 0 ? matchupGames : undefined,
+      heroAGames: stats?.totalGames,
+      heroBGames: opponentStats?.totalGames,
+    })
+  }
+
+  if (scored.length === 0) {
+    const fallback = availableHeroes.filter(h => h !== opponentHeroId)
+    const pick = fallback[Math.floor(Math.random() * fallback.length)] ?? availableHeroes[0]
+    return { heroId: pick, confidence: 'low', reason: 'stat-proxy', score: 50 }
+  }
+
+  // Softmax-style weighted random selection from all candidates
+  // Temperature controls diversity: lower = more deterministic, higher = more random
+  const temperature = 0.15
+  const maxScore = Math.max(...scored.map(s => s.score))
+  const weights = scored.map(s => Math.exp((s.score - maxScore) / (temperature * 100)))
+  const totalWeightSum = weights.reduce((a, b) => a + b, 0)
+
+  let roll = Math.random() * totalWeightSum
+  for (let i = 0; i < scored.length; i++) {
+    roll -= weights[i]
+    if (roll <= 0) {
+      return {
+        heroId: scored[i].heroId,
+        confidence: scored[i].confidence,
+        reason: scored[i].reason,
+        matchupGames: scored[i].matchupGames,
+        heroAGames: scored[i].heroAGames,
+        heroBGames: scored[i].heroBGames,
+        score: scored[i].score,
+      }
+    }
+  }
+
+  // Fallback to highest scored
+  scored.sort((a, b) => b.score - a.score)
+  const best = scored[0]
+  return {
+    heroId: best.heroId,
+    confidence: best.confidence,
+    reason: best.reason,
+    matchupGames: best.matchupGames,
+    heroAGames: best.heroAGames,
+    heroBGames: best.heroBGames,
+    score: best.score,
+  }
+}
+
+// Keep old functions for backward compat but they're no longer used by randomizer
 export function getBalancedRandomHero(
   availableHeroes: string[],
   targetWinRate: number,
