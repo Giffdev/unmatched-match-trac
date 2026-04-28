@@ -171,12 +171,12 @@ export function HeroesTab({ matches, currentUserId, initialSelectedHero, onHeroC
     )
   }
 
-  const userPersonalStats = calculateUserHeroStats(matches, selectedHero, selectedPlayerName || undefined)
-  const userLoggedMatchesStats = calculateUserHeroStats(matches, selectedHero)
-  const globalStats = calculateHeroStats(allMatches || [], selectedHero)
+  const userPersonalStats = useMemo(() => calculateUserHeroStats(matches, selectedHero, selectedPlayerName || undefined), [matches, selectedHero, selectedPlayerName])
+  const userLoggedMatchesStats = useMemo(() => calculateUserHeroStats(matches, selectedHero), [matches, selectedHero])
+  const globalStats = useMemo(() => calculateHeroStats(allMatches || [], selectedHero), [allMatches, selectedHero])
   const hero = getHeroById(selectedHero)
 
-  const matchupEntries = Object.entries(userLoggedMatchesStats.vsMatchups)
+  const matchupEntries = useMemo(() => Object.entries(userLoggedMatchesStats.vsMatchups)
     .map(([opponentId, data]) => ({
       hero: getHeroById(opponentId),
       wins: data.wins,
@@ -184,7 +184,7 @@ export function HeroesTab({ matches, currentUserId, initialSelectedHero, onHeroC
       winRate: data.total > 0 ? (data.wins / data.total) * 100 : 0,
     }))
     .filter(m => m.hero)
-    .sort((a, b) => b.total - a.total)
+    .sort((a, b) => b.total - a.total), [userLoggedMatchesStats])
 
   const selectedHeroData = getHeroById(selectedHero)
 

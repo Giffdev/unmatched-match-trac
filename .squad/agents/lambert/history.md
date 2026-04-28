@@ -19,3 +19,14 @@ Unmatched Tracker: a web app for tracking Unmatched board game matches. Built wi
   - `src/components/players/`, `src/components/heroes/`, `src/components/maps/` — stats display
 - **Build:** `tsc -b --noCheck && vite build` (no test step)
 - **Recommended framework:** Vitest (native Vite integration) + @testing-library/react for component tests
+
+### 2026-04-28: Vitest Infrastructure Setup
+- **Installed:** vitest 4.1.5, @testing-library/react, @testing-library/jest-dom, @testing-library/user-event, happy-dom
+- **Config:** Dedicated `vitest.config.ts` with happy-dom environment, globals: true, `@` alias for src/
+- **Scripts:** `npm test` (vitest run), `npm run test:watch` (vitest), `npm run test:coverage` (vitest run --coverage)
+- **Test location:** `src/lib/__tests__/{module}.test.ts`
+- **Initial suite:** 67 tests across 3 files (utils, stats, firestore)
+- **Pattern:** Factory functions for test data (e.g. `createMatch(overrides)`) to keep tests DRY
+- **Key finding:** `stripUndefined` in firestore.ts is not exported — tested via local copy. If it needs direct testing later, it should be extracted/exported.
+- **Key finding:** `getBalancedMatchupScored` uses Math.random() internally — tests focus on deterministic edge cases (empty data, exclusion logic, confidence levels)
+- **All 67 tests pass, build remains green.**

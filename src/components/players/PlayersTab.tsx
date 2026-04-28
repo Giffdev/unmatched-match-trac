@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import type { Match, Map } from '@/lib/types'
 import { Card } from '@/components/ui/card'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
@@ -52,23 +52,27 @@ export function PlayersTab({ matches, ownedSets = [], onHeroClick }: PlayersTabP
     )
   }
 
-  const stats = calculatePlayerStats(matches, selectedPlayer)
-  const heroesPlayedEntries = Object.entries(stats.heroesPlayed).sort((a, b) => b[1] - a[1])
+  const stats = useMemo(() => calculatePlayerStats(matches, selectedPlayer), [matches, selectedPlayer])
+  const heroesPlayedEntries = useMemo(() => Object.entries(stats.heroesPlayed).sort((a, b) => b[1] - a[1]), [stats])
   
   const selectableHeroes = getSelectableHeroes()
-  let neverPlayedHeroes = selectableHeroes.filter(h => !stats.heroesPlayed[h.id])
-  if ((showOnlyOwnedHeroes ?? false) && ownedSets.length > 0) {
-    neverPlayedHeroes = neverPlayedHeroes.filter(h => ownedSets.includes(h.set))
-  }
-  neverPlayedHeroes = neverPlayedHeroes.sort((a, b) => a.name.localeCompare(b.name))
+  const neverPlayedHeroes = useMemo(() => {
+    let heroes = selectableHeroes.filter(h => !stats.heroesPlayed[h.id])
+    if ((showOnlyOwnedHeroes ?? false) && ownedSets.length > 0) {
+      heroes = heroes.filter(h => ownedSets.includes(h.set))
+    }
+    return heroes.sort((a, b) => a.name.localeCompare(b.name))
+  }, [stats, showOnlyOwnedHeroes, ownedSets, selectableHeroes])
   
-  const mapsPlayedEntries = Object.entries(stats.mapsPlayed).sort((a, b) => b[1] - a[1])
-  let neverPlayedMaps = MAPS.filter(m => !stats.mapsPlayed[m.id])
-  if ((showOnlyOwnedMaps ?? false) && ownedSets.length > 0) {
-    neverPlayedMaps = neverPlayedMaps.filter(m => ownedSets.includes(m.set))
-  }
-  neverPlayedMaps = neverPlayedMaps.sort((a, b) => a.name.localeCompare(b.name))
-  const vsPlayersEntries = Object.entries(stats.vsPlayers).sort((a, b) => b[1].total - a[1].total)
+  const mapsPlayedEntries = useMemo(() => Object.entries(stats.mapsPlayed).sort((a, b) => b[1] - a[1]), [stats])
+  const neverPlayedMaps = useMemo(() => {
+    let maps = MAPS.filter(m => !stats.mapsPlayed[m.id])
+    if ((showOnlyOwnedMaps ?? false) && ownedSets.length > 0) {
+      maps = maps.filter(m => ownedSets.includes(m.set))
+    }
+    return maps.sort((a, b) => a.name.localeCompare(b.name))
+  }, [stats, showOnlyOwnedMaps, ownedSets])
+  const vsPlayersEntries = useMemo(() => Object.entries(stats.vsPlayers).sort((a, b) => b[1].total - a[1].total), [stats])
 
   return (
     <div className="space-y-4 md:space-y-6">

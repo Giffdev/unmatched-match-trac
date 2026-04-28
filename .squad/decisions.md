@@ -41,6 +41,66 @@
 
 ---
 
+### 2026-04-28T23:31:30Z: User directive — safe deployments and testing are key
+**By:** Devin Sinha (via Copilot)
+**Status:** Endorsed
+**What:** The live site must never break. Once users begin logging data, we must never break the site on them. Testing and safe deployments are key priorities for all work.
+**Why:** User request — captured for team memory. Reinforces existing "protect live site" constraint with emphasis on testing as a gate.
+
+---
+
+### 2026-04-28T23:31:30Z: Shared Component Extraction from Match Dialogs
+**By:** Dallas (Frontend Dev)
+**Status:** Implemented
+**What:** Extracted 4 shared components from `LogMatchDialog.tsx` (532 lines) and `EditMatchDialog.tsx` (520 lines) into `src/components/matches/shared/`:
+1. **MapSelector** — Searchable combobox for map selection with player-count display
+2. **HeroSelector** — Searchable combobox for hero selection with Yennefer/Triss variant picker
+3. **PlayerCard** — Player row combining PlayerNameInput + HeroSelector + remove button
+4. **MatchResultSection** — Handles both competitive (winner/draw radio) and cooperative (win/loss) results
+
+**Why:** Eliminated ~60% code duplication (identified in codebase audit as P2 issue). Reduces total LOC from ~1050 to ~600 across both files.
+**Verification:** `npx tsc --noEmit` passes clean, `npx vite build` succeeds, pure refactoring.
+
+---
+
+### 2026-04-28T23:31:30Z: Error Boundaries + Stats Deduplication
+**By:** Hicks (Full-Stack Dev)
+**Status:** Implemented
+
+**Part 1: React Error Boundaries**
+- Added `ErrorBoundary` class component at `src/components/ErrorBoundary.tsx`
+- Each of the 5 tab content areas individually wrapped, plus top-level boundary
+- Isolates errors per-tab; users see friendly "Try again" UI instead of white screen crash
+
+**Part 2: Stats Function Deduplication**
+- Consolidated `calculateHeroStats` and `calculateUserHeroStats` (~250 lines) into private `calculateHeroStatsCore` (~100 lines)
+- Public API unchanged — backward compatible
+- Net reduction of ~75 lines, single source of truth for hero stat calculation
+
+---
+
+### 2026-04-28T23:31:30Z: Vitest Testing Infrastructure
+**By:** Lambert (Tester)
+**Status:** Implemented
+**What:** Set up Vitest with happy-dom, separate vitest.config.ts, globals: true. Test location: `src/lib/__tests__/{module}.test.ts`.
+**Coverage (67 tests):** utils.ts (20 tests), stats.ts (34 tests), firestore.ts (13 tests).
+**Why:** Zero test coverage on production app with real user data is critical risk. Pure functions are highest-value targets for regression protection.
+**Scripts:** `npm test` (CI run), `npm run test:watch` (dev), `npm run test:coverage` (coverage report).
+
+---
+
+### 2026-04-28T23:31:30Z: P1 — Firestore Document Size Limit Migration Plan
+**By:** Ripley (Lead)
+**Status:** Proposed — Awaiting Review
+**Priority:** P1 Critical
+**What:** Migrate from single document (`users/{userId}/data/matches`) to subcollection model (`users/{userId}/matches/{matchId}`). Firestore 1MB limit reached at ~1000 matches (current safe ceiling: 500 matches).
+**Chosen Approach:** Option A (Subcollection) — Firestore-idiomatic, scales infinitely, clean code forever.
+**Why:** Avoids silent write failures and data loss. Eliminates debounce race condition. Dramatically reduces write payload (1000x less data per save).
+**Implementation:** 4 incremental PRs (dual-read, migration trigger, write optimization, collectionGroup query). Lazy migration on login, legacy docs preserved for 2 weeks, rollback safe.
+**Key Invariant:** Legacy data never deleted until subcollection data verified. Idempotent by design.
+
+---
+
 ## Governance
 
 - All meaningful changes require team consensus

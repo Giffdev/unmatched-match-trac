@@ -34,3 +34,16 @@ Unmatched Tracker: a web app for tracking Unmatched board game matches. Built wi
 - Old exports preserved as thin wrappers — zero API surface change, callers unaffected.
 - `calculateHeroStats`'s `filterByHeroId` param mapped to a `preFilter` lambda.
 - Build verified clean (`tsc -b --noCheck && vite build` exit 0).
+
+### 2026-04-28T23:31:30Z: Memoized stats calculations in PlayersTab and HeroesTab
+- PlayersTab: `calculatePlayerStats` call + derived arrays (heroesPlayed, mapsPlayed, neverPlayed, vsPlayers) wrapped in `useMemo` with correct dependency arrays.
+- HeroesTab: `calculateUserHeroStats` (personal + all-logged) and `calculateHeroStats` (global) wrapped in `useMemo`. Matchup entries derivation also memoized.
+- No changes to stats functions themselves — only call sites.
+- All 67 tests pass. Build verified clean.
+
+### 2026-04-28T23:31:30Z: Added runtime type validation on Firestore reads
+- Created `validateMatch()` type guard in `src/lib/firestore.ts` — checks required fields (id, date, mapId, players, isDraw, userId) with type assertions.
+- Created `validateMatches()` — validates array structure, filters out malformed entries with `console.warn` rather than crashing.
+- Applied to both `getUserMatches()` and `getAllUserMatches()` return paths.
+- Protects against data corruption taking down the entire app.
+- All 67 tests pass. Build verified clean.
