@@ -16,14 +16,17 @@ import { getAllUserMatches } from '@/lib/firestore'
 import { HeroImage } from './HeroImage'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 
+import { HeroMatchupHeatmap } from '@/components/global/HeroMatchupHeatmap'
+
 type HeroesTabProps = {
   matches: Match[]
   currentUserId: string | null
   initialSelectedHero?: string | null
   onHeroChange?: () => void
+  onHeroClick?: (heroId: string) => void
 }
 
-export function HeroesTab({ matches, currentUserId, initialSelectedHero, onHeroChange }: HeroesTabProps) {
+export function HeroesTab({ matches, currentUserId, initialSelectedHero, onHeroChange, onHeroClick }: HeroesTabProps) {
   const [selectedHero, setSelectedHero] = useState(initialSelectedHero || '')
   const [open, setOpen] = useState(false)
   const [search, setSearch] = useState('')
@@ -135,18 +138,21 @@ export function HeroesTab({ matches, currentUserId, initialSelectedHero, onHeroC
             </PopoverContent>
           </Popover>
         </div>
-        <Card className="p-12 text-center">
-          <div className="flex flex-col items-center gap-4">
-            <div className="rounded-full bg-muted p-6">
-              <Sword className="w-12 h-12 text-muted-foreground" />
-            </div>
-            <div>
-              <h3 className="text-lg font-semibold mb-2">Select a hero</h3>
-              <p className="text-muted-foreground">
-                Choose a hero from the list above to view their statistics
-              </p>
-            </div>
-          </div>
+        <Card className="p-6">
+          <h3 className="text-lg font-semibold mb-4">Hero Matchup Heatmap (Global)</h3>
+          <p className="text-sm text-muted-foreground mb-4">
+            Win rates across all users. Click a hero to see their detailed stats.
+          </p>
+          <HeroMatchupHeatmap 
+            matches={allMatches} 
+            onHeroClick={(heroId) => {
+              setSelectedHero(heroId)
+              setOpen(false)
+              setSearch('')
+              onHeroClick?.(heroId)
+            }}
+            isLoading={allMatches.length === 0}
+          />
         </Card>
       </div>
     )

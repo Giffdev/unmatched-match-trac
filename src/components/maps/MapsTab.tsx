@@ -1,47 +1,54 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import type { Match } from '@/lib/types'
 import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
 import { MAPS, getHeroById, getMapById } from '@/lib/data'
-import { MapTrifold, UsersThree, SquaresFour, Trophy, Sword } from '@phosphor-icons/react'
+import { MapTrifold, UsersThree, SquaresFour, Trophy, Sword, Globe, User as UserIcon } from '@phosphor-icons/react'
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Button } from '@/components/ui/button'
 import { CaretUpDown, Check } from '@phosphor-icons/react'
 import { cn } from '@/lib/utils'
 import { normalizeHeroId } from '@/lib/utils'
+import { getAllUserMatches } from '@/lib/firestore'
+import { useAuth } from '@/hooks/use-auth'
 
 type MapsTabProps = {
   matches: Match[]
 }
 
+type HeroMapPerformance = {
+  heroId: string
+  heroName: string
+  userWins: number
+  userLosses: number
+  userTotal: number
+  userWinRate: number
+  globalWins: number
+  globalLosses: number
+  globalTotal: number
+  globalWinRate: number
+}
+
 type MapStats = {
-  totalMatches: number
-  heroPerformance: {
-    heroId: string
-    heroName: string
-    wins: number
-    losses: number
-    total: number
-    winRate: number
-  }[]
+  userTotalMatches: number
+  globalTotalMatches: number
+  heroPerformance: HeroMapPerformance[]
   recentMatches: Match[]
 }
 
-function calculateMapStats(matches: Match[], mapId: string): MapStats {
-  const mapMatches = matches.filter(m => m.mapId === mapId)
-
+function calculateHeroPerformanceOnMap(
+  matches: Match[],
+): Record<string, { wins: number; losses: number; total: number }> {
   const heroRecord: Record<string, { wins: number; losses: number; total: number }> = {}
-
-  for (const match of mapMatches) {
+  for (const match of matches) {
     for (const player of match.players) {
       const heroId = normalizeHeroId(player.heroId)
       if (!heroRecord[heroId]) {
         heroRecord[heroId] = { wins: 0, losses: 0, total: 0 }
       }
       heroRecord[heroId].total++
-
       if (!match.isDraw) {
         const winnerHeroId = match.winnerId ? normalizeHeroId(match.winnerId) : null
         if (winnerHeroId === heroId) {
@@ -52,30 +59,71 @@ function calculateMapStats(matches: Match[], mapId: string): MapStats {
       }
     }
   }
+  return heroRecord
+}
 
-  const heroPerformance = Object.entries(heroRecord)
-    .map(([heroId, data]) => {
+function calculateMapStats(userMatches: Match[], globalMatches: Match[], mapId: string): MapStats {
+  const userMapMatches = userMatches.filter(m => m.mapId === mapId)
+  const globalMapMatches = globalMatches.filter(m => m.mapId === mapId)
+
+  const userHeroRecord = calculateHeroPerformanceOnMap(userMapMatches)
+  const globalHeroRecord = calculateHeroPerformanceOnMap(globalMapMatches)
+
+  // Merge all hero IDs from both sources
+  const allHeroIds = new Set([...Object.keys(userHeroRecord), ...Object.keys(globalHeroRecord)])
+
+  const heroPerformance: HeroMapPerformance[] = Array.from(allHeroIds)
+    .map(heroId => {
       const hero = getHeroById(heroId)
+      const u = userHeroRecord[heroId] || { wins: 0, losses: 0, total: 0 }
+      const g = globalHeroRecord[heroId] || { wins: 0, losses: 0, total: 0 }
       return {
         heroId,
         heroName: hero?.name || heroId,
-        wins: data.wins,
-        losses: data.losses,
-        total: data.total,
-        winRate: data.total > 0 ? (data.wins / data.total) * 100 : 0,
+        userWins: u.wins,
+        userLosses: u.losses,
+        userTotal: u.total,
+        userWinRate: u.total > 0 ? (u.wins / u.total) * 100 : 0,
+        globalWins: g.wins,
+        globalLosses: g.losses,
+        globalTotal: g.total,
+        globalWinRate: g.total > 0 ? (g.wins / g.total) * 100 : 0,
       }
     })
-    .sort((a, b) => b.total - a.total || b.winRate - a.winRate)
+    .sort((a, b) => b.globalTotal - a.globalTotal || b.userTotal - a.userTotal)
 
-  const recentMatches = [...mapMatches].sort((a, b) => b.date.localeCompare(a.date)).slice(0, 10)
+  const recentMatches = [...userMapMatches].sort((a, b) => b.date.localeCompare(a.date)).slice(0, 10)
 
-  return { totalMatches: mapMatches.length, heroPerformance, recentMatches }
+  return {
+    userTotalMatches: userMapMatches.length,
+    globalTotalMatches: globalMapMatches.length,
+    heroPerformance,
+    recentMatches,
+  }
 }
 
 export function MapsTab({ matches }: MapsTabProps) {
   const [selectedMap, setSelectedMap] = useState('')
   const [open, setOpen] = useState(false)
   const [search, setSearch] = useState('')
+  const [allMatches, setAllMatches] = useState<Match[]>([])
+  const [isLoadingGlobal, setIsLoadingGlobal] = useState(true)
+  const { user } = useAuth()
+
+  useEffect(() => {
+    const loadGlobalMatches = async () => {
+      setIsLoadingGlobal(true)
+      try {
+        const data = await getAllUserMatches()
+        setAllMatches(data)
+      } catch (error) {
+        console.error('Error loading global matches:', error)
+      } finally {
+        setIsLoadingGlobal(false)
+      }
+    }
+    loadGlobalMatches()
+  }, [matches.length])
 
   const sortedMaps = useMemo(() => {
     return [...MAPS].sort((a, b) => a.name.localeCompare(b.name))
@@ -103,8 +151,8 @@ export function MapsTab({ matches }: MapsTabProps) {
 
   const mapData = selectedMap ? getMapById(selectedMap) : null
   const stats = useMemo(
-    () => (selectedMap ? calculateMapStats(matches, selectedMap) : null),
-    [matches, selectedMap]
+    () => (selectedMap ? calculateMapStats(matches, allMatches, selectedMap) : null),
+    [matches, allMatches, selectedMap]
   )
 
   const selectedMapData = getMapById(selectedMap)
@@ -298,11 +346,17 @@ export function MapsTab({ matches }: MapsTabProps) {
                   )}
                 </div>
 
-                <div className="pt-2 border-t">
+                <div className="pt-2 border-t space-y-1.5">
                   <div className="flex items-center gap-2">
-                    <Trophy className="w-5 h-5 text-yellow-500" />
+                    <UserIcon className="w-4 h-4 text-primary" weight="fill" />
                     <span className="text-sm font-medium">
-                      {stats.totalMatches} {stats.totalMatches === 1 ? 'match' : 'matches'} played
+                      {stats.userTotalMatches} {stats.userTotalMatches === 1 ? 'match' : 'matches'} (yours)
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Globe className="w-4 h-4 text-accent" />
+                    <span className="text-sm font-medium">
+                      {stats.globalTotalMatches} {stats.globalTotalMatches === 1 ? 'match' : 'matches'} (all users)
                     </span>
                   </div>
                 </div>
@@ -340,21 +394,53 @@ export function MapsTab({ matches }: MapsTabProps) {
                 No matches recorded on this map yet
               </p>
             ) : (
-              <div className="space-y-3">
+              <div className="space-y-4">
                 {stats.heroPerformance.map(hero => (
-                  <div key={hero.heroId} className="space-y-1">
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="font-medium truncate mr-2">{hero.heroName}</span>
-                      <span className="text-muted-foreground whitespace-nowrap">
-                        {hero.wins}W – {hero.losses}L
-                        <span className="ml-1.5 text-xs">
-                          ({hero.total} {hero.total === 1 ? 'match' : 'matches'})
+                  <div key={hero.heroId} className="space-y-2 pb-3 border-b border-border/50 last:border-0 last:pb-0">
+                    <div className="font-medium text-sm">{hero.heroName}</div>
+
+                    {/* User's stats */}
+                    {hero.userTotal > 0 ? (
+                      <div className="flex items-center gap-2">
+                        <UserIcon className="w-3.5 h-3.5 text-primary flex-shrink-0" weight="fill" />
+                        <div className="flex-1 min-w-0">
+                          <Progress value={hero.userWinRate} className="h-1.5" />
+                        </div>
+                        <span className="text-xs text-muted-foreground whitespace-nowrap w-28 text-right">
+                          {hero.userWins}W–{hero.userLosses}L ({hero.userTotal}) {hero.userWinRate.toFixed(0)}%
                         </span>
-                      </span>
-                    </div>
-                    <Progress value={hero.winRate} className="h-2" />
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-2">
+                        <UserIcon className="w-3.5 h-3.5 text-muted-foreground/40 flex-shrink-0" />
+                        <span className="text-xs text-muted-foreground/60 italic">No matches in your logs</span>
+                      </div>
+                    )}
+
+                    {/* Global stats */}
+                    {hero.globalTotal > 0 ? (
+                      <div className="flex items-center gap-2">
+                        <Globe className="w-3.5 h-3.5 text-accent flex-shrink-0" />
+                        <div className="flex-1 min-w-0">
+                          <Progress value={hero.globalWinRate} className="h-1.5" />
+                        </div>
+                        <span className="text-xs text-muted-foreground whitespace-nowrap w-28 text-right">
+                          {hero.globalWins}W–{hero.globalLosses}L ({hero.globalTotal}) {hero.globalWinRate.toFixed(0)}%
+                        </span>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-2">
+                        <Globe className="w-3.5 h-3.5 text-muted-foreground/40 flex-shrink-0" />
+                        <span className="text-xs text-muted-foreground/60 italic">No global data</span>
+                      </div>
+                    )}
                   </div>
                 ))}
+
+                <div className="flex items-center gap-4 pt-2 text-xs text-muted-foreground">
+                  <span className="flex items-center gap-1"><UserIcon className="w-3 h-3 text-primary" weight="fill" /> Your matches</span>
+                  <span className="flex items-center gap-1"><Globe className="w-3 h-3 text-accent" /> All users</span>
+                </div>
               </div>
             )}
           </Card>
