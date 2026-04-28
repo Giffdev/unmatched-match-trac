@@ -198,20 +198,18 @@ export function PlayersTab({ matches, ownedSets = [], onHeroClick }: PlayersTabP
                 {neverPlayedHeroes.map((hero) => (
                   <div
                     key={hero.id}
-                    className={`flex items-center justify-between gap-2 py-2 px-1 ${onHeroClick ? 'cursor-pointer hover:bg-muted/50 transition-colors rounded' : ''}`}
+                    className={`py-2 px-1 ${onHeroClick ? 'cursor-pointer hover:bg-muted/50 transition-colors rounded' : ''}`}
                     onClick={() => onHeroClick?.(hero.id)}
                   >
-                    <div className="min-w-0 flex-1">
-                      <span className="font-medium text-xs md:text-sm truncate inline">{hero.name}</span>
+                    <div className="flex items-baseline gap-1">
+                      <span className="font-medium text-xs md:text-sm">{hero.name}</span>
                       {hero.sidekicks && hero.sidekicks.length > 0 && (
-                        <span className="text-[11px] md:text-xs text-muted-foreground ml-1">
+                        <span className="text-[11px] md:text-xs text-muted-foreground">
                           &amp; {hero.sidekicks.map(sk => sk.name).join(', ')}
                         </span>
                       )}
                     </div>
-                    <span className="text-[11px] md:text-xs text-muted-foreground whitespace-nowrap flex-shrink-0">
-                      {hero.set}
-                    </span>
+                    <span className="text-[11px] md:text-xs text-muted-foreground">{hero.set}</span>
                   </div>
                 ))}
               </div>
