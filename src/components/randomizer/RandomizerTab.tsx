@@ -114,10 +114,11 @@ export function RandomizerTab({ ownedSets, matches, setMatches }: RandomizerTabP
 
     let suitableMaps = getMapsByPlayerCount(playerCount)
 
+    if (useCollectionOnly) {
+      suitableMaps = suitableMaps.filter(map => ownedSets.includes(map.set))
+    }
+
     if (restrictMapsToHeroSets) {
-      const heroSets = new Set(players.map(p => getHeroById(p.heroId)?.set).filter(Boolean))
-      const mapsFromHeroSets = Array.from(heroSets).flatMap(set => getMapsBySet(set as string))
-      const filteredMaps = suitableMaps.filter(map => mapsFromHeroSets.some(m => m.id === map.id))
       
       if (filteredMaps.length > 0) {
         suitableMaps = filteredMaps
@@ -185,6 +186,10 @@ export function RandomizerTab({ ownedSets, matches, setMatches }: RandomizerTabP
     if (!result) return
     const playerCount = mode === '1v1' ? 2 : mode === '2v2' ? 4 : mode === 'ffa3' ? 3 : mode === 'ffa4' ? 4 : 2
     let suitableMaps = getMapsByPlayerCount(playerCount)
+
+    if (useCollectionOnly) {
+      suitableMaps = suitableMaps.filter(map => ownedSets.includes(map.set))
+    }
 
     if (restrictMapsToHeroSets) {
       const heroSets = new Set(result.players.map(p => getHeroById(p.heroId)?.set).filter(Boolean))
