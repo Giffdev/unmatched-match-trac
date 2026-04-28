@@ -320,6 +320,9 @@ export function RandomizerTab({ ownedSets, matches, setMatches }: RandomizerTabP
                     >
                       {getMapById(result.mapId)?.name}
                     </p>
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      From: {getMapById(result.mapId)?.set}
+                    </p>
                     <p className="text-xs text-muted-foreground mt-1">
                       {getMapById(result.mapId)?.minPlayers === getMapById(result.mapId)?.maxPlayers 
                         ? `${getMapById(result.mapId)?.minPlayers} players` 

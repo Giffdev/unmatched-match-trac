@@ -90,25 +90,29 @@ export function MatchCard({ match, onDelete, onEdit, onHeroClick, onMapClick, ex
                 return (
                   <div 
                     key={`${player.heroId}-${player.turnOrder}`}
-                    className={`flex items-center gap-2 md:gap-3 ${isWinner ? 'font-medium' : ''}`}
+                    className={`grid grid-cols-[auto_1fr_auto] items-center gap-x-2 md:gap-x-3 ${isWinner ? 'font-medium' : ''}`}
                   >
                     <Badge variant="outline" className="w-6 h-6 md:w-8 md:h-8 rounded-full flex items-center justify-center p-0 text-xs">
                       {player.turnOrder}
                     </Badge>
-                    <span className="text-xs md:text-sm min-w-[80px] md:min-w-[120px] truncate">{player.playerName}</span>
-                    <span className="text-xs md:text-sm text-muted-foreground hidden sm:inline">•</span>
-                    <button
-                      onClick={() => onHeroClick(player.heroId)}
-                      className="text-xs md:text-sm text-primary hover:underline cursor-pointer transition-colors truncate flex-1"
-                    >
-                      {getHeroDisplayName(player)}
-                    </button>
-                    {isWinner && (
-                      <Trophy className="text-accent ml-1 md:ml-2 flex-shrink-0" size={14} weight="fill" />
-                    )}
-                    {match.isDraw && (
-                      <span className="text-[10px] md:text-xs text-muted-foreground ml-1 md:ml-2 flex-shrink-0">(Draw)</span>
-                    )}
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-0.5 sm:gap-2 min-w-0">
+                      <span className="text-xs md:text-sm truncate shrink-0">{player.playerName}</span>
+                      <span className="text-xs text-muted-foreground hidden sm:inline shrink-0">—</span>
+                      <button
+                        onClick={() => onHeroClick(player.heroId)}
+                        className="text-xs md:text-sm text-primary hover:underline cursor-pointer transition-colors truncate text-left"
+                      >
+                        {getHeroDisplayName(player)}
+                      </button>
+                    </div>
+                    <div className="flex items-center gap-1 shrink-0">
+                      {isWinner && (
+                        <Trophy className="text-accent" size={14} weight="fill" />
+                      )}
+                      {match.isDraw && (
+                        <span className="text-[10px] md:text-xs text-muted-foreground">(Draw)</span>
+                      )}
+                    </div>
                   </div>
                 )
               })}
