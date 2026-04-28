@@ -100,6 +100,8 @@ import TheBronze from '@/assets/images/The_Bronze.webp'
 import TheRaft from '@/assets/images/The_Raft.webp'
 import TRexPaddock from '@/assets/images/T_Rex_Paddock.webp'
 import Yukon from '@/assets/images/Yukon.webp'
+import SantasWorkshop from '@/assets/images/Santas_Workshop.avif'
+import VeniceMap from '@/assets/images/Venice.avif'
 
 export const UNMATCHED_SETS: SetInfo[] = [
   { name: 'Battle of Legends, Volume One', franchise: 'Unmatched' },
@@ -219,8 +221,8 @@ export const MAPS: Map[] = [
   { id: 'point-pleasant', name: 'Point Pleasant', set: 'Adventures: Tales to Amaze', minPlayers: 2, maxPlayers: 4, zones: 7, spaces: 42, imageUrl: PointPleasant },
   { id: 'marmoreal', name: 'Marmoreal', set: 'Battle of Legends, Volume One', minPlayers: 2, maxPlayers: 4, zones: 8, spaces: 31, imageUrl: Marmoreal },
   { id: 'sarpedon', name: 'Sarpedon', set: 'Battle of Legends, Volume One', minPlayers: 2, maxPlayers: 4, zones: 6, spaces: 38, imageUrl: Sarpedon },
-  { id: 'santas-workshop', name: 'Santa\'s Workshop', set: 'Battle of Legends, Volume Three', minPlayers: 2, maxPlayers: 4, zones: 6, spaces: 34 },
-  { id: 'venice', name: 'Venice', set: 'Battle of Legends, Volume Three', minPlayers: 2, maxPlayers: 4, zones: 8, spaces: 33 },
+  { id: 'santas-workshop', name: 'Santa\'s Workshop', set: 'Battle of Legends, Volume Three', minPlayers: 2, maxPlayers: 4, zones: 6, spaces: 34, imageUrl: SantasWorkshop },
+  { id: 'venice', name: 'Venice', set: 'Battle of Legends, Volume Three', minPlayers: 2, maxPlayers: 4, zones: 8, spaces: 33, imageUrl: VeniceMap },
   { id: 'hanging-gardens', name: 'Hanging Gardens', set: 'Battle of Legends, Volume Two', minPlayers: 2, maxPlayers: 4, zones: 8, spaces: 33, imageUrl: HangingGardens },
   { id: 'sanctum-sanctorum', name: 'Sanctum Sanctorum', set: 'Brains and Brawn', minPlayers: 2, maxPlayers: 4, zones: 7, spaces: 29, imageUrl: SanctumSantorum },
   { id: 'sunnydale-high', name: 'Sunnydale High', set: 'Buffy the Vampire Slayer', minPlayers: 2, maxPlayers: 4, zones: 6, spaces: 31, imageUrl: SunnydaleHigh },
