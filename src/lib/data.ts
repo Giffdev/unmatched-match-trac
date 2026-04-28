@@ -69,6 +69,11 @@ import WinterSoldierImg from '@/assets/images/Winter_Soldier.webp'
 import YenneferImg from '@/assets/images/Yennefer.webp'
 import YennengaImg from '@/assets/images/Yennenga.jpg'
 
+import RosieRiveterImg from '@/assets/images/Rosie_the_Riveter.webp'
+import JohnHenryImg from '@/assets/images/John_Henry.webp'
+import WyattEarpImg from '@/assets/images/Wyatt_Earp.webp'
+import GeorgeWashingtonImg from '@/assets/images/George_Washington.webp'
+
 import AzuchiCastle from '@/assets/images/Azuchi_Castle.webp'
 import BaskervilleManor from '@/assets/images/Baskerville_Manor.webp'
 import FayrlundForest from '@/assets/images/Fayrlund_Forest.webp'
@@ -203,10 +208,10 @@ export const HEROES: Hero[] = [
   { id: 'michelangelo', name: 'Michelangelo', hp: 13, move: 3, attack: 'MELEE', set: 'Unmatched Adventures: Teenage Mutant Ninja Turtles', sidekicks: [{ name: 'April', count: 1, hp: 5, attack: 'MELEE' }], imageUrl: MichaelangeloImg, abilityTitle: "PIZZA PARTY", abilityDescription: "After you attack or scheme, draw 1 card. Your starting and maximum hand size is 3." },
   { id: 'krang', name: 'Krang', hp: 16, move: 1, attack: 'MELEE', set: 'TMNT: Shredder and Krang', imageUrl: '', abilityTitle: "DOOOOOM", abilityDescription: "Krang has 3 doomsday machines. Start with one machine active. After you roll the Die of Ultimate Destruction, you can deactivate an active machine to reroll the die. Add +1 to your move value for each active machine." },
   { id: 'shredder', name: 'Shredder', hp: 15, move: 3, attack: 'MELEE', set: 'TMNT: Shredder and Krang', sidekicks: [{ name: 'Bebop & Rocksteady', count: 1, hp: 7, attack: 'MELEE' }], imageUrl: '', abilityTitle: "MASTER OF THE CLAN", abilityDescription: "At the start of your turn, deploy a Foot soldier to a path adjacent to a friendly fighter. You may attack opposing fighters adjacent to Foot soldiers. If an opponent boosts their maneuver, they may remove any Foot soldiers their hero moves through." },
-  { id: 'rosie-the-riveter', name: 'Rosie the Riveter', hp: 15, move: 2, attack: 'MELEE', set: 'Stars and Stripes', sidekicks: [{ name: 'Wendy the Welder', count: 1, hp: 7, attack: 'MELEE' }], imageUrl: '', abilityTitle: "FREEDOM XK-II MECH SUIT", abilityDescription: "You have 4 upgrade tokens. Start the game with all 4 inactive. At the start of your turn, activate an upgrade. At the end of your turn, if all 4 upgrades are active, deactivate all of them." },
-  { id: 'john-henry', name: 'John Henry', hp: 17, move: 2, attack: 'MELEE', set: 'Stars and Stripes', imageUrl: '', abilityTitle: "STEEL-DRIVING MAN", abilityDescription: "You have 10 track tokens. At the start of your turn, summon a track token in a space in John Henry's zone. When you move John Henry, do not count spaces with track tokens." },
-  { id: 'wyatt-earp', name: 'Wyatt Earp', hp: 15, move: 2, attack: 'RANGED', set: 'Stars and Stripes', sidekicks: [{ name: 'Doc Holliday', count: 1, hp: 8, attack: 'RANGED' }], imageUrl: '', abilityTitle: "SHOWDOWN", abilityDescription: "After you attack and win combat, choose one effect. You cannot choose the same effect twice in a turn. • draw 1 card • gain 1 free action to attack • move your fighter up to 1 space" },
-  { id: 'george-washington', name: 'George Washington', hp: 14, move: 2, attack: 'MELEE', set: 'Stars and Stripes', imageUrl: '', abilityTitle: "ESPIONAGE", abilityDescription: "You start with 4 ruse tokens. When you attack, you may use a ruse token, placing it next to the card. Before your opponent chooses whether or not to defend, they may discard 1 random card to remove the ruse token." },
+  { id: 'rosie-the-riveter', name: 'Rosie the Riveter', hp: 15, move: 2, attack: 'MELEE', set: 'Stars and Stripes', sidekicks: [{ name: 'Wendy the Welder', count: 1, hp: 7, attack: 'MELEE' }], imageUrl: RosieRiveterImg, abilityTitle: "FREEDOM XK-II MECH SUIT", abilityDescription: "You have 4 upgrade tokens. Start the game with all 4 inactive. At the start of your turn, activate an upgrade. At the end of your turn, if all 4 upgrades are active, deactivate all of them." },
+  { id: 'john-henry', name: 'John Henry', hp: 17, move: 2, attack: 'MELEE', set: 'Stars and Stripes', imageUrl: JohnHenryImg, abilityTitle: "STEEL-DRIVING MAN", abilityDescription: "You have 10 track tokens. At the start of your turn, summon a track token in a space in John Henry's zone. When you move John Henry, do not count spaces with track tokens." },
+  { id: 'wyatt-earp', name: 'Wyatt Earp', hp: 15, move: 2, attack: 'RANGED', set: 'Stars and Stripes', sidekicks: [{ name: 'Doc Holliday', count: 1, hp: 8, attack: 'RANGED' }], imageUrl: WyattEarpImg, abilityTitle: "SHOWDOWN", abilityDescription: "After you attack and win combat, choose one effect. You cannot choose the same effect twice in a turn. • draw 1 card • gain 1 free action to attack • move your fighter up to 1 space" },
+  { id: 'george-washington', name: 'George Washington', hp: 14, move: 2, attack: 'MELEE', set: 'Stars and Stripes', imageUrl: GeorgeWashingtonImg, abilityTitle: "ESPIONAGE", abilityDescription: "You start with 4 ruse tokens. When you attack, you may use a ruse token, placing it next to the card. Before your opponent chooses whether or not to defend, they may discard 1 random card to remove the ruse token." },
 ]
 
 export const MAPS: Map[] = [
@@ -242,6 +247,8 @@ export const MAPS: Map[] = [
   { id: 'thrilla-in-manila', name: 'Thrilla In Manila', set: 'Muhammad Ali vs. Bruce Lee', minPlayers: 2, maxPlayers: 2, zones: 7, spaces: 30 },
   { id: 'technodrome', name: 'Technodrome', set: 'Unmatched Adventures: Teenage Mutant Ninja Turtles', minPlayers: 2, maxPlayers: 4 },
   { id: 'new-york-city', name: 'New York City', set: 'Unmatched Adventures: Teenage Mutant Ninja Turtles', minPlayers: 2, maxPlayers: 4 },
+  { id: 'the-white-house', name: 'The White House', set: 'Stars and Stripes', minPlayers: 2, maxPlayers: 4 },
+  { id: 'the-alamo', name: 'The Alamo', set: 'Stars and Stripes', minPlayers: 2, maxPlayers: 4 },
 ]
 
 export function getHeroById(id: string): Hero | undefined {
