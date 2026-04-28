@@ -20,7 +20,7 @@ Unmatched Tracker: a web app for tracking Unmatched board game matches. Built wi
 - **Build:** `tsc -b --noCheck && vite build` (no test step)
 - **Recommended framework:** Vitest (native Vite integration) + @testing-library/react for component tests
 
-### 2026-04-28: Vitest Infrastructure Setup
+### 2026-04-28T23:31:30Z: Vitest Infrastructure Setup
 - **Installed:** vitest 4.1.5, @testing-library/react, @testing-library/jest-dom, @testing-library/user-event, happy-dom
 - **Config:** Dedicated `vitest.config.ts` with happy-dom environment, globals: true, `@` alias for src/
 - **Scripts:** `npm test` (vitest run), `npm run test:watch` (vitest), `npm run test:coverage` (vitest run --coverage)
@@ -30,3 +30,10 @@ Unmatched Tracker: a web app for tracking Unmatched board game matches. Built wi
 - **Key finding:** `stripUndefined` in firestore.ts is not exported — tested via local copy. If it needs direct testing later, it should be extracted/exported.
 - **Key finding:** `getBalancedMatchupScored` uses Math.random() internally — tests focus on deterministic edge cases (empty data, exclusion logic, confidence levels)
 - **All 67 tests pass, build remains green.**
+
+### 2026-04-28T23:31:30Z: Team Decisions Consolidated (Scribe)
+- All 4 agents' work captured and merged into `.squad/decisions.md`
+- Orchestration logs written per-agent with status updates
+- Session checkpoint logged for team visibility
+- Decisions now canonical reference for all 5 team decisions
+

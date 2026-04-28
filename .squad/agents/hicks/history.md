@@ -41,6 +41,12 @@ Unmatched Tracker: a web app for tracking Unmatched board game matches. Built wi
 - No changes to stats functions themselves — only call sites.
 - All 67 tests pass. Build verified clean.
 
+### 2026-04-28T23:31:30Z: Team Decisions Consolidated (Scribe)
+- All work captured and merged into canonical `.squad/decisions.md`
+- Error boundaries, stats dedup, and related team decisions now recorded
+- Team checkpoint logged; orchestration logs written per-agent
+
+
 ### 2026-04-28T23:31:30Z: Added runtime type validation on Firestore reads
 - Created `validateMatch()` type guard in `src/lib/firestore.ts` — checks required fields (id, date, mapId, players, isDraw, userId) with type assertions.
 - Created `validateMatches()` — validates array structure, filters out malformed entries with `console.warn` rather than crashing.

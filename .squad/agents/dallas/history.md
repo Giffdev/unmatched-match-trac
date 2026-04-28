@@ -11,3 +11,9 @@ Unmatched Tracker: a web app for tracking Unmatched board game matches. Built wi
 - **2026-04-28 (Hicks):** `src/hooks/use-user-data.ts` now implements 500ms debounce on Firestore persist effect. Pattern: accumulate rapid state changes, write only final state after quiet period. Cleanup flushes pending writes immediately. Eliminates out-of-order concurrent writes.
 - **2026-04-28:** Extracted shared components from LogMatchDialog + EditMatchDialog into `src/components/matches/shared/`: MapSelector (searchable combobox for maps), HeroSelector (searchable combobox for heroes with Yennefer/Triss variant picker), PlayerCard (player row with name input + hero selector + remove button), MatchResultSection (competitive winner/draw + cooperative win/loss). Barrel export via `shared/index.ts`. Both dialogs now import from `./shared` and are ~50% shorter. The shared components use the more responsive LogMatchDialog styling (min-w-0, shrink-0 utilities).
 
+### 2026-04-28T23:31:30Z: Team Decisions Consolidated (Scribe)
+- Work captured and merged into canonical `.squad/decisions.md`
+- Shared component extraction decision recorded with implementation details
+- Team checkpoint logged for visibility
+
+

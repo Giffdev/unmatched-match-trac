@@ -78,3 +78,9 @@ Full audit written to `.squad/decisions/inbox/ripley-codebase-audit.md`.
 - **Eliminates:** The debounce race condition entirely (atomic per-match writes replace full-array overwrites)
 - **Plan location:** `.squad/decisions/inbox/ripley-firestore-migration-plan.md`
 
+### 2026-04-28T23:31:30Z: Team Decisions Consolidated (Scribe)
+- Firestore migration plan and all team work captured in canonical `.squad/decisions.md`
+- All 5 decisions now recorded: user directive, Dallas extraction, Hicks error boundaries + stats, Lambert Vitest, Ripley Firestore plan
+- Orchestration logs written per agent; team checkpoint recorded
+
+
