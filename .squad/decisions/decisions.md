@@ -1,5 +1,30 @@
 # Decisions Log
 
+## 2026-04-28 — Debounce Firestore Writes in useUserMatches
+
+**Date:** 2026-04-28T16:16:41-07:00  
+**By:** Hicks (Full-Stack Dev)  
+**Status:** Implemented
+
+### What
+Added 500ms debounce to the persist effect in `src/hooks/use-user-data.ts`. Rapid `matches` state changes now accumulate, with only the final state written after 500ms of quiet. On effect cleanup (unmount or userId change), pending writes flush immediately to prevent data loss.
+
+### Why
+The persist effect fired on every `setMatches()` call, spawning concurrent Firestore writes. Network latency is unpredictable, so writes resolved out of order — stale payloads overwrote latest data. This was especially dangerous during CSV import (hundreds of match changes) or rapid user interactions.
+
+### How
+- 500ms debounce threshold: imperceptible to users, eliminates all concurrent-write scenarios.
+- On cleanup, any pending write flushes immediately.
+- `saveGeneration` counter still suppresses error toasts from stale saves.
+- `loadedFromDb` guard still prevents writing on initial load.
+- Public API unchanged: `{ matches, setMatches, loading }`.
+- No new dependencies. Build passes.
+
+### Risk
+If the browser tab closes within the 500ms debounce window, the final write may not fire. Acceptable since `beforeunload` is unreliable anyway, and cleanup handles all React-lifecycle scenarios.
+
+---
+
 ## 2026-04-28 — Remove Hardcoded Password from App.tsx
 
 **Date:** 2026-04-28T16:13:58-07:00  

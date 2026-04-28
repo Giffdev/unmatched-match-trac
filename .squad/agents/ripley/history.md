@@ -56,3 +56,12 @@ Full audit written to `.squad/decisions/inbox/ripley-codebase-audit.md`.
 - **Files:** `src/App.tsx` (1 line), `.env.example` (1 line added)
 - **Build:** ✅ Passes cleanly
 - **Next:** Deploy teams must set env var in Vercel settings
+
+### 2026-04-28T23:16 UTC — Debounce Firestore Writes (Hicks)
+- **Status:** ✅ RESOLVED — P1 data integrity issue addressed
+- **Change:** Added 500ms debounce to persist effect in `src/hooks/use-user-data.ts`
+- **Problem:** Rapid state changes spawned concurrent Firestore writes; network latency caused writes to resolve out of order, stale payloads overwriting latest data
+- **Solution:** Accumulate rapid changes, write only final state after 500ms quiet. Cleanup flushes pending writes immediately.
+- **Build:** ✅ Passes cleanly
+- **API:** Unchanged
+
