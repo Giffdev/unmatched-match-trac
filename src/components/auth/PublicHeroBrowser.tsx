@@ -1,9 +1,10 @@
-import { useState, useMemo, useEffect } from 'react'
+import { useState, useMemo, useEffect, useRef } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
+import { Button } from '@/components/ui/button'
 import { HEROES } from '@/lib/data'
 import { HeroImage } from '@/components/heroes/HeroImage'
-import { Heart, ArrowRight, Sword } from '@phosphor-icons/react'
+import { Heart, ArrowRight, ArrowLeft, Sword } from '@phosphor-icons/react'
 import { cn } from '@/lib/utils'
 import AchillesImg from '@/assets/images/Achilles.gif'
 import AliceImg from '@/assets/images/Alice.png'
@@ -158,6 +159,7 @@ type PublicHeroBrowserProps = {
 export function PublicHeroBrowser({ selectedHeroId: initialSelectedHeroId }: PublicHeroBrowserProps) {
   const [search, setSearch] = useState('')
   const [selectedHeroId, setSelectedHeroId] = useState<string | null>(initialSelectedHeroId || null)
+  const detailRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     if (initialSelectedHeroId) {
@@ -178,6 +180,101 @@ export function PublicHeroBrowser({ selectedHeroId: initialSelectedHeroId }: Pub
 
   const selectedHero = selectedHeroId ? HEROES.find(h => h.id === selectedHeroId) : null
 
+  const handleSelectHero = (heroId: string) => {
+    setSelectedHeroId(heroId)
+    // On mobile (single column), scroll to the detail panel
+    setTimeout(() => {
+      detailRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    }, 50)
+  }
+
+  // Hero detail card content (shared between mobile and desktop)
+  const heroDetailContent = selectedHero ? (
+    <Card className="border-accent/20">
+      <CardContent className="p-6 space-y-6">
+        <div className="flex flex-col items-center gap-4">
+          <HeroImage hero={selectedHero} className="w-48 h-48" />
+          <div className="text-center">
+            <h3 className="text-2xl font-bold text-foreground">{selectedHero.name}</h3>
+            <p className="text-sm text-muted-foreground mt-1">{selectedHero.set}</p>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 gap-4">
+          <div className="flex items-center gap-2 p-3 bg-muted/50 rounded-lg">
+            <Heart className="text-destructive" size={20} />
+            <div>
+              <div className="text-xs text-muted-foreground">Health</div>
+              <div className="font-semibold">{selectedHero.hp}</div>
+            </div>
+          </div>
+          <div className="flex items-center gap-2 p-3 bg-muted/50 rounded-lg">
+            <Sword className="text-primary" size={20} />
+            <div>
+              <div className="text-xs text-muted-foreground">Movement</div>
+              <div className="font-semibold">{selectedHero.move}</div>
+            </div>
+          </div>
+        </div>
+
+        <div className="space-y-2">
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-muted-foreground">Attack Type:</span>
+            <span className="font-semibold">{selectedHero.attack}</span>
+          </div>
+
+          {selectedHero.sidekicks && selectedHero.sidekicks.length > 0 && (
+            <div className="pt-2">
+              <div className="text-sm font-semibold text-muted-foreground mb-2">
+                Sidekicks
+              </div>
+              <div className="space-y-1">
+                {selectedHero.sidekicks.map((sidekick, idx) => (
+                  <div key={idx} className="flex items-center gap-2 text-sm">
+                    <span>
+                      {sidekick.count > 1 ? `${sidekick.count}× ` : ''}
+                      {sidekick.name}
+                    </span>
+                    {sidekick.hp && (
+                      <span className="text-muted-foreground">
+                        ({sidekick.hp} HP, {sidekick.attack})
+                      </span>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+
+        {selectedHero.abilityDescription && (
+          <div className="pt-4 border-t border-border">
+            {selectedHero.abilityTitle && (
+              <div className="font-semibold text-primary mb-2 text-sm">
+                {selectedHero.abilityTitle}
+              </div>
+            )}
+            <p className="text-sm text-muted-foreground leading-relaxed">
+              {selectedHero.abilityDescription}
+            </p>
+          </div>
+        )}
+
+        {/* Back to list button for mobile */}
+        <div className="lg:hidden pt-2">
+          <Button
+            variant="outline"
+            className="w-full"
+            onClick={() => setSelectedHeroId(null)}
+          >
+            <ArrowLeft className="mr-2" size={16} />
+            Back to hero list
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
+  ) : null
+
   return (
     <Card>
       <CardHeader>
@@ -188,15 +285,42 @@ export function PublicHeroBrowser({ selectedHeroId: initialSelectedHeroId }: Pub
       </CardHeader>
       <CardContent>
         <div className="space-y-6">
-          <Input
-            placeholder="Search heroes by name or set..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="max-w-md"
-          />
+          {/* On mobile: show detail OR list, not both */}
+          {/* On desktop: show side by side */}
+
+          {/* Mobile: selected hero detail (shown instead of list) */}
+          {selectedHero && (
+            <div ref={detailRef} className="lg:hidden">
+              {heroDetailContent}
+            </div>
+          )}
+
+          {/* Mobile: hero list (hidden when hero selected) */}
+          {/* Desktop: always show both columns */}
+          <div className={cn(
+            selectedHero ? "hidden lg:block" : "block"
+          )}>
+            <Input
+              placeholder="Search heroes by name or set..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="max-w-md mb-4"
+            />
+          </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div className="space-y-2 max-h-[600px] overflow-y-auto pr-2">
+            <div className={cn(
+              "space-y-2 max-h-[600px] overflow-y-auto pr-2",
+              selectedHero ? "hidden lg:block" : "block"
+            )}>
+              {/* Search for desktop (always visible in grid) */}
+              <div className="hidden lg:block sticky top-0 bg-card z-10 pb-2">
+                <Input
+                  placeholder="Search heroes by name or set..."
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                />
+              </div>
               {filteredHeroes.map((hero) => {
                 const heroImage = localHeroImages[hero.id]
                 const hasLocalImage = heroImage && heroImage !== ''
@@ -205,7 +329,7 @@ export function PublicHeroBrowser({ selectedHeroId: initialSelectedHeroId }: Pub
                 return (
                 <button
                   key={hero.id}
-                  onClick={() => setSelectedHeroId(hero.id)}
+                  onClick={() => handleSelectHero(hero.id)}
                   className={cn(
                     "w-full text-left p-3 rounded-lg border transition-colors",
                     selectedHeroId === hero.id
@@ -252,80 +376,9 @@ export function PublicHeroBrowser({ selectedHeroId: initialSelectedHeroId }: Pub
               )}
             </div>
 
-            <div className="lg:sticky lg:top-4 lg:self-start">
-              {selectedHero ? (
-                <Card className="border-accent/20">
-                  <CardContent className="p-6 space-y-6">
-                    <div className="flex flex-col items-center gap-4">
-                      <HeroImage hero={selectedHero} className="w-48 h-48" />
-                      <div className="text-center">
-                        <h3 className="text-2xl font-bold text-foreground">{selectedHero.name}</h3>
-                        <p className="text-sm text-muted-foreground mt-1">{selectedHero.set}</p>
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="flex items-center gap-2 p-3 bg-muted/50 rounded-lg">
-                        <Heart className="text-destructive" size={20} />
-                        <div>
-                          <div className="text-xs text-muted-foreground">Health</div>
-                          <div className="font-semibold">{selectedHero.hp}</div>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2 p-3 bg-muted/50 rounded-lg">
-                        <Sword className="text-primary" size={20} />
-                        <div>
-                          <div className="text-xs text-muted-foreground">Movement</div>
-                          <div className="font-semibold">{selectedHero.move}</div>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="space-y-2">
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm text-muted-foreground">Attack Type:</span>
-                        <span className="font-semibold">{selectedHero.attack}</span>
-                      </div>
-
-                      {selectedHero.sidekicks && selectedHero.sidekicks.length > 0 && (
-                        <div className="pt-2">
-                          <div className="text-sm font-semibold text-muted-foreground mb-2">
-                            Sidekicks
-                          </div>
-                          <div className="space-y-1">
-                            {selectedHero.sidekicks.map((sidekick, idx) => (
-                              <div key={idx} className="flex items-center gap-2 text-sm">
-                                <span>
-                                  {sidekick.count > 1 ? `${sidekick.count}× ` : ''}
-                                  {sidekick.name}
-                                </span>
-                                {sidekick.hp && (
-                                  <span className="text-muted-foreground">
-                                    ({sidekick.hp} HP, {sidekick.attack})
-                                  </span>
-                                )}
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-
-                    {selectedHero.abilityDescription && (
-                      <div className="pt-4 border-t border-border">
-                        {selectedHero.abilityTitle && (
-                          <div className="font-semibold text-primary mb-2 text-sm">
-                            {selectedHero.abilityTitle}
-                          </div>
-                        )}
-                        <p className="text-sm text-muted-foreground leading-relaxed">
-                          {selectedHero.abilityDescription}
-                        </p>
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-              ) : (
+            {/* Desktop: detail panel (always in grid) */}
+            <div className="hidden lg:block lg:sticky lg:top-4 lg:self-start" ref={detailRef}>
+              {heroDetailContent || (
                 <Card className="border-dashed">
                   <CardContent className="p-12 text-center">
                     <div className="text-muted-foreground">

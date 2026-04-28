@@ -280,22 +280,19 @@ export function SignInPrompt() {
       </Card>
 
       <Tabs value={currentTab} onValueChange={setCurrentTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-3 mb-4 md:mb-6">
-          <TabsTrigger value="stats" className="text-xs md:text-sm flex-col md:flex-row gap-1 md:gap-2 py-2">
-            <ChartBar size={16} className="md:hidden" />
-            <ChartBar size={18} className="hidden md:block" />
+        <TabsList className="grid w-full grid-cols-3 mb-4 md:mb-6 h-auto p-1">
+          <TabsTrigger value="stats" className="text-xs md:text-sm gap-1.5 md:gap-2 py-2 px-2 md:px-3">
+            <ChartBar size={16} className="shrink-0" />
             <span className="hidden sm:inline">Community Stats</span>
             <span className="sm:hidden">Stats</span>
           </TabsTrigger>
-          <TabsTrigger value="heroes" className="text-xs md:text-sm flex-col md:flex-row gap-1 md:gap-2 py-2">
-            <MagnifyingGlass size={16} className="md:hidden" />
-            <MagnifyingGlass size={18} className="hidden md:block" />
+          <TabsTrigger value="heroes" className="text-xs md:text-sm gap-1.5 md:gap-2 py-2 px-2 md:px-3">
+            <MagnifyingGlass size={16} className="shrink-0" />
             <span className="hidden sm:inline">Hero Browser</span>
             <span className="sm:hidden">Heroes</span>
           </TabsTrigger>
-          <TabsTrigger value="heatmap" className="text-xs md:text-sm flex-col md:flex-row gap-1 md:gap-2 py-2">
-            <GridFour size={16} className="md:hidden" />
-            <GridFour size={18} className="hidden md:block" />
+          <TabsTrigger value="heatmap" className="text-xs md:text-sm gap-1.5 md:gap-2 py-2 px-2 md:px-3">
+            <GridFour size={16} className="shrink-0" />
             <span className="hidden sm:inline">Matchup Heatmap</span>
             <span className="sm:hidden">Heatmap</span>
           </TabsTrigger>
