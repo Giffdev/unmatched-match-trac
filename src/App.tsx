@@ -9,11 +9,12 @@ import { HeroesTab } from '@/components/heroes/HeroesTab'
 import { CollectionTab } from '@/components/collection/CollectionTab'
 import { RandomizerTab } from '@/components/randomizer/RandomizerTab'
 import { GlobalResultsTab } from '@/components/global/GlobalResultsTab'
+import { MapsTab } from '@/components/maps/MapsTab'
 import { UserProfile } from '@/components/auth/UserProfile'
 import { SignInPrompt } from '@/components/auth/SignInPrompt'
 import { DataCleanup } from '@/components/auth/DataCleanup'
 import { Toaster } from '@/components/ui/sonner'
-import { ListChecks, Users, User, Globe, Shuffle } from '@phosphor-icons/react'
+import { ListChecks, Users, User, Globe, Shuffle, MapTrifold } from '@phosphor-icons/react'
 import type { Match } from '@/lib/types'
 import { normalizeMatchPlayerNames } from '@/lib/utils'
 import { useIsMobile } from '@/hooks/use-mobile'
@@ -130,10 +131,11 @@ function App() {
         ) : (
           <Tabs value={currentTab} onValueChange={setCurrentTab} className="w-full">
             {!isMobile && (
-              <TabsList className="grid w-full grid-cols-5 mb-6">
+              <TabsList className="grid w-full grid-cols-6 mb-6">
                 <TabsTrigger value="matches">Matches</TabsTrigger>
                 <TabsTrigger value="players">Players</TabsTrigger>
                 <TabsTrigger value="heroes">Heroes</TabsTrigger>
+                <TabsTrigger value="maps">Maps</TabsTrigger>
                 <TabsTrigger value="global">Global Stats</TabsTrigger>
                 <TabsTrigger value="randomizer">Randomizer</TabsTrigger>
               </TabsList>
@@ -164,6 +166,10 @@ function App() {
               />
             </TabsContent>
 
+            <TabsContent value="maps">
+              <MapsTab matches={matchesData} />
+            </TabsContent>
+
             <TabsContent value="global">
               <GlobalResultsTab 
                 matches={matchesData} 
@@ -181,7 +187,7 @@ function App() {
 
       {isMobile && currentUserId && currentView === 'main' && (
         <nav className="fixed bottom-0 left-0 right-0 bg-card border-t border-border z-20">
-          <div className="grid grid-cols-5 h-14">
+          <div className="grid grid-cols-6 h-14">
             <button
               onClick={() => setCurrentTab('matches')}
               className={`flex flex-col items-center justify-center gap-0.5 transition-colors ${
@@ -190,8 +196,8 @@ function App() {
                   : 'text-muted-foreground'
               }`}
             >
-              <ListChecks size={20} weight={currentTab === 'matches' ? 'fill' : 'regular'} />
-              <span className="text-[10px] leading-tight">Matches</span>
+              <ListChecks size={18} weight={currentTab === 'matches' ? 'fill' : 'regular'} />
+              <span className="text-[9px] leading-tight">Matches</span>
             </button>
             
             <button
@@ -202,8 +208,8 @@ function App() {
                   : 'text-muted-foreground'
               }`}
             >
-              <Users size={20} weight={currentTab === 'players' ? 'fill' : 'regular'} />
-              <span className="text-[10px] leading-tight">Players</span>
+              <Users size={18} weight={currentTab === 'players' ? 'fill' : 'regular'} />
+              <span className="text-[9px] leading-tight">Players</span>
             </button>
             
             <button
@@ -214,8 +220,20 @@ function App() {
                   : 'text-muted-foreground'
               }`}
             >
-              <User size={20} weight={currentTab === 'heroes' ? 'fill' : 'regular'} />
-              <span className="text-[10px] leading-tight">Heroes</span>
+              <User size={18} weight={currentTab === 'heroes' ? 'fill' : 'regular'} />
+              <span className="text-[9px] leading-tight">Heroes</span>
+            </button>
+
+            <button
+              onClick={() => setCurrentTab('maps')}
+              className={`flex flex-col items-center justify-center gap-0.5 transition-colors ${
+                currentTab === 'maps' 
+                  ? 'text-primary' 
+                  : 'text-muted-foreground'
+              }`}
+            >
+              <MapTrifold size={18} weight={currentTab === 'maps' ? 'fill' : 'regular'} />
+              <span className="text-[9px] leading-tight">Maps</span>
             </button>
             
             <button
@@ -226,8 +244,8 @@ function App() {
                   : 'text-muted-foreground'
               }`}
             >
-              <Globe size={20} weight={currentTab === 'global' ? 'fill' : 'regular'} />
-              <span className="text-[10px] leading-tight">Stats</span>
+              <Globe size={18} weight={currentTab === 'global' ? 'fill' : 'regular'} />
+              <span className="text-[9px] leading-tight">Stats</span>
             </button>
             
             <button
@@ -238,8 +256,8 @@ function App() {
                   : 'text-muted-foreground'
               }`}
             >
-              <Shuffle size={20} weight={currentTab === 'randomizer' ? 'fill' : 'regular'} />
-              <span className="text-[10px] leading-tight">Random</span>
+              <Shuffle size={18} weight={currentTab === 'randomizer' ? 'fill' : 'regular'} />
+              <span className="text-[9px] leading-tight">Random</span>
             </button>
           </div>
         </nav>
