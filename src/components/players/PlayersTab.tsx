@@ -67,6 +67,7 @@ export function PlayersTab({ matches, ownedSets = [], onHeroClick }: PlayersTabP
   if ((showOnlyOwnedMaps ?? false) && ownedSets.length > 0) {
     neverPlayedMaps = neverPlayedMaps.filter(m => ownedSets.includes(m.set))
   }
+  neverPlayedMaps = neverPlayedMaps.sort((a, b) => a.name.localeCompare(b.name))
   const vsPlayersEntries = Object.entries(stats.vsPlayers).sort((a, b) => b[1].total - a[1].total)
 
   return (
