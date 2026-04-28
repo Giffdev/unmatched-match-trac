@@ -253,15 +253,21 @@ export function LogMatchDialog({ open, onOpenChange, onSave, prefilled, existing
     setMapId('')
     
     if (newMode === 'cooperative') {
-      setPlayers([{ playerName: '', heroId: '', turnOrder: 1 }])
+      // Keep existing players (at least 1), just trim turnOrder
+      const kept = players.length > 0 ? players : [{ playerName: '', heroId: '', turnOrder: 1 }]
+      setPlayers(kept.map((p, i) => ({ ...p, turnOrder: i + 1 })))
     } else {
       const count = newMode === '1v1' ? 2 : newMode === '2v2' ? 4 : newMode === 'ffa3' ? 3 : newMode === 'ffa4' ? 4 : 2
       const newPlayers: PlayerAssignment[] = []
       for (let i = 0; i < count; i++) {
-        newPlayers.push(players[i] || { playerName: '', heroId: '', turnOrder: i + 1 })
+        newPlayers.push(players[i] ? { ...players[i], turnOrder: i + 1 } : { playerName: '', heroId: '', turnOrder: i + 1 })
       }
       setPlayers(newPlayers)
     }
+    // Clear winner/draw since player slots may have changed
+    setWinnerId(undefined)
+    setIsDraw(false)
+    setCooperativeResult(undefined)
   }
 
   const handleAddPlayer = () => {
