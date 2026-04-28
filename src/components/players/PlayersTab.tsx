@@ -197,9 +197,9 @@ export function PlayersTab({ matches, ownedSets = [], onHeroClick }: PlayersTabP
               <Table className="table-fixed">
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="text-xs md:text-sm w-[40%]">Hero</TableHead>
-                    <TableHead className="text-xs md:text-sm hidden sm:table-cell w-[30%]">Sidekick</TableHead>
-                    <TableHead className="text-xs md:text-sm w-[30%] sm:w-[30%]">Set</TableHead>
+                    <TableHead className="text-xs md:text-sm w-[40%] py-2">Hero</TableHead>
+                    <TableHead className="text-xs md:text-sm hidden sm:table-cell w-[30%] py-2">Sidekick</TableHead>
+                    <TableHead className="text-xs md:text-sm w-[30%] sm:w-[30%] py-2">Set</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -209,11 +209,11 @@ export function PlayersTab({ matches, ownedSets = [], onHeroClick }: PlayersTabP
                       className={onHeroClick ? 'cursor-pointer hover:bg-muted/50 transition-colors' : ''}
                       onClick={() => onHeroClick?.(hero.id)}
                     >
-                      <TableCell className="font-medium text-xs md:text-sm whitespace-normal">{hero.name}</TableCell>
-                      <TableCell className="text-xs md:text-sm text-muted-foreground hidden sm:table-cell whitespace-normal">
+                      <TableCell className="font-medium text-xs md:text-sm py-2">{hero.name}</TableCell>
+                      <TableCell className="text-xs md:text-sm text-muted-foreground hidden sm:table-cell py-2">
                         {hero.sidekicks && hero.sidekicks.length > 0 ? hero.sidekicks.map(sk => sk.name).join(', ') : '—'}
                       </TableCell>
-                      <TableCell className="text-xs md:text-sm text-muted-foreground whitespace-normal">{hero.set}</TableCell>
+                      <TableCell className="text-xs md:text-sm text-muted-foreground py-2 leading-tight">{hero.set}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
