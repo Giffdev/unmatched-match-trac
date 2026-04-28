@@ -6,7 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
 import { Shuffle, DiceSix, Sparkle, ArrowsClockwise } from '@phosphor-icons/react'
-import { getHeroById, getMapById, getHeroesBySet, getMapsByPlayerCount, getMapsBySet, getSelectableHeroes } from '@/lib/data'
+import { getHeroById, getMapById, getHeroesBySet, getMapsByPlayerCount, getSelectableHeroes } from '@/lib/data'
 import { aggregateCommunityData, getBalancedRandomHero, getBalancedMatchupHero } from '@/lib/stats'
 import { LogMatchDialog } from '@/components/matches/LogMatchDialog'
 import { toast } from 'sonner'
@@ -32,7 +32,6 @@ export function RandomizerTab({ ownedSets, matches, setMatches }: RandomizerTabP
   const [result, setResult] = useState<RandomizerResult | null>(null)
   const [dialogOpen, setDialogOpen] = useState(false)
   const [useCollectionOnly, setUseCollectionOnly] = useState(true)
-  const [restrictMapsToHeroSets, setRestrictMapsToHeroSets] = useState(false)
   const [selectedMap, setSelectedMap] = useState<Map | null>(null)
   const [isMapDialogOpen, setIsMapDialogOpen] = useState(false)
 
@@ -118,13 +117,6 @@ export function RandomizerTab({ ownedSets, matches, setMatches }: RandomizerTabP
       suitableMaps = suitableMaps.filter(map => ownedSets.includes(map.set))
     }
 
-    if (restrictMapsToHeroSets) {
-      
-      if (filteredMaps.length > 0) {
-        suitableMaps = filteredMaps
-      }
-    }
-
     if (suitableMaps.length === 0) {
       toast.error(`No maps available for ${playerCount} players`)
       return
@@ -191,16 +183,6 @@ export function RandomizerTab({ ownedSets, matches, setMatches }: RandomizerTabP
       suitableMaps = suitableMaps.filter(map => ownedSets.includes(map.set))
     }
 
-    if (restrictMapsToHeroSets) {
-      const heroSets = new Set(result.players.map(p => getHeroById(p.heroId)?.set).filter(Boolean))
-      const mapsFromHeroSets = Array.from(heroSets).flatMap(set => getMapsBySet(set as string))
-      const filteredMaps = suitableMaps.filter(map => mapsFromHeroSets.some(m => m.id === map.id))
-      
-      if (filteredMaps.length > 0) {
-        suitableMaps = filteredMaps
-      }
-    }
-
     const randomMap = suitableMaps[Math.floor(Math.random() * suitableMaps.length)]
     setResult({
       ...result,
@@ -217,7 +199,7 @@ export function RandomizerTab({ ownedSets, matches, setMatches }: RandomizerTabP
       <div>
         <h2 className="text-2xl font-semibold">Match Randomizer</h2>
         <p className="text-sm text-muted-foreground mt-1">
-          Generate random matchups {useCollectionOnly ? 'from your collection' : 'from all available heroes'}. You can manage your collection from your profile menu.
+          Generate random matchups {useCollectionOnly ? 'from your collection' : 'from all available heroes and maps'}. You can manage your collection from your profile menu.
         </p>
       </div>
 
@@ -279,22 +261,12 @@ export function RandomizerTab({ ownedSets, matches, setMatches }: RandomizerTabP
               <div className="space-y-3 pt-2 border-t">
                 <div className="flex items-center justify-between">
                   <Label htmlFor="collection-only" className="cursor-pointer font-normal">
-                    Only use heroes from my collection
+                    Use only heroes and maps from my collection
                   </Label>
                   <Switch 
                     id="collection-only" 
                     checked={useCollectionOnly}
                     onCheckedChange={setUseCollectionOnly}
-                  />
-                </div>
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="restrict-maps" className="cursor-pointer font-normal">
-                    Only use maps from selected heroes' sets
-                  </Label>
-                  <Switch 
-                    id="restrict-maps" 
-                    checked={restrictMapsToHeroSets}
-                    onCheckedChange={setRestrictMapsToHeroSets}
                   />
                 </div>
               </div>
