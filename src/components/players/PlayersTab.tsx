@@ -202,10 +202,10 @@ export function PlayersTab({ matches, ownedSets = [], onHeroClick }: PlayersTabP
                     onClick={() => onHeroClick?.(hero.id)}
                   >
                     <div className="min-w-0 flex-1">
-                      <span className="font-medium text-xs md:text-sm block truncate">{hero.name}</span>
+                      <span className="font-medium text-xs md:text-sm truncate inline">{hero.name}</span>
                       {hero.sidekicks && hero.sidekicks.length > 0 && (
-                        <span className="text-[11px] md:text-xs text-muted-foreground block truncate">
-                          w/ {hero.sidekicks.map(sk => sk.name).join(', ')}
+                        <span className="text-[11px] md:text-xs text-muted-foreground ml-1">
+                          &amp; {hero.sidekicks.map(sk => sk.name).join(', ')}
                         </span>
                       )}
                     </div>
