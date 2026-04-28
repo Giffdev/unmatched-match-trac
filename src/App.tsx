@@ -18,6 +18,7 @@ import type { Match } from '@/lib/types'
 import { normalizeMatchPlayerNames } from '@/lib/utils'
 import { useIsMobile } from '@/hooks/use-mobile'
 
+
 type ViewState = 'main' | 'collection'
 
 function App() {
@@ -30,6 +31,7 @@ function App() {
   const [selectedHeroId, setSelectedHeroId] = useState<string | null>(null)
   const normalizationRan = useRef(false)
   const isMobile = useIsMobile()
+
 
   const matchesData = matches || []
   const ownedSetsData = ownedSets || []
