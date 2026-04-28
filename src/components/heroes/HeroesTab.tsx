@@ -83,65 +83,78 @@ export function HeroesTab({ matches, currentUserId, initialSelectedHero, onHeroC
     return [...filtered].sort((a, b) => a.name.localeCompare(b.name))
   }, [search, selectableHeroes])
 
-  if (!selectedHero) {
+   if (!selectedHero) {
     return (
       <div className="space-y-6">
         <div>
           <h2 className="text-2xl font-semibold mb-4">Hero Statistics</h2>
-          <Popover open={open} onOpenChange={setOpen}>
-            <PopoverTrigger asChild>
-              <Button
-                variant="outline"
-                role="combobox"
-                aria-expanded={open}
-                className="max-w-md w-full justify-between"
-              >
-                Select hero...
-                <CaretUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-[400px] p-0" align="start">
-              <Command shouldFilter={false}>
-                <CommandInput 
-                  placeholder="Search heroes..." 
-                  value={search}
-                  onValueChange={setSearch}
-                />
-                <CommandList>
-                  <CommandEmpty>No hero found.</CommandEmpty>
-                  <CommandGroup>
-                    {filteredHeroes.map((h) => (
-                      <CommandItem
-                        key={h.id}
-                        value={h.id}
-                        onSelect={() => {
-                          setSelectedHero(h.id)
-                          setOpen(false)
-                          setSearch('')
-                        }}
-                      >
-                        <Check
-                          className={cn(
-                            "mr-2 h-4 w-4",
-                            selectedHero === h.id ? "opacity-100" : "opacity-0"
-                          )}
-                        />
-                        <div className="flex-1">
-                          <div>{h.name}</div>
-                          <div className="text-xs text-muted-foreground">{h.set}</div>
-                        </div>
-                      </CommandItem>
-                    ))}
-                  </CommandGroup>
-                </CommandList>
-              </Command>
-            </PopoverContent>
-          </Popover>
+          <Card className="p-6 mb-2 border-primary/20 bg-primary/5">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+              <div className="rounded-full bg-primary/10 p-3 shrink-0">
+                <Sword className="w-8 h-8 text-primary" weight="fill" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <h3 className="text-lg font-semibold mb-1">Select a hero to view detailed stats</h3>
+                <p className="text-sm text-muted-foreground">
+                  See win rates, matchup breakdowns, and compare your performance against the community
+                </p>
+              </div>
+              <Popover open={open} onOpenChange={setOpen}>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="default"
+                    role="combobox"
+                    aria-expanded={open}
+                    className="w-full sm:w-56 justify-between shrink-0"
+                  >
+                    Choose hero...
+                    <CaretUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-[400px] p-0" align="start">
+                  <Command shouldFilter={false}>
+                    <CommandInput 
+                      placeholder="Search heroes..." 
+                      value={search}
+                      onValueChange={setSearch}
+                    />
+                    <CommandList>
+                      <CommandEmpty>No hero found.</CommandEmpty>
+                      <CommandGroup>
+                        {filteredHeroes.map((h) => (
+                          <CommandItem
+                            key={h.id}
+                            value={h.id}
+                            onSelect={() => {
+                              setSelectedHero(h.id)
+                              setOpen(false)
+                              setSearch('')
+                            }}
+                          >
+                            <Check
+                              className={cn(
+                                "mr-2 h-4 w-4",
+                                selectedHero === h.id ? "opacity-100" : "opacity-0"
+                              )}
+                            />
+                            <div className="flex-1">
+                              <div>{h.name}</div>
+                              <div className="text-xs text-muted-foreground">{h.set}</div>
+                            </div>
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                    </CommandList>
+                  </Command>
+                </PopoverContent>
+              </Popover>
+            </div>
+          </Card>
         </div>
         <Card className="p-6">
-          <h3 className="text-lg font-semibold mb-4">Hero Matchup Heatmap (Global)</h3>
+          <h3 className="text-lg font-semibold mb-1">Global Matchup Heatmap</h3>
           <p className="text-sm text-muted-foreground mb-4">
-            Win rates across all users. Click a hero to see their detailed stats.
+            Win rates across all users — click any hero below to jump to their stats
           </p>
           <HeroMatchupHeatmap 
             matches={allMatches} 
@@ -469,6 +482,24 @@ export function HeroesTab({ matches, currentUserId, initialSelectedHero, onHeroC
             </div>
           </div>
         )}
+      </Card>
+
+      {/* Global Matchup Heatmap - always visible */}
+      <Card className="p-6">
+        <h3 className="text-lg font-semibold mb-1">Global Matchup Heatmap</h3>
+        <p className="text-sm text-muted-foreground mb-4">
+          Win rates across all users — click any hero to switch to their stats
+        </p>
+        <HeroMatchupHeatmap 
+          matches={allMatches} 
+          onHeroClick={(heroId) => {
+            setSelectedHero(heroId)
+            setOpen(false)
+            setSearch('')
+            onHeroClick?.(heroId)
+          }}
+          isLoading={allMatches.length === 0}
+        />
       </Card>
     </div>
   )
