@@ -194,34 +194,30 @@ export function PlayersTab({ matches, ownedSets = [], onHeroClick }: PlayersTabP
                   : "You've played all heroes! 🎉"}
               </p>
             ) : (
-              <div className="overflow-x-auto -mx-4 md:mx-0">
-                <div className="inline-block min-w-full px-4 md:px-0">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead className="text-xs md:text-sm">Hero</TableHead>
-                        <TableHead className="text-xs md:text-sm hidden sm:table-cell">Sidekick</TableHead>
-                        <TableHead className="text-xs md:text-sm">Set</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {neverPlayedHeroes.map((hero) => (
-                        <TableRow 
-                          key={hero.id}
-                          className={onHeroClick ? 'cursor-pointer hover:bg-muted/50 transition-colors' : ''}
-                          onClick={() => onHeroClick?.(hero.id)}
-                        >
-                          <TableCell className="font-medium text-xs md:text-sm">{hero.name}</TableCell>
-                          <TableCell className="text-xs md:text-sm text-muted-foreground hidden sm:table-cell">
-                            {hero.sidekicks && hero.sidekicks.length > 0 ? hero.sidekicks.map(sk => sk.name).join(', ') : '—'}
-                          </TableCell>
-                          <TableCell className="text-xs md:text-sm text-muted-foreground">{hero.set}</TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </div>
-              </div>
+              <Table className="table-fixed">
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="text-xs md:text-sm w-[40%]">Hero</TableHead>
+                    <TableHead className="text-xs md:text-sm hidden sm:table-cell w-[30%]">Sidekick</TableHead>
+                    <TableHead className="text-xs md:text-sm w-[30%] sm:w-[30%]">Set</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {neverPlayedHeroes.map((hero) => (
+                    <TableRow 
+                      key={hero.id}
+                      className={onHeroClick ? 'cursor-pointer hover:bg-muted/50 transition-colors' : ''}
+                      onClick={() => onHeroClick?.(hero.id)}
+                    >
+                      <TableCell className="font-medium text-xs md:text-sm whitespace-normal">{hero.name}</TableCell>
+                      <TableCell className="text-xs md:text-sm text-muted-foreground hidden sm:table-cell whitespace-normal">
+                        {hero.sidekicks && hero.sidekicks.length > 0 ? hero.sidekicks.map(sk => sk.name).join(', ') : '—'}
+                      </TableCell>
+                      <TableCell className="text-xs md:text-sm text-muted-foreground whitespace-normal">{hero.set}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
             )}
           </div>
         </Card>
@@ -292,34 +288,30 @@ export function PlayersTab({ matches, ownedSets = [], onHeroClick }: PlayersTabP
                   : "You've played all maps! 🎉"}
               </p>
             ) : (
-              <div className="overflow-x-auto -mx-4 md:mx-0">
-                <div className="inline-block min-w-full px-4 md:px-0">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead className="text-xs md:text-sm">Map</TableHead>
-                        <TableHead className="text-xs md:text-sm">Set</TableHead>
-                        <TableHead className="text-xs md:text-sm text-center hidden sm:table-cell">Zones/Spaces</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {neverPlayedMaps.map((map) => (
-                        <TableRow 
-                          key={map.id}
-                          className="cursor-pointer hover:bg-muted/50 transition-colors"
-                          onClick={() => handleMapClick(map.id)}
-                        >
-                          <TableCell className="font-medium text-xs md:text-sm">{map.name}</TableCell>
-                          <TableCell className="text-xs md:text-sm text-muted-foreground">{map.set}</TableCell>
-                          <TableCell className="text-xs md:text-sm text-muted-foreground text-center hidden sm:table-cell">
-                            {map.zones && map.spaces ? `${map.zones} / ${map.spaces}` : '—'}
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </div>
-              </div>
+              <Table className="table-fixed">
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="text-xs md:text-sm w-[35%]">Map</TableHead>
+                    <TableHead className="text-xs md:text-sm w-[40%]">Set</TableHead>
+                    <TableHead className="text-xs md:text-sm text-center hidden sm:table-cell w-[25%]">Zones/Spaces</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {neverPlayedMaps.map((map) => (
+                    <TableRow 
+                      key={map.id}
+                      className="cursor-pointer hover:bg-muted/50 transition-colors"
+                      onClick={() => handleMapClick(map.id)}
+                    >
+                      <TableCell className="font-medium text-xs md:text-sm whitespace-normal">{map.name}</TableCell>
+                      <TableCell className="text-xs md:text-sm text-muted-foreground whitespace-normal">{map.set}</TableCell>
+                      <TableCell className="text-xs md:text-sm text-muted-foreground text-center hidden sm:table-cell">
+                        {map.zones && map.spaces ? `${map.zones} / ${map.spaces}` : '—'}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
             )}
           </div>
         </Card>
