@@ -4,86 +4,107 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { SignIn, Eye, EyeClosed, UserPlus, ChartBar, MagnifyingGlass, GridFour } from '@phosphor-icons/react'
-import { useKV } from '@github/spark/hooks'
-import type { User } from '@/lib/types'
+import { SignIn, Eye, EyeClosed, UserPlus, GoogleLogo, EnvelopeSimple, ChartBar, MagnifyingGlass, GridFour, SpinnerGap } from '@phosphor-icons/react'
+import { createAccount, signIn, signInWithGoogle, resetPassword } from '@/lib/auth'
 import { toast } from 'sonner'
 import { GlobalStats } from './GlobalStats'
 import { PublicHeroBrowser } from './PublicHeroBrowser'
 import { PublicHeatmap } from './PublicHeatmap'
 
-type SignInPromptProps = {
-  onUserChange: (userId: string) => void
+function friendlyAuthError(error: unknown): string {
+  const code = (error as { code?: string })?.code
+  switch (code) {
+    case 'auth/email-already-in-use':
+      return 'An account with this email already exists.'
+    case 'auth/invalid-email':
+      return 'Please enter a valid email address.'
+    case 'auth/weak-password':
+      return 'Password must be at least 6 characters.'
+    case 'auth/user-not-found':
+      return 'No account found with this email.'
+    case 'auth/wrong-password':
+      return 'Incorrect password.'
+    case 'auth/invalid-credential':
+      return 'Invalid email or password.'
+    case 'auth/too-many-requests':
+      return 'Too many attempts. Please try again later.'
+    case 'auth/popup-closed-by-user':
+      return 'Google sign-in was cancelled.'
+    case 'auth/network-request-failed':
+      return 'Network error. Check your connection and try again.'
+    default:
+      return (error as Error)?.message || 'An unexpected error occurred.'
+  }
 }
 
-export function SignInPrompt({ onUserChange }: SignInPromptProps) {
+export function SignInPrompt() {
   const [mode, setMode] = useState<'signin' | 'signup'>('signin')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
-  const [users] = useKV<User[]>('users', [])
+  const [error, setError] = useState<string | null>(null)
+  const [loading, setLoading] = useState(false)
   const [currentTab, setCurrentTab] = useState('stats')
   const [selectedHeroId, setSelectedHeroId] = useState<string | null>(null)
 
-  const handleSignIn = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    setError(null)
 
-    const currentUsers = await window.spark.kv.get<User[]>('users') || []
-    const user = currentUsers.find(u => u.email.toLowerCase() === email.toLowerCase())
-    
-    if (!user) {
-      toast.error('Account not found')
+    if (mode === 'signup' && password !== confirmPassword) {
+      setError('Passwords do not match.')
       return
     }
 
-    const storedPassword = await window.spark.kv.get<string>(`password-${user.id}`)
-    if (storedPassword !== password) {
-      toast.error('Invalid password')
-      return
+    setLoading(true)
+    try {
+      if (mode === 'signup') {
+        await createAccount(email, password)
+        toast.success('Welcome to Unmatched Tracker!')
+      } else {
+        await signIn(email, password)
+        toast.success('Welcome back!')
+      }
+    } catch (err) {
+      setError(friendlyAuthError(err))
+    } finally {
+      setLoading(false)
     }
-
-    onUserChange(user.id)
-    toast.success(`Welcome back, ${user.name}!`)
   }
 
-  const handleSignUp = async (e: React.FormEvent) => {
-    e.preventDefault()
+  const handleGoogleSignIn = async () => {
+    setError(null)
+    setLoading(true)
+    try {
+      await signInWithGoogle()
+      toast.success('Signed in with Google!')
+    } catch (err) {
+      const msg = friendlyAuthError(err)
+      if ((err as { code?: string })?.code !== 'auth/popup-closed-by-user') {
+        setError(msg)
+      }
+    } finally {
+      setLoading(false)
+    }
+  }
 
-    if (password.length < 6) {
-      toast.error('Password must be at least 6 characters')
+  const handleForgotPassword = async () => {
+    if (!email) {
+      setError('Enter your email address first, then click "Forgot password?"')
       return
     }
-
-    if (password !== confirmPassword) {
-      toast.error('Passwords do not match')
-      return
+    setError(null)
+    setLoading(true)
+    try {
+      await resetPassword(email)
+      toast.success('Password reset email sent! Check your inbox.')
+    } catch (err) {
+      setError(friendlyAuthError(err))
+    } finally {
+      setLoading(false)
     }
-
-    const currentUsers = await window.spark.kv.get<User[]>('users') || []
-    const existingUser = currentUsers.find(u => u.email.toLowerCase() === email.toLowerCase())
-    
-    if (existingUser) {
-      toast.error('An account with this email already exists')
-      return
-    }
-
-    const emailUsername = email.split('@')[0]
-    const displayName = emailUsername.charAt(0).toUpperCase() + emailUsername.slice(1)
-
-    const newUser: User = {
-      id: `user-${Date.now()}`,
-      name: displayName,
-      email: email.toLowerCase(),
-      createdAt: new Date().toISOString()
-    }
-
-    await window.spark.kv.set('users', [...currentUsers, newUser])
-    await window.spark.kv.set(`password-${newUser.id}`, password)
-
-    onUserChange(newUser.id)
-    toast.success(`Welcome to Unmatched Tracker, ${newUser.name}!`)
   }
 
   const toggleMode = () => {
@@ -93,6 +114,7 @@ export function SignInPrompt({ onUserChange }: SignInPromptProps) {
     setConfirmPassword('')
     setShowPassword(false)
     setShowConfirmPassword(false)
+    setError(null)
   }
 
   const handleHeroClick = (heroId: string) => {
@@ -108,36 +130,47 @@ export function SignInPrompt({ onUserChange }: SignInPromptProps) {
             {mode === 'signin' ? 'Welcome Back' : 'Create Account'}
           </CardTitle>
           <CardDescription className="text-sm">
-            {mode === 'signin' 
+            {mode === 'signin'
               ? 'Sign in to access your match history, statistics, and collection.'
               : 'Create a new account to start tracking your Unmatched games.'
             }
           </CardDescription>
         </CardHeader>
         <CardContent className="px-4 md:px-6">
-          <form onSubmit={mode === 'signin' ? handleSignIn : handleSignUp} className="space-y-4">
+          {error && (
+            <div className="mb-4 rounded-md border border-destructive/50 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+              {error}
+            </div>
+          )}
+
+          <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="auth-email" className="text-sm">Email</Label>
-              <Input
-                id="auth-email"
-                type="email"
-                placeholder="your@email.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                className="text-sm md:text-base"
-              />
+              <div className="relative">
+                <Input
+                  id="auth-email"
+                  type="email"
+                  placeholder="your@email.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  disabled={loading}
+                  className="pl-9 text-sm md:text-base"
+                />
+                <EnvelopeSimple className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={16} />
+              </div>
             </div>
             <div className="space-y-2">
               <Label htmlFor="auth-password" className="text-sm">Password</Label>
               <div className="relative">
                 <Input
                   id="auth-password"
-                  type={showPassword ? "text" : "password"}
+                  type={showPassword ? 'text' : 'password'}
                   placeholder="••••••••"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
+                  disabled={loading}
                   className="pr-10 text-sm md:text-base"
                 />
                 <Button
@@ -154,6 +187,17 @@ export function SignInPrompt({ onUserChange }: SignInPromptProps) {
                   )}
                 </Button>
               </div>
+              {mode === 'signin' && (
+                <Button
+                  type="button"
+                  variant="link"
+                  onClick={handleForgotPassword}
+                  disabled={loading}
+                  className="h-auto p-0 text-xs text-muted-foreground"
+                >
+                  Forgot password?
+                </Button>
+              )}
             </div>
             {mode === 'signup' && (
               <div className="space-y-2">
@@ -161,11 +205,12 @@ export function SignInPrompt({ onUserChange }: SignInPromptProps) {
                 <div className="relative">
                   <Input
                     id="confirm-password"
-                    type={showConfirmPassword ? "text" : "password"}
+                    type={showConfirmPassword ? 'text' : 'password'}
                     placeholder="••••••••"
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     required
+                    disabled={loading}
                     className="pr-10 text-sm md:text-base"
                   />
                   <Button
@@ -184,37 +229,56 @@ export function SignInPrompt({ onUserChange }: SignInPromptProps) {
                 </div>
               </div>
             )}
-            <Button type="submit" className="w-full" size="lg">
-              {mode === 'signin' ? (
-                <>
-                  <SignIn className="mr-2" size={18} />
-                  Sign In
-                </>
+            <Button type="submit" className="w-full" size="lg" disabled={loading}>
+              {loading ? (
+                <SpinnerGap className="mr-2 animate-spin" size={18} />
+              ) : mode === 'signin' ? (
+                <SignIn className="mr-2" size={18} />
               ) : (
-                <>
-                  <UserPlus className="mr-2" size={18} />
-                  Create Account
-                </>
+                <UserPlus className="mr-2" size={18} />
               )}
+              {mode === 'signin' ? 'Sign In' : 'Create Account'}
             </Button>
           </form>
-          
+
+          <div className="relative my-4">
+            <div className="absolute inset-0 flex items-center">
+              <span className="w-full border-t" />
+            </div>
+            <div className="relative flex justify-center text-xs uppercase">
+              <span className="bg-card px-2 text-muted-foreground">or</span>
+            </div>
+          </div>
+
+          <Button
+            type="button"
+            variant="outline"
+            className="w-full"
+            size="lg"
+            onClick={handleGoogleSignIn}
+            disabled={loading}
+          >
+            <GoogleLogo className="mr-2" size={18} weight="bold" />
+            Sign in with Google
+          </Button>
+
           <div className="mt-4 text-center">
             <Button
               type="button"
               variant="link"
               onClick={toggleMode}
+              disabled={loading}
               className="text-xs md:text-sm text-muted-foreground"
             >
-              {mode === 'signin' 
-                ? "Don't have an account? Sign up" 
+              {mode === 'signin'
+                ? "Don't have an account? Sign up"
                 : 'Already have an account? Sign in'
               }
             </Button>
           </div>
         </CardContent>
       </Card>
-      
+
       <Tabs value={currentTab} onValueChange={setCurrentTab} className="w-full">
         <TabsList className="grid w-full grid-cols-3 mb-4 md:mb-6">
           <TabsTrigger value="stats" className="text-xs md:text-sm flex-col md:flex-row gap-1 md:gap-2 py-2">
@@ -236,15 +300,15 @@ export function SignInPrompt({ onUserChange }: SignInPromptProps) {
             <span className="sm:hidden">Heatmap</span>
           </TabsTrigger>
         </TabsList>
-        
+
         <TabsContent value="stats">
           <GlobalStats />
         </TabsContent>
-        
+
         <TabsContent value="heroes">
           <PublicHeroBrowser selectedHeroId={selectedHeroId} />
         </TabsContent>
-        
+
         <TabsContent value="heatmap">
           <PublicHeatmap onHeroClick={handleHeroClick} />
         </TabsContent>

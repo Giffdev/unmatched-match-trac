@@ -1,5 +1,5 @@
-import { useKV } from '@github/spark/hooks'
-import { useUserData } from '@/hooks/use-user-data'
+import { useAuth } from '@/hooks/use-auth'
+import { useUserMatches, useUserOwnedSets } from '@/hooks/use-user-data'
 import { useState, useEffect, useRef } from 'react'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Button } from '@/components/ui/button'
@@ -21,9 +21,10 @@ import { useIsMobile } from '@/hooks/use-mobile'
 type ViewState = 'main' | 'collection'
 
 function App() {
-  const [currentUserId, setCurrentUserId] = useKV<string | null>('current-user-id', null)
-  const [matches, setMatches] = useUserData<Match[]>('matches', [], currentUserId)
-  const [ownedSets, setOwnedSets] = useUserData<string[]>('owned-sets', [], currentUserId)
+  const { user, loading } = useAuth()
+  const currentUserId = user?.uid ?? null
+  const { matches, setMatches, loading: matchesLoading } = useUserMatches(currentUserId)
+  const { ownedSets, setOwnedSets } = useUserOwnedSets(currentUserId)
   const [currentView, setCurrentView] = useState<ViewState>('main')
   const [currentTab, setCurrentTab] = useState('matches')
   const [selectedHeroId, setSelectedHeroId] = useState<string | null>(null)
@@ -32,10 +33,6 @@ function App() {
 
   const matchesData = matches || []
   const ownedSetsData = ownedSets || []
-
-  const handleUserChange = async (userId: string) => {
-    setCurrentUserId(userId)
-  }
 
   const navigateToCollection = () => {
     setCurrentView('collection')
@@ -57,7 +54,7 @@ function App() {
   useEffect(() => {
     const normalizeExistingMatches = async () => {
       if (normalizationRan.current) return
-      if (!currentUserId) return
+      if (!currentUserId || matchesLoading) return
       if (!matchesData || matchesData.length === 0) return
       
       normalizationRan.current = true
@@ -67,12 +64,20 @@ function App() {
       
       if (hasChanges) {
         console.log('Normalizing player names and hero IDs in existing matches...')
-        setMatches(normalizedMatches)
+        setMatches(() => normalizedMatches)
       }
     }
     
     normalizeExistingMatches()
-  }, [currentUserId, matchesData.length])
+  }, [currentUserId, matchesData.length, matchesLoading])
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <p className="text-muted-foreground">Loading...</p>
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen bg-background pb-16 md:pb-0">
@@ -113,7 +118,7 @@ function App() {
 
       <main className="container mx-auto px-3 md:px-4 py-4 md:py-6">
         {!currentUserId ? (
-          <SignInPrompt onUserChange={handleUserChange} />
+          <SignInPrompt />
         ) : currentView === 'collection' ? (
           <CollectionTab 
             ownedSets={ownedSetsData} 

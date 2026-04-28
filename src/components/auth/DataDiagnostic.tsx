@@ -1,38 +1,24 @@
 import { useEffect, useState } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { useKV } from '@github/spark/hooks'
-import type { Match, User } from '@/lib/types'
+import { useAuth } from '@/hooks/use-auth'
+import { getUserMatches, getUserOwnedSets } from '@/lib/firestore'
 
 export function DataDiagnostic() {
-  const [currentUserId] = useKV<string | null>('current-user-id', null)
-  const [users] = useKV<User[]>('users', [])
+  const { user } = useAuth()
   const [matchCount, setMatchCount] = useState(0)
   const [ownedSetsCount, setOwnedSetsCount] = useState(0)
 
   useEffect(() => {
-    loadUserData()
-  }, [currentUserId])
-
-  const loadUserData = async () => {
-    if (!currentUserId) {
+    if (!user) {
       setMatchCount(0)
       setOwnedSetsCount(0)
       return
     }
+    getUserMatches(user.uid).then(m => setMatchCount(m.length))
+    getUserOwnedSets(user.uid).then(s => setOwnedSetsCount(s.length))
+  }, [user])
 
-    const matchKey = `matches-${currentUserId}`
-    const setsKey = `owned-sets-${currentUserId}`
-    
-    const matches = await window.spark.kv.get<Match[]>(matchKey)
-    const sets = await window.spark.kv.get<string[]>(setsKey)
-    
-    setMatchCount(matches?.length || 0)
-    setOwnedSetsCount(sets?.length || 0)
-  }
-
-  const currentUser = users?.find(u => u.id === currentUserId)
-
-  if (!currentUser) {
+  if (!user) {
     return null
   }
 
@@ -41,7 +27,7 @@ export function DataDiagnostic() {
       <CardHeader>
         <CardTitle>Account Status</CardTitle>
         <CardDescription>
-          Signed in as: {currentUser.email}
+          Signed in as: {user.email}
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">

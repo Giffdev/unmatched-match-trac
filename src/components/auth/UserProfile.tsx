@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -19,55 +19,60 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
-import { SignOut, User as UserIconPhosphor, Upload } from '@phosphor-icons/react'
-import { useKV } from '@github/spark/hooks'
-import type { User, Match } from '@/lib/types'
+import { SignOut, UserCircle, Upload, Gear } from '@phosphor-icons/react'
+import type { Match } from '@/lib/types'
 import { toast } from 'sonner'
 import { CSVImport } from './CSVImport'
+import { useAuth } from '@/hooks/use-auth'
+import { signOutUser } from '@/lib/auth'
+import { updateUserProfile } from '@/lib/firestore'
 
 type UserProfileProps = {
   onImportMatches?: (matches: Match[]) => void
 }
 
 export function UserProfile({ onImportMatches }: UserProfileProps) {
-  const [currentUserId] = useKV<string | null>('current-user-id', null)
-  const [users, setUsers] = useKV<User[]>('users', [])
-  const [currentUser, setCurrentUser] = useState<User | null>(null)
+  const { user, loading, refreshProfile } = useAuth()
   const [showPlayerNameDialog, setShowPlayerNameDialog] = useState(false)
   const [showImportDialog, setShowImportDialog] = useState(false)
   const [playerNameInput, setPlayerNameInput] = useState('')
-
-  useEffect(() => {
-    if (currentUserId && users) {
-      const user = users.find(u => u.id === currentUserId)
-      setCurrentUser(user || null)
-      setPlayerNameInput(user?.playerName || '')
-    } else {
-      setCurrentUser(null)
-    }
-  }, [currentUserId, users])
+  const [saving, setSaving] = useState(false)
 
   const handleSignOut = async () => {
-    await window.spark.kv.set('current-user-id', null)
-    window.location.reload()
+    try {
+      await signOutUser()
+    } catch {
+      toast.error('Failed to sign out')
+    }
+  }
+
+  const handleOpenPlayerNameDialog = () => {
+    setPlayerNameInput(user?.playerName || '')
+    setShowPlayerNameDialog(true)
   }
 
   const handleSavePlayerName = async () => {
-    if (!currentUser || !currentUserId || !users) return
-    
+    if (!user) return
+
     const trimmedName = playerNameInput.trim()
     if (!trimmedName) {
       toast.error('Player name cannot be empty')
       return
     }
 
-    const updatedUser = { ...currentUser, playerName: trimmedName }
-    const updatedUsers = users.map(u => u.id === currentUserId ? updatedUser : u)
-    
-    await setUsers(updatedUsers)
-    setCurrentUser(updatedUser)
-    setShowPlayerNameDialog(false)
-    toast.success('Player name updated!')
+    setSaving(true)
+    try {
+      await updateUserProfile(user.uid, { playerName: trimmedName })
+      if (refreshProfile) {
+        await refreshProfile()
+      }
+      setShowPlayerNameDialog(false)
+      toast.success('Player name updated!')
+    } catch {
+      toast.error('Failed to update player name')
+    } finally {
+      setSaving(false)
+    }
   }
 
   const handleImportComplete = (matches: Match[]) => {
@@ -77,16 +82,22 @@ export function UserProfile({ onImportMatches }: UserProfileProps) {
     }
   }
 
-  if (!currentUser) {
+  if (loading || !user) {
     return null
   }
 
-  const initials = currentUser.name
+  const displayName = user.displayName || user.name || user.email || 'User'
+  const initials = displayName
     .split(' ')
     .map(part => part[0])
     .join('')
     .toUpperCase()
     .slice(0, 2)
+
+  const providerLabel =
+    user.authProvider === 'google' ? 'Google' :
+    user.authProvider === 'email' ? 'Email' :
+    undefined
 
   return (
     <>
@@ -103,26 +114,35 @@ export function UserProfile({ onImportMatches }: UserProfileProps) {
         <DropdownMenuContent className="w-56" align="end" forceMount>
           <DropdownMenuLabel className="font-normal">
             <div className="flex flex-col gap-1">
-              <p className="text-sm font-medium leading-none">{currentUser.name}</p>
-              <p className="text-xs leading-none text-muted-foreground">
-                {currentUser.email}
-              </p>
-              {currentUser.playerName && (
+              <p className="text-sm font-medium leading-none">{displayName}</p>
+              {user.email && (
+                <p className="text-xs leading-none text-muted-foreground">
+                  {user.email}
+                </p>
+              )}
+              {user.playerName && (
                 <p className="text-xs leading-none text-muted-foreground mt-1">
-                  Player: {currentUser.playerName}
+                  Player: {user.playerName}
+                </p>
+              )}
+              {providerLabel && (
+                <p className="text-xs leading-none text-muted-foreground mt-1">
+                  <Gear className="inline mr-1" size={12} />
+                  Signed in via {providerLabel}
                 </p>
               )}
             </div>
           </DropdownMenuLabel>
           <DropdownMenuSeparator />
-          <DropdownMenuItem onClick={() => setShowPlayerNameDialog(true)}>
-            <UserIconPhosphor className="mr-2" size={16} />
+          <DropdownMenuItem onClick={handleOpenPlayerNameDialog}>
+            <UserCircle className="mr-2" size={16} />
             Set Player Name
           </DropdownMenuItem>
           <DropdownMenuItem onClick={() => setShowImportDialog(true)}>
             <Upload className="mr-2" size={16} />
             Import from CSV
           </DropdownMenuItem>
+          <DropdownMenuSeparator />
           <DropdownMenuItem onClick={handleSignOut}>
             <SignOut className="mr-2" size={16} />
             Sign Out
@@ -146,6 +166,9 @@ export function UserProfile({ onImportMatches }: UserProfileProps) {
                 value={playerNameInput}
                 onChange={(e) => setPlayerNameInput(e.target.value)}
                 placeholder="e.g., Mike, Sarah, Alex"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') handleSavePlayerName()
+                }}
               />
             </div>
           </div>
@@ -153,8 +176,8 @@ export function UserProfile({ onImportMatches }: UserProfileProps) {
             <Button variant="outline" onClick={() => setShowPlayerNameDialog(false)}>
               Cancel
             </Button>
-            <Button onClick={handleSavePlayerName}>
-              Save
+            <Button onClick={handleSavePlayerName} disabled={saving}>
+              {saving ? 'Saving…' : 'Save'}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -168,8 +191,8 @@ export function UserProfile({ onImportMatches }: UserProfileProps) {
               Upload a CSV file containing your match history from external tracking systems.
             </DialogDescription>
           </DialogHeader>
-          <CSVImport 
-            currentUserId={currentUserId} 
+          <CSVImport
+            currentUserId={user.uid}
             onImportComplete={handleImportComplete}
           />
         </DialogContent>

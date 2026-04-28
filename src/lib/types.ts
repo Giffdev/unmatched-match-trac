@@ -4,6 +4,8 @@ export type User = {
   name: string
   playerName?: string
   createdAt: string
+  authProvider?: 'email' | 'google'
+  displayName?: string
 }
 
 export type GameMode = 'cooperative' | '1v1' | '2v2' | 'ffa3' | 'ffa4'

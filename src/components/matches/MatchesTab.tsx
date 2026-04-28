@@ -5,7 +5,7 @@ import { Card } from '@/components/ui/card'
 import { Plus, Trophy } from '@phosphor-icons/react'
 import { LogMatchDialog } from './LogMatchDialog'
 import { MatchCard } from './MatchCard'
-import { useKV } from '@github/spark/hooks'
+import { useAuth } from '@/hooks/use-auth'
 import { getMapById } from '@/lib/data'
 import { MapImageDialog } from '@/components/players/MapImageDialog'
 
@@ -17,7 +17,8 @@ type MatchesTabProps = {
 
 export function MatchesTab({ matches, setMatches, onHeroClick }: MatchesTabProps) {
   const [dialogOpen, setDialogOpen] = useState(false)
-  const [currentUserId] = useKV<string | null>('current-user-id', null)
+  const { user } = useAuth()
+  const currentUserId = user?.uid ?? null
   const [selectedMap, setSelectedMap] = useState<Map | null>(null)
   const [isMapDialogOpen, setIsMapDialogOpen] = useState(false)
 

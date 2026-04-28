@@ -3,6 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Globe } from '@phosphor-icons/react'
 import type { Match } from '@/lib/types'
 import { HeroMatchupHeatmap } from '@/components/global/HeroMatchupHeatmap'
+import { getAllUserMatches } from '@/lib/firestore'
 
 type PublicHeatmapProps = {
   onHeroClick: (heroId: string) => void
@@ -16,23 +17,7 @@ export function PublicHeatmap({ onHeroClick }: PublicHeatmapProps) {
     const loadCommunityMatches = async () => {
       setIsLoading(true)
       try {
-        if (!window.spark || !window.spark.kv) {
-          console.error('Spark KV API not available')
-          setIsLoading(false)
-          return
-        }
-
-        const keys = await window.spark.kv.keys()
-        const matchKeys = keys.filter(k => k.startsWith('matches-'))
-        
-        const allMatchesData: Match[] = []
-        for (const key of matchKeys) {
-          const userMatches = await window.spark.kv.get<Match[]>(key)
-          if (userMatches) {
-            allMatchesData.push(...userMatches)
-          }
-        }
-        
+        const allMatchesData = await getAllUserMatches()
         setAllMatches(allMatchesData)
       } catch (error) {
         console.error('Failed to load community matches:', error)

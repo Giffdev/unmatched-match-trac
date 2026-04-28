@@ -10,7 +10,6 @@ import { Trophy, Target, Sword, MapPin, Users } from '@phosphor-icons/react'
 import { Progress } from '@/components/ui/progress'
 import { Badge } from '@/components/ui/badge'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { useKV } from '@github/spark/hooks'
 import { MapImageDialog } from './MapImageDialog'
 
 type PlayersTabProps = {
@@ -22,8 +21,8 @@ type PlayersTabProps = {
 export function PlayersTab({ matches, ownedSets = [], onHeroClick }: PlayersTabProps) {
   const playerNames = getAllPlayerNames(matches)
   const [selectedPlayer, setSelectedPlayer] = useState(playerNames[0] || '')
-  const [showOnlyOwnedHeroes, setShowOnlyOwnedHeroes] = useKV<boolean>('player-filter-collection-heroes', false)
-  const [showOnlyOwnedMaps, setShowOnlyOwnedMaps] = useKV<boolean>('player-filter-collection-maps', false)
+  const [showOnlyOwnedHeroes, setShowOnlyOwnedHeroes] = useState(false)
+  const [showOnlyOwnedMaps, setShowOnlyOwnedMaps] = useState(false)
   const [selectedMap, setSelectedMap] = useState<Map | null>(null)
   const [isMapDialogOpen, setIsMapDialogOpen] = useState(false)
 

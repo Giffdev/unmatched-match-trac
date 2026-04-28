@@ -4,6 +4,7 @@ import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
 import { Trophy, Target, MapPin, TrendUp } from '@phosphor-icons/react'
 import { getHeroById, getMapById } from '@/lib/data'
+import { getAllUserMatches } from '@/lib/firestore'
 import type { Match } from '@/lib/types'
 
 type HeroStat = {
@@ -30,22 +31,7 @@ export function GlobalStats() {
   useEffect(() => {
     const loadGlobalStats = async () => {
       try {
-        if (!window.spark || !window.spark.kv) {
-          console.error('Spark KV API not available')
-          setLoading(false)
-          return
-        }
-
-        const allKeys = await window.spark.kv.keys()
-        const matchKeys = allKeys.filter(key => key.startsWith('matches-'))
-        
-        const allMatches: Match[] = []
-        for (const key of matchKeys) {
-          const userMatches = await window.spark.kv.get<Match[]>(key)
-          if (userMatches) {
-            allMatches.push(...userMatches)
-          }
-        }
+        const allMatches = await getAllUserMatches()
 
         setTotalMatches(allMatches.length)
 

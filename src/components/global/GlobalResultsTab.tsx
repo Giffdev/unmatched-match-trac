@@ -4,6 +4,7 @@ import { Globe } from '@phosphor-icons/react'
 import type { Match } from '@/lib/types'
 import { getSelectableHeroes } from '@/lib/data'
 import { HeroMatchupHeatmap } from './HeroMatchupHeatmap'
+import { getAllUserMatches } from '@/lib/firestore'
 
 type GlobalResultsTabProps = {
   matches: Match[]
@@ -24,17 +25,7 @@ export function GlobalResultsTab({ matches, currentUserId, onHeroClick }: Global
       
       setIsLoading(true)
       try {
-        const keys = await window.spark.kv.keys()
-        const matchKeys = keys.filter(k => k.startsWith('matches-'))
-        
-        const allMatchesData: Match[] = []
-        for (const key of matchKeys) {
-          const userMatches = await window.spark.kv.get<Match[]>(key)
-          if (userMatches) {
-            allMatchesData.push(...userMatches)
-          }
-        }
-        
+        const allMatchesData = await getAllUserMatches()
         setAllMatches(allMatchesData)
       } catch (error) {
         console.error('Error loading global matches:', error)

@@ -7,7 +7,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import type { Match, GameMode, PlayerAssignment } from '@/lib/types'
 import { HEROES, MAPS, getMapsByPlayerCount, getCooperativeMaps, getSelectableHeroes } from '@/lib/data'
 import { toast } from 'sonner'
-import { useKV } from '@github/spark/hooks'
+import { useAuth } from '@/hooks/use-auth'
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Check, CaretUpDown, Plus, Trash, CalendarBlank } from '@phosphor-icons/react'
@@ -239,7 +239,8 @@ export function LogMatchDialog({ open, onOpenChange, onSave, prefilled, existing
     }
     return new Date()
   })
-  const [currentUserId] = useKV<string | null>('current-user-id', null)
+  const { user } = useAuth()
+  const currentUserId = user?.uid ?? null
 
   const isCooperative = mode === 'cooperative'
   const playerCount = isCooperative 

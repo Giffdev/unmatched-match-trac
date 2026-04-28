@@ -11,7 +11,8 @@ import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, Command
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
-import { useKV } from '@github/spark/hooks'
+import { useAuth } from '@/hooks/use-auth'
+import { getAllUserMatches } from '@/lib/firestore'
 import { HeroImage } from './HeroImage'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 
@@ -26,22 +27,15 @@ export function HeroesTab({ matches, currentUserId, initialSelectedHero, onHeroC
   const [selectedHero, setSelectedHero] = useState(initialSelectedHero || '')
   const [open, setOpen] = useState(false)
   const [search, setSearch] = useState('')
-  const [allMatches, setAllMatches] = useKV<Match[]>('community-all-matches', [])
-  const [users] = useKV<User[]>('users', [])
-  const [currentUser, setCurrentUser] = useState<User | null>(null)
+  const [allMatches, setAllMatches] = useState<Match[]>([])
+  const { user } = useAuth()
   const [selectedPlayerName, setSelectedPlayerName] = useState<string>('')
 
   useEffect(() => {
-    if (currentUserId && users) {
-      const user = users.find(u => u.id === currentUserId)
-      setCurrentUser(user || null)
-      if (user?.playerName) {
-        setSelectedPlayerName(user.playerName)
-      }
-    } else {
-      setCurrentUser(null)
+    if (user?.playerName) {
+      setSelectedPlayerName(user.playerName)
     }
-  }, [currentUserId, users, users?.find(u => u.id === currentUserId)?.playerName])
+  }, [user?.playerName])
 
   const availablePlayers = useMemo(() => {
     const playerSet = new Set<string>()
@@ -64,17 +58,7 @@ export function HeroesTab({ matches, currentUserId, initialSelectedHero, onHeroC
     const updateCommunityMatches = async () => {
       if (!currentUserId) return
       
-      const keys = await window.spark.kv.keys()
-      const matchKeys = keys.filter(k => k.startsWith('matches-'))
-      
-      const allMatchesData: Match[] = []
-      for (const key of matchKeys) {
-        const userMatches = await window.spark.kv.get<Match[]>(key)
-        if (userMatches) {
-          allMatchesData.push(...userMatches)
-        }
-      }
-      
+      const allMatchesData = await getAllUserMatches()
       setAllMatches(allMatchesData)
     }
     
