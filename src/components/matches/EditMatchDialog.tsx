@@ -34,13 +34,12 @@ function MapSelector({ value, onChange, availableMaps }: MapSelectorProps) {
   const [search, setSearch] = useState('')
 
   const filteredMaps = useMemo(() => {
-    if (!search) return availableMaps
-    const searchLower = search.toLowerCase()
-    return availableMaps.filter(
+    const maps = !search ? [...availableMaps] : availableMaps.filter(
       map =>
-        map.name.toLowerCase().includes(searchLower) ||
-        map.set.toLowerCase().includes(searchLower)
+        map.name.toLowerCase().includes(search.toLowerCase()) ||
+        map.set.toLowerCase().includes(search.toLowerCase())
     )
+    return maps.sort((a, b) => a.name.localeCompare(b.name))
   }, [search, availableMaps])
 
   const selectedMap = MAPS.find(m => m.id === value)
