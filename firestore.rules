@@ -110,8 +110,16 @@ service cloud.firestore {
         // Read: any group member can see membership info
         allow read: if isMemberOfGroup();
 
-        // Write (create/update/delete): only owner or admin can manage members
-        allow write: if isAdminOrOwner();
+        // Create: owner/admin can add members, OR a user can bootstrap their own
+        // owner membership doc during group creation (batch creates group + member atomically,
+        // but get() in isAdminOrOwner sees pre-batch state where group doesn't exist yet)
+        allow create: if isAdminOrOwner()
+                      || (isAuthenticated()
+                          && memberId == request.auth.uid
+                          && request.resource.data.role == 'owner');
+
+        // Update/Delete: only owner or admin can manage members
+        allow update, delete: if isAdminOrOwner();
       }
 
       // --- Group invites subcollection ---
