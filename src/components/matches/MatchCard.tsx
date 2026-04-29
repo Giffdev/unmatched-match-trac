@@ -107,7 +107,7 @@ export function MatchCard({ match, onDelete, onEdit, onHeroClick, onMapClick, ex
                     <span className="text-xs text-muted-foreground">as</span>
                     <button
                       onClick={() => onHeroClick(player.heroId)}
-                      className="text-xs md:text-sm text-primary hover:underline cursor-pointer transition-colors truncate text-left min-w-0"
+                      className="text-xs md:text-sm text-primary hover:underline cursor-pointer transition-colors truncate text-center min-w-0"
                     >
                       {getHeroDisplayName(player)}
                     </button>
