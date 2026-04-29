@@ -53,3 +53,10 @@ Unmatched Tracker: a web app for tracking Unmatched board game matches. Built wi
 - Build: 94 tests passing, TypeScript clean, Vite build succeeds
 - Phase 1-2 milestone complete; ready for Phase 3 (backfill + read migration)
 
+### 2026-04-29T02:29:31Z: Firestore Rules Ready for Verification (Scribe)
+- Hicks' revised v2 security rules (Option C Hybrid) merged to canonical decisions.md
+- Rules enable public community stats access while protecting sensitive data
+- No code changes required; existing `getAllUserMatches()` works as-is
+- Awaiting your verification: open app in incognito (not logged in), confirm community stats load, sign in and verify personal features, verify setDoc fails with permission denied
+- Orchestration log written; decision ready for Devin to deploy to Firebase Console
+

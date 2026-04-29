@@ -119,6 +119,26 @@
 
 ---
 
+### 2026-04-28T19:23:23Z: Firestore Security Rules Proposal (REVISED)
+**By:** Hicks (Full-Stack Dev)
+**Status:** Proposed — Ready for Devin to apply
+**Revision:** v2 — Updated to support public (non-authenticated) community stats
+
+**What changed from v1:** The previous proposal required authentication for all reads, which would break community stats for non-logged-in visitors. This revision uses **Option C (Hybrid)** — only match data is publicly readable, everything else stays locked to owner.
+
+**Chosen approach:** Surgical public read on match data only. Exposes: user display names (public by nature) and game results (hero picks, winners, maps). Keeps private data locked: owned-sets collection, matches-meta migration state, individual match subcollection docs.
+
+**Final Security Rules:**
+- `users/{userId}`: allow read: if true; allow write: if request.auth != null && request.auth.uid == userId
+- `users/{userId}/data/{docId}`: allow read: if docId == 'matches' || (request.auth != null && request.auth.uid == userId); allow write: if request.auth != null && request.auth.uid == userId
+- `users/{userId}/matches/{matchId}`: allow read, write: if request.auth != null && request.auth.uid == userId
+
+**Code changes required:** None. Existing `getAllUserMatches()` works as-is.
+
+**Next steps:** Apply in Firebase Console → Firestore Database → Rules tab. Test in incognito window: community stats load, sign-in works, owned sets load. Verification: community stats should load ✅, setDoc should fail with permission denied ✅.
+
+---
+
 ## Governance
 
 - All meaningful changes require team consensus

@@ -73,3 +73,25 @@ Unmatched Tracker: a web app for tracking Unmatched board game matches. Built wi
 - Orchestration logs written; team history updated
 - Build: all 94 tests passing, TypeScript clean, Vite green
 
+### 2026-04-28T19:19:54-07:00: Proposed Firestore Security Rules (test mode → locked down)
+- Firestore currently in TEST MODE — all reads/writes open to anyone.
+- Identified all document paths: `users/{userId}`, `users/{userId}/data/matches`, `users/{userId}/data/owned-sets`, `users/{userId}/data/matches-meta`, `users/{userId}/matches/{matchId}`.
+- Key challenge: `getAllUserMatches()` lists ALL user docs then reads each user's match data — requires authenticated read across user boundaries.
+- Proposed rules follow Arkham Horror pattern: owner-write everywhere, authenticated-read on user profiles + data subcollection.
+- Risk: community stats currently require authentication (no public aggregation doc exists). If non-logged-in users need to see community stats, a Cloud Function + `community-stats` doc with `allow read: if true` would be needed.
+- Full proposal written to `.squad/decisions/inbox/hicks-firestore-security-rules.md`.
+
+### 2026-04-28T19:23:23-07:00: Revised Firestore Security Rules — Public Community Stats
+- Previous proposal (v1) required auth for all reads, which would break the public landing page community stats (GlobalStats, PublicHeroBrowser, PublicHeatmap shown to non-logged-in visitors).
+- Devin confirmed: community stats are a conversion feature that MUST remain visible without login.
+- Revised to Option C (Hybrid): `users/{userId}` public read (for listing), `data/matches` public read (game results), `owned-sets` and `matches-meta` owner-only, all writes owner-only.
+- Key technique: conditional read rule using `docId == 'matches'` to surgically expose only match data.
+- No code changes required — existing `getAllUserMatches()` works as-is.
+- Removed the collection group wildcard rule (not needed when `users/{userId}` allows public list).
+
+### 2026-04-29T02:29:31Z: Firestore Security Rules Merged to Decisions (Scribe)
+- Hicks' v2 rules proposal successfully merged from `.squad/decisions/inbox/` to canonical `decisions.md`
+- Decision entry includes full rules, risk assessment, access matrix, and deployment instructions
+- Inbox file cleaned up; decision ready for Devin to apply in Firebase Console
+- Orchestration log written; awaiting live site verification (Lambert)
+
