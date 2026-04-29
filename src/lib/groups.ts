@@ -57,7 +57,7 @@ export async function createGroup(
 
   const member: GroupMember = {
     uid: userId,
-    displayName: userData.displayName || userData.name || '',
+    displayName: userData.displayName || userData.name || userData.playerName || '',
     playerName: userData.playerName,
     role: 'owner',
     joinedAt: now,
@@ -111,7 +111,7 @@ export async function updateGroupSettings(
 }
 
 export async function deleteGroup(groupId: string): Promise<void> {
-  // Delete members subcollection
+  // Delete members subcollection and collect member UIDs for cleanup
   const membersSnap = await getDocs(collection(db, 'groups', groupId, 'members'))
   const matchesSnap = await getDocs(collection(db, 'groups', groupId, 'matches'))
   const invitesSnap = await getDocs(collection(db, 'groups', groupId, 'invites'))
@@ -122,6 +122,22 @@ export async function deleteGroup(groupId: string): Promise<void> {
   for (const d of matchesSnap.docs) batch.delete(d.ref)
   for (const d of invitesSnap.docs) batch.delete(d.ref)
   batch.delete(doc(db, 'groups', groupId))
+
+  // Remove group from each member's user groups document
+  for (const memberDoc of membersSnap.docs) {
+    const memberId = memberDoc.id
+    const userGroupsRef = doc(db, 'users', memberId, 'data', 'groups')
+    const userGroupsSnap = await getDoc(userGroupsRef)
+    if (userGroupsSnap.exists()) {
+      const currentGroups: UserGroupMembership[] = userGroupsSnap.data().groups || []
+      const entry = currentGroups.find(g => g.groupId === groupId)
+      if (entry) {
+        batch.update(userGroupsRef, {
+          groups: arrayRemove(stripUndefined(entry)),
+        })
+      }
+    }
+  }
 
   await batch.commit()
 }
@@ -143,7 +159,7 @@ export async function addMemberToGroup(
 
   const member: GroupMember = {
     uid: userId,
-    displayName: userData.displayName || userData.name || '',
+    displayName: userData.displayName || userData.name || userData.playerName || '',
     playerName: userData.playerName,
     role,
     joinedAt: now,
