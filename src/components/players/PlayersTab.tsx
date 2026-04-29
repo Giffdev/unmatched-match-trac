@@ -194,7 +194,7 @@ export function PlayersTab({ matches, ownedSets = [], onHeroClick, dataSource, g
           </div>
         </Card>
 
-        <Card className="p-4 md:p-6 overflow-hidden">
+        <Card className="p-4 md:p-6">
           <div className="flex flex-col gap-3 mb-3 md:mb-4 md:flex-row md:items-center md:justify-between">
             <h3 className="text-base md:text-lg font-semibold">Never Played Heroes</h3>
             <div className="flex items-center gap-2">
@@ -208,7 +208,7 @@ export function PlayersTab({ matches, ownedSets = [], onHeroClick, dataSource, g
               </Label>
             </div>
           </div>
-          <div className="max-h-[400px] overflow-y-auto">
+          <div>
             {neverPlayedHeroes.length === 0 ? (
               <p className="text-sm text-muted-foreground text-center py-4">
                 {(showOnlyOwnedHeroes ?? false) && ownedSets.length > 0 
