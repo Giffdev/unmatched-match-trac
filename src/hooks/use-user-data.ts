@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
-import { getUserMatches, setUserMatches, getUserOwnedSets, setUserOwnedSets } from '@/lib/firestore'
+import { getUserMatches, setUserMatches, getUserOwnedSets, setUserOwnedSets, getMigrationState, dualWriteMatches } from '@/lib/firestore'
+import type { MigrationState } from '@/lib/firestore'
 import type { Match } from '@/lib/types'
 import { toast } from 'sonner'
 
@@ -8,16 +9,24 @@ export function useUserMatches(userId: string | null) {
   const [loading, setLoading] = useState(true)
   const loadedFromDb = useRef(false)
   const saveGeneration = useRef(0)
+  const prevMatchesRef = useRef<Match[]>([])
+  const migrationStateRef = useRef<MigrationState>('legacy-only')
 
   // Load matches from Firebase on mount / user change
   useEffect(() => {
     loadedFromDb.current = false
     if (!userId) { setMatchesLocal([]); setLoading(false); return }
     setLoading(true)
-    getUserMatches(userId).then(m => {
+
+    // Load matches and migration state in parallel
+    Promise.all([
+      getUserMatches(userId),
+      getMigrationState(userId)
+    ]).then(([m, state]) => {
       setMatchesLocal(m)
+      prevMatchesRef.current = m
+      migrationStateRef.current = state
       setLoading(false)
-      // Mark loaded so the persist effect doesn't re-save the initial load
       loadedFromDb.current = true
     })
   }, [userId])
@@ -30,12 +39,22 @@ export function useUserMatches(userId: string | null) {
 
   const flushSave = useCallback((uid: string, data: Match[]) => {
     const gen = ++saveGeneration.current
-    setUserMatches(uid, data).catch(err => {
-      if (gen === saveGeneration.current) {
-        console.error('Failed to save matches to Firebase:', err)
-        toast.error('Failed to save match data. Please try again.')
-      }
-    })
+    const prev = prevMatchesRef.current
+
+    const doWrite = migrationStateRef.current === 'dual-write'
+      ? dualWriteMatches(uid, prev, data)
+      : setUserMatches(uid, data)
+
+    doWrite
+      .then(() => {
+        prevMatchesRef.current = data
+      })
+      .catch(err => {
+        if (gen === saveGeneration.current) {
+          console.error('Failed to save matches to Firebase:', err)
+          toast.error('Failed to save match data. Please try again.')
+        }
+      })
   }, [])
 
   useEffect(() => {
