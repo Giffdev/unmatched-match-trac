@@ -16,4 +16,12 @@ Unmatched Tracker: a web app for tracking Unmatched board game matches. Built wi
 - Shared component extraction decision recorded with implementation details
 - Team checkpoint logged for visibility
 
+### 2026-04-28T23:55:03Z: Firestore Migration Session — Phase 1-2 Complete
+- Team completed dual-write migration foundation (led by Hicks)
+- Sidebar refactor investigation completed: determined Shadcn primitives already well-decomposed, no refactoring needed
+- Stats memoization + type guards implemented (Hicks-3)
+- Diff utility + 27 tests delivered (Lambert-2)
+- Session logged in `.squad/log/` and orchestration logs in `.squad/orchestration-log/`
+- All decisions merged to canonical `decisions.md`
+
 

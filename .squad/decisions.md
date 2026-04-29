@@ -101,6 +101,24 @@
 
 ---
 
+### 2026-04-28T23:55:03Z: Dual-Write Layer for Firestore Subcollection Migration
+**By:** Hicks (Full-Stack Dev)
+**Status:** Implemented (Phase 1-2 only)
+**What:** Added a migration-safe dual-write layer that writes match data to both the legacy single-document format (`users/{userId}/data/matches`) AND the new subcollection format (`users/{userId}/matches/{matchId}`).
+**Key Design Decisions:**
+1. **Legacy-first write order.** `dualWriteMatches()` always writes the full array to the legacy doc before touching subcollection. If subcollection fails, data is safe.
+2. **Best-effort subcollection writes.** Errors from subcollection writes are caught and logged (`console.warn`), never thrown. This means the app cannot break from migration code.
+3. **Diff-based sync.** Instead of writing all matches to subcollection on every save, we diff prev vs next and only write changed/deleted docs. This minimizes Firestore operations.
+4. **Per-user opt-in via MigrationState.** Default is `'legacy-only'` — zero behavior change unless `enableDualWrite(userId)` is called. This lets us roll out gradually.
+5. **Cached migration state.** Migration state is read once on mount and cached in a ref. No extra Firestore read on every save.
+6. **Chunked writes.** Subcollection writes are batched in chunks of 400 to stay under Firestore's 500-operation batch limit.
+**What's NOT Changed:** `getUserMatches()` — reads still come from legacy doc only; `getAllUserMatches()` — unchanged; Default behavior for all users — unchanged (legacy-only); No existing functions modified or removed.
+**Files Modified:** `src/lib/firestore.ts` — Added subcollection functions, migration state, dual-write; `src/hooks/use-user-data.ts` — Wired dual-write into persist logic.
+**Next Steps (Phase 3-4, not yet implemented):** Run `enableDualWrite(userId)` for test user, verify subcollection data; Add backfill script to populate subcollection from legacy data; Switch reads to subcollection (`subcollection-primary` state); Cleanup: remove legacy doc writes once verified.
+**Verification:** TypeScript: clean (`npx tsc --noEmit`); Tests: 94 passed (`npx vitest run`); Build: success (`npx vite build`).
+
+---
+
 ## Governance
 
 - All meaningful changes require team consensus

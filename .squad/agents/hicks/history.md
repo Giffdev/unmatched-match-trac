@@ -53,3 +53,23 @@ Unmatched Tracker: a web app for tracking Unmatched board game matches. Built wi
 - Applied to both `getUserMatches()` and `getAllUserMatches()` return paths.
 - Protects against data corruption taking down the entire app.
 - All 67 tests pass. Build verified clean.
+
+### 2026-04-28T23:55:03Z: Implemented dual-write layer for Firestore subcollection migration (Phase 1-2)
+- Added subcollection write/delete/read functions in `src/lib/firestore.ts` — writes to `users/{userId}/matches/{matchId}`.
+- Added `MigrationState` type and `getMigrationState`/`setMigrationState`/`enableDualWrite` functions for per-user migration control.
+- Added `dualWriteMatches()` — diff-based function that always writes legacy first, then best-effort syncs changes to subcollection. Subcollection failures are caught and logged, never thrown.
+- Subcollection writes are chunked (400 per batch) to respect Firestore limits.
+- Updated `use-user-data.ts` to load migration state on mount (cached in ref), track previous matches for diffing, and call `dualWriteMatches` when state is 'dual-write'.
+- Default state is 'legacy-only' — no behavior change unless explicitly enabled per-user.
+- Reads are completely unchanged — still from legacy doc only.
+- All 94 tests pass. TypeScript clean. Vite build succeeds.
+
+### 2026-04-28T23:55:03Z: Session Complete — Firestore Migration Phase 1-2 + Team Sync
+- Dallas completed sidebar refactor investigation (determined not needed)
+- Stats memoization + type guards integrated (Hicks-3)
+- Diff utility for migration layer delivered by Lambert (27 tests, all passing)
+- Dual-write foundation now ready for Phase 3 (backfill + read migration)
+- Decisions merged to canonical `.squad/decisions.md`
+- Orchestration logs written; team history updated
+- Build: all 94 tests passing, TypeScript clean, Vite green
+
