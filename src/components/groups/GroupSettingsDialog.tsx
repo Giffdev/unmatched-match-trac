@@ -37,6 +37,7 @@ export function GroupSettingsDialog({
   const [confirmName, setConfirmName] = useState('')
   const [deleting, setDeleting] = useState(false)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const [showDangerZone, setShowDangerZone] = useState(false)
 
   // Sync form state when props change (e.g. dialog re-opened after update)
   useEffect(() => {
@@ -64,6 +65,7 @@ export function GroupSettingsDialog({
         settings: { allowMemberInvites, autoAddToPersonal },
       })
       toast.success('Group settings saved')
+      onOpenChange(false)
       onUpdated?.()
     } catch (err) {
       console.error('Failed to save group settings:', err)
@@ -94,6 +96,7 @@ export function GroupSettingsDialog({
   const handleOpenChange = (nextOpen: boolean) => {
     if (!nextOpen) {
       setShowDeleteConfirm(false)
+      setShowDangerZone(false)
       setConfirmName('')
     }
     onOpenChange(nextOpen)
@@ -107,7 +110,13 @@ export function GroupSettingsDialog({
           <DialogDescription>Manage settings for {groupName}</DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-6 pt-2">
+        <form
+          onSubmit={(e) => {
+            e.preventDefault()
+            handleSave()
+          }}
+          className="space-y-6 pt-2"
+        >
           {/* Editable fields */}
           <div className="space-y-4">
             <div className="space-y-2">
@@ -153,7 +162,7 @@ export function GroupSettingsDialog({
             </div>
 
             <Button
-              onClick={handleSave}
+              type="submit"
               disabled={!canSave || saving}
               className="w-full"
             >
@@ -161,56 +170,69 @@ export function GroupSettingsDialog({
             </Button>
           </div>
 
-          {/* Danger Zone */}
-          <div className="border border-destructive/30 rounded-lg p-4 space-y-3">
-            <h3 className="text-sm font-semibold text-destructive">Danger Zone</h3>
+          {/* Danger Zone — collapsed by default */}
+          {!showDangerZone ? (
+            <button
+              type="button"
+              onClick={() => setShowDangerZone(true)}
+              className="text-xs text-muted-foreground hover:text-destructive transition-colors cursor-pointer"
+            >
+              Show danger zone…
+            </button>
+          ) : (
+            <div className="border border-destructive/30 rounded-lg p-4 space-y-3">
+              <h3 className="text-sm font-semibold text-destructive">Danger Zone</h3>
 
-            {!showDeleteConfirm ? (
-              <Button
-                variant="destructive"
-                size="sm"
-                onClick={() => setShowDeleteConfirm(true)}
-              >
-                Delete Group
-              </Button>
-            ) : (
-              <div className="space-y-3">
-                <p className="text-sm text-muted-foreground">
-                  This will delete the group and all its matches. <strong>Your personal matches will NOT be affected.</strong>
-                </p>
-                <p className="text-sm text-muted-foreground">
-                  Type <strong>{groupName}</strong> to confirm:
-                </p>
-                <Input
-                  value={confirmName}
-                  onChange={(e) => setConfirmName(e.target.value)}
-                  placeholder="Type group name to confirm"
-                  autoFocus
-                />
-                <div className="flex gap-2">
-                  <Button
-                    variant="destructive"
-                    size="sm"
-                    disabled={!canDelete || deleting}
-                    onClick={handleDelete}
-                  >
-                    {deleting ? 'Deleting...' : 'Confirm Delete'}
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => {
-                      setShowDeleteConfirm(false)
-                      setConfirmName('')
-                    }}
-                  >
-                    Cancel
-                  </Button>
+              {!showDeleteConfirm ? (
+                <Button
+                  type="button"
+                  variant="destructive"
+                  size="sm"
+                  onClick={() => setShowDeleteConfirm(true)}
+                >
+                  Delete Group
+                </Button>
+              ) : (
+                <div className="space-y-3">
+                  <p className="text-sm text-muted-foreground">
+                    This will delete the group and all its matches. <strong>Your personal matches will NOT be affected.</strong>
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    Type <strong>{groupName}</strong> to confirm:
+                  </p>
+                  <Input
+                    value={confirmName}
+                    onChange={(e) => setConfirmName(e.target.value)}
+                    placeholder="Type group name to confirm"
+                    autoFocus
+                  />
+                  <div className="flex gap-2">
+                    <Button
+                      type="button"
+                      variant="destructive"
+                      size="sm"
+                      disabled={!canDelete || deleting}
+                      onClick={handleDelete}
+                    >
+                      {deleting ? 'Deleting...' : 'Confirm Delete'}
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => {
+                        setShowDeleteConfirm(false)
+                        setConfirmName('')
+                      }}
+                    >
+                      Cancel
+                    </Button>
+                  </div>
                 </div>
-              </div>
-            )}
-          </div>
-        </div>
+              )}
+            </div>
+          )}
+        </form>
       </DialogContent>
     </Dialog>
   )
