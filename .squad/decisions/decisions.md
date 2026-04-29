@@ -1,5 +1,170 @@
 # Decisions Log
 
+## 2026-04-29 — User Directive: Retroactive Match Import to Groups
+
+**Date:** 2026-04-29T10:39:46-07:00  
+**By:** Devin Sinha (via Copilot)
+
+### Directive
+Group members (owner or anyone authorized to log matches) should be able to retroactively add their existing personal matches to a group. Provide a selector UI that lets users choose which matches to import (or select all).
+
+**Rationale:** Groups shouldn't start empty if members already have relevant match history. This makes the feature immediately useful without waiting for new games to be played.
+
+---
+
+## 2026-04-29 — User Directive: Log-to-Group at Match Time
+
+**Date:** 2026-04-29T10:55:33-07:00  
+**By:** Devin Sinha (via Copilot)
+
+### Directive
+When logging a new match, the user should be able to optionally add it to their group(s) at the same time. The match must not be counted duplicate times — it's one match that appears in both the personal record and the group.
+
+**Rationale:** User request — captured for team memory. This is the forward-looking companion to the retroactive import feature.
+
+---
+
+## 2026-04-29 — Lambert: Game Groups Test Coverage Strategy
+
+**Date:** 2026-04-29T10:04:15-07:00  
+**By:** Lambert (Tester)  
+**Status:** Implemented
+
+### What
+Created 89 tests across 4 files covering the Game Groups feature data layer before implementation code lands. Tests validate expected Firestore operations and data invariants.
+
+### Key Testing Decisions
+
+1. **Mock at firebase/firestore module level** — Tests don't import the (not-yet-created) source files directly. They validate Firestore operations (writeBatch, arrayUnion/arrayRemove, where queries) and data shape contracts. Once Hicks' code lands, tests can be updated to call the actual functions.
+
+2. **Double-counting prevention is a first-class test target** — The `isGroupMatch` flag on personal copies must be filtered out during community stats aggregation. This is the highest-risk invariant in the design.
+
+3. **Atomicity via writeBatch is mandatory for** — group creation (group doc + member doc), membership changes (memberUids + member subcollection + reverse index), invite acceptance (status + membership + pending list).
+
+4. **Edge cases that MUST be handled in implementation:**
+   - Owner cannot leave without transferring ownership or deleting group
+   - Duplicate invites to same user/group must be blocked
+   - Expired invites must be validated at accept-time
+   - Empty search must short-circuit (no Firestore reads)
+   - Match/personal-copy deletion must be atomic
+
+### Impact
+- Total test count: 183 (94 existing + 89 new)
+- All tests passing, no regressions
+- Tests serve as specification for Hicks' implementation
+
+---
+
+## 2026-04-29 — Dallas: Game Groups UI Architecture
+
+**Date:** 2026-04-29T10:04:15-07:00  
+**By:** Dallas (Frontend Dev)  
+**Status:** Implemented on `feature/game-groups` branch — NOT shipped
+
+### What
+Built the complete Game Groups UI layer (hooks + components + integration) on top of Hicks's data layer.
+
+### Key Decisions
+
+1. **Groups as 6th Tab (not a nested view)** — Groups gets its own top-level tab rather than being buried in a settings/profile view. This gives it equal prominence and matches the task spec. Mobile nav expands from 5-column to 6-column grid.
+
+2. **GroupView uses inline sub-tabs (not Shadcn Tabs)** — Inside a group, I used simple button-based sub-tabs (Matches/Members/Stats) with border-bottom active indicator rather than nesting another Shadcn `<Tabs>` component. This avoids the complexity of nested tab state and keeps the DOM simpler.
+
+3. **Log-to-group selector in LogMatchDialog** — When a user belongs to 1+ groups, a "Log to" Select appears at the top of LogMatchDialog. Choosing a group routes to `logGroupMatch()` instead of the personal `onSave()` callback. This is minimally invasive — the rest of the form is unchanged.
+
+4. **Notification badge approach**
+   - Mobile: small red dot (2x2) positioned on the Groups nav button
+   - Desktop: numbered badge (4x4) positioned on the TabsTrigger
+
+5. **Hooks follow existing pattern** — All hooks use `useState` + `useEffect` + `useCallback(fetch)` — same as `use-auth.ts` and `use-user-data.ts`. No React Query or SWR introduced to keep the dependency footprint unchanged.
+
+### Files Created
+- `src/hooks/use-groups.ts` — useGroups, useGroup, usePendingInvites
+- `src/hooks/use-group-matches.ts` — useGroupMatches (paginated)
+- `src/hooks/use-group-members.ts` — useGroupMembers
+- `src/components/groups/GroupsTab.tsx`
+- `src/components/groups/GroupView.tsx`
+- `src/components/groups/CreateGroupDialog.tsx`
+- `src/components/groups/InviteMemberDialog.tsx`
+- `src/components/groups/PendingInvites.tsx`
+- `src/components/groups/MemberList.tsx`
+- `src/components/groups/GroupMatchList.tsx`
+
+### Files Modified
+- `src/App.tsx` — added 6th tab (desktop + mobile)
+- `src/components/matches/LogMatchDialog.tsx` — added group target selector
+
+### Verification
+- 183 tests pass (`npx vitest run`)
+- Build clean (`npx vite build`)
+- No existing functionality modified
+
+---
+
+## 2026-04-29 — Hicks: Game Groups Data Layer Decisions
+
+**Date:** 2026-04-29T10:04:15-07:00  
+**By:** Hicks (Full-Stack Dev)  
+**Status:** Implemented (Phase 1 — local only, feature/game-groups branch)
+
+### Key Data Layer Decisions
+
+1. **stripUndefined duplicated per-module (not imported from firestore.ts)** — Each group module has its own `stripUndefined` copy. Reason: `firestore.ts` doesn't export it, and importing creates coupling to a file focused on legacy match operations. Can refactor to shared utility later.
+
+2. **Reverse index stores full membership objects (not just IDs)** — `users/{userId}/data/groups` stores `UserGroupMembership[]` with groupId, groupName, and role. This avoids N+1 reads when showing a user's group list — no need to fetch each group doc just to display the name.
+
+3. **Invites stored in TWO places**
+   - `groups/{groupId}/invites/{inviteId}` — for group owners to see all invites
+   - `users/{userId}/data/group-invites` — for invitees to see their pending invites without querying all groups
+   - Trade-off: slight denormalization vs. query simplicity. Accept/decline updates both locations.
+
+4. **autoAddToPersonal appends to legacy matches array** — When `autoAddToPersonal` is true, `logGroupMatch` appends to the user's `users/{userId}/data/matches` doc with a `groupRef` field. This ensures group matches appear on personal dashboard (per Devin's decision). The `groupRef` field allows future filtering/deduplication from community stats.
+
+5. **Owner-only edit/delete enforced at application layer** — `updateGroupMatch` and `deleteGroupMatch` check `loggedBy === userId` before proceeding. Security rules should enforce this too, but app-layer check provides clear error messages.
+
+6. **User discovery requires `playerNameLower` field** — `searchUserByPlayerName` uses a Firestore range query on `playerNameLower`. This field must be added to user profile creation/update flows — not yet done (Phase 2 concern).
+
+### Files Created
+- `src/lib/group-types.ts`
+- `src/lib/groups.ts`
+- `src/lib/group-matches.ts`
+- `src/lib/group-invites.ts`
+- `src/lib/user-discovery.ts`
+
+---
+
+## 2026-04-29 — Hicks: Game Groups Security Rules Decision
+
+**Date:** 2026-04-29T10:18:17-07:00  
+**By:** Hicks (Full-Stack Dev)  
+**Status:** Implemented (feature/game-groups branch only — NOT deployed)
+
+### Decision
+Created `firestore.rules` with comprehensive security rules for Game Groups while preserving all existing user rules.
+
+### Key Design Choices
+
+1. **memberUids[] on group doc for O(1) membership checks** — Avoids `get()` calls when checking group-level access. Subcollection rules still need `get()` but it's cached per-request.
+
+2. **Owner-only group updates** — Simplifies the update rule. Admin role is checked only for member management and invite operations (via members subcollection lookup).
+
+3. **loggedBy enforcement on create** — `request.resource.data.loggedBy == request.auth.uid` prevents any member from logging matches attributed to someone else.
+
+4. **Dual-access pattern for invites** — Both group members and the specific invitee can read invite docs. This allows invitees to see their pending invites without being group members yet.
+
+5. **Helper functions scoped to groups match block** — Keeps rules DRY and readable. Functions like `isMemberOfGroup()` and `isAdminOrOwner()` encapsulate the `get()` patterns.
+
+### Files
+- `firestore.rules` — The actual rules
+- `firestore.rules.docs.md` — Team documentation with access matrix and testing checklist
+
+### Next Steps
+- Lambert to write rule unit tests (firebase-rules-unit-testing)
+- Do NOT deploy until full feature is tested locally
+- Consider tightening invite create rules later (e.g., require admin for invite-only groups)
+
+---
+
 ## 2026-04-28 — Debounce Firestore Writes in useUserMatches
 
 **Date:** 2026-04-28T16:16:41-07:00  

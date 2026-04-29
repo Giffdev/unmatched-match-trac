@@ -119,3 +119,40 @@ Unmatched Tracker: a web app for tracking Unmatched board game matches. Built wi
 - Created `firestore.rules.docs.md` with full access matrix, helper function docs, cost considerations, and testing checklist.
 - NOT deployed — staying on feature branch per team directive.
 
+### 2026-04-29T10:31:44-07:00: Fixed group creation — batch write vs security rules race
+- Root cause: `createGroup()` uses `writeBatch()` to atomically create the group doc + owner's member subdoc + user groups doc. Firestore security rules evaluate each operation independently against the **pre-batch** database state.
+- The member subcollection write triggered `isAdminOrOwner()` which does `get()` on the group doc — but that doc doesn't exist yet (being created in the same batch). The `get()` returns null, comparison fails, write denied.
+- Fix: Split `allow write` on members subcollection into `allow create` + `allow update, delete`. The create rule adds a fallback: `memberId == request.auth.uid && request.resource.data.role == 'owner'` — allows bootstrapping your own owner membership doc without needing the parent group to exist yet.
+- Key learning: In Firestore batched writes, `get()` in security rules always sees pre-batch state. For atomic bootstrap patterns (parent + child created together), rules must account for the parent not existing yet.
+- The `ownerUid` fix from the previous session was correct and already in place; this was a separate issue in the subcollection rules.
+
+### 2026-04-29T10:38:08-07:00: Fixed redundant @playerName display in MemberList
+- Bug: When `playerName` equals `displayName`, MemberList showed "@Devin Sinha" redundantly under "Devin Sinha".
+- Fix in `MemberList.tsx`: Added case-insensitive comparison (`toLowerCase()`) so the `@playerName` line only renders when it's actually distinct from `displayName`.
+- Fix in `groups.ts`: Added `userData.playerName` as final fallback in `displayName` chain for both `createGroup()` and `addMember()`. Prevents empty `displayName` when only `playerName` is set on the user profile.
+- TypeScript clean (`tsc --noEmit` exit 0).
+
+### 2026-04-29T10:54:53-07:00: Implemented Retroactive Match Import for Game Groups
+- Created `src/components/groups/ImportMatchesDialog.tsx` — full dialog with:
+  - Loads user's personal matches and existing group matches on open
+  - Deduplicates by date+heroes+map key AND by groupRef field
+  - Select All toggle + individual checkboxes
+  - Shows hero names, map, result, date for each match
+  - Batch import with loading state and success toast
+- Added `importMatchesToGroup()` to `src/lib/groups.ts`:
+  - Creates copies in `groups/{groupId}/matches` with `sourceMatchId` back-reference
+  - Adds `groupRef: { groupId, groupMatchId }` to personal match docs
+  - Batches in chunks of 450 to stay under Firestore 500-op limit
+  - Returns count of imported matches
+- Added `sourceMatchId?: string` to `GroupMatch` type in `src/lib/group-types.ts`
+- Modified `src/components/groups/GroupView.tsx`:
+  - Added "Import Matches" button on matches sub-tab (visible to all group members)
+  - Wired up ImportMatchesDialog
+- TypeScript clean (`npx tsc --noEmit` exit 0)
+
+### 2026-04-29T17:58:21Z: Hicks-15 Complete — Retroactive Match Import (Scribe Log)
+- Session hicks-15 successfully completed: ImportMatchesDialog, importMatchesToGroup, dedup logic fully delivered
+- 4 files created/modified; TypeScript clean build
+- Orchestration log written to `.squad/orchestration-log/2026-04-29T17-58-21Z-hicks.md`
+- Hicks-16 (log-to-group at match time) now in progress — coordinates with Dallas UI + Lambert tests
+- Team decisions consolidated: 6 inbox files merged into `decisions.md` capturing retroactive import + log-to-group directives
