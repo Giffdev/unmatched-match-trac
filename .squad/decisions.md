@@ -241,6 +241,167 @@
 
 ---
 
+### 2026-04-29T13:05:08-07:00: Component reuse policy
+**By:** Devin (via Copilot)
+**What:** All new UI must reuse existing components when functionally equivalent. No duplicating MatchCard, PlayerCard, or other shared components — extend them with optional props instead. Ripley (Lead) is responsible for catching reuse violations during code review before any work ships.
+**Why:** User directive — GroupMatchList shipped with a duplicate MatchCard that should have been caught. Prevention > cleanup.
+
+---
+
+### 2026-04-29T13:28:49-07:00: User decisions on group UX design
+**By:** Devin (via Copilot)
+**What:**
+1. Per-tab context pill APPROVED — user wants to switch between "games logged outside a group" and "games from within a group they're in"
+2. New match notifications on Groups tab APPROVED — show when a group has new matches since last visit
+3. Group collection for Randomizer APPROVED — future phase, allow "pick heroes from group's collection"
+**Why:** User review of Ripley's Group Data Integration design proposal — these are the confirmed directions
+
+---
+
+### 2026-04-29T13:29:46-07:00: DataContextSelector — Per-Tab Group Data Switching
+**By:** Dallas (Frontend Dev)
+**Status:** Implemented (Phase 1)
+
+**What:** Created `src/components/shared/DataContextSelector.tsx` — a compact Shadcn Select component that allows users to switch between "My Matches" and any group they belong to, per-tab.
+
+**Design Decisions:**
+1. **Per-tab state** — PlayersTab and HeroesTab each independently track their data context. Switching one doesn't affect the other.
+2. **Null-render for non-group users** — Component returns `null` when `groups.length === 0`. Zero visual change for existing users.
+3. **DataSource prop pattern** — Tabs accept optional `dataSource?: { label: string, matches: Match[] }`. When present, the tab uses `dataSource.matches` for all stats computation instead of the default personal matches.
+4. **Community section hidden in group context** — HeroesTab's "Global Matchup Heatmap" is hidden when viewing group data (it's irrelevant to group stats).
+5. **App.tsx owns context state** — `playersContext` and `heroesContext` state lives in App.tsx. Group matches are fetched via existing `useGroupMatches` hook.
+
+**Files Modified:**
+- `src/components/shared/DataContextSelector.tsx` (new)
+- `src/components/players/PlayersTab.tsx` (new props, uses `effectiveMatches`)
+- `src/components/heroes/HeroesTab.tsx` (new props, uses `effectiveMatches`, hides community)
+- `src/App.tsx` (state management, group match fetching, prop passing)
+
+**Verification:** TypeScript clean, Vite build passes, 183 tests pass.
+**Next:** Phase 2 — MapsTab integration, group stats labels, loading states for group match fetches.
+
+---
+
+### 2026-04-29T13:05:08-07:00: MatchCard Shared Component — onDelete/onEdit Optional + subtitle prop
+**By:** Dallas (Frontend Dev)  
+**Status:** Implemented
+
+**What:**
+Refactored `GroupMatchList.tsx` to use the shared `MatchCard` component instead of its internal `GroupMatchCard` duplicate.
+
+Two changes made to `MatchCard` to support this:
+
+1. **`onDelete` and `onEdit` are now optional.** When omitted, the edit/delete buttons are hidden and `EditMatchDialog` is not mounted. This enables read-only contexts (e.g. group match lists, future embed widgets).
+
+2. **Added `subtitle?: string` prop.** When provided, renders as an outlined badge in the card header row (next to the date). Used by `GroupMatchList` to show "Logged by {name}". Keeps group-specific data out of the base MatchCard while still being a generic enough slot for any per-card context label.
+
+**Why:**
+`GroupMatchCard` was a stripped-down fork of `MatchCard` — missing map info, turn order, mode badges, hero click handlers, and edit/delete. Users viewing group matches now see the full match detail parity that personal matches have.
+
+**Files Changed:**
+- `src/components/matches/MatchCard.tsx` — made `onDelete`/`onEdit` optional, added `subtitle` prop, conditional button/dialog rendering
+- `src/components/groups/GroupMatchList.tsx` — removed `GroupMatchCard`, imports and uses `MatchCard` in read-only mode with `subtitle`
+
+**Verification:**
+- `npx tsc --noEmit` — clean
+- `npx vite build` — success (exit 0)
+- `MatchesTab.tsx` unchanged — passes `onDelete` and `onEdit` as before, no breaking change
+
+**Future Consideration:**
+Group matches are currently read-only (no edit/delete handlers). When the team decides to enable group match editing (via `updateGroupMatch` / `deleteGroupMatch`), the `GroupMatchList` will need `useAuth` for the current user UID and ownership checks before passing handlers to `MatchCard`.
+
+---
+
+### 2026-04-29T13:29:46-07:00: Group Stats Data Hook Architecture
+**By:** Hicks (Full-Stack Dev)
+**Status:** Implemented
+
+**What:**
+Created two new hooks for the group context integration feature:
+
+1. **`src/hooks/useGroupMatches.ts`** — Fetches ALL matches for a group (for stats). Uses module-level cache (5min TTL) shared across component instances. NOT the same as the paginated `use-group-matches.ts` used for list display.
+
+2. **`src/hooks/useUserGroups.ts`** — Thin re-export of `useGroups` with consistent interface for DataContextSelector.
+
+**Why This Shape:**
+- **Module-level cache vs react-query:** @tanstack/react-query is installed but has no QueryClientProvider wired up. Adding that to App.tsx is a broader change best done as a dedicated task. The Map cache achieves the same result (shared memoization across tabs) with zero app-shell changes.
+- **Separate from paginated hook:** Stats need ALL matches (50-200 typical). The list view needs pagination (20 per page). Different access patterns → different hooks.
+- **Abort guard:** Prevents race conditions when user rapidly switches groups.
+
+**Migration Path:**
+When someone wires up `QueryClientProvider`, this hook can be trivially converted to:
+```ts
+useQuery({ queryKey: ['groupMatches', groupId], queryFn: ... })
+```
+The cache and abort logic would then be handled by react-query automatically.
+
+**Impact:**
+- 2 new files, no existing files modified
+- TypeScript clean, all 183 tests pass
+
+---
+
+### 2026-04-29T12:35:06-07:00: Never use arrayRemove on complex Firestore objects
+**By:** Hicks (Full-Stack Dev)
+**Status:** Implemented
+**What:** Replaced `arrayRemove`/`arrayUnion` pattern in `updateGroupInfo()` with read-modify-write by ID. Firestore's `arrayRemove` requires exact object equality which silently fails when stored entries have extra fields, undefined values, or slightly different shapes.
+**Pattern:** For any denormalized array of objects with an ID field, always: (1) read the full array, (2) find by ID, (3) replace in-place, (4) write the full array back. Use `batch.set(ref, { field: updatedArray }, { merge: true })` to keep atomicity.
+**Why:** This caused a user-visible bug where group renames didn't propagate. The old name persisted in member lists indefinitely.
+**Impact:** `src/lib/groups.ts` — `updateGroupInfo()` function.
+
+---
+
+### 2026-04-29T13:18:38-07:00: Group Data Integration — UX & Architecture Design
+**By:** Ripley (Lead)
+**Status:** Design Proposal — Awaiting Devin's Review  
+**Priority:** High — Defines scope for all group-related feature work
+
+**Executive Summary:**
+Group data should flow into existing tabs via an **in-tab context pill** — not a global switcher. Users tap a small "My Data / Group: {name}" toggle *within* each data tab (Players, Heroes, Maps). This avoids polluting the already-crowded mobile bottom nav and keeps the mental model simple: "I'm looking at my stats, or my group's stats."
+
+The key architectural insight: **all stats functions already operate on `Match[]` arrays**. We don't need new computation logic — we just need to supply different match arrays depending on context.
+
+**Key Architectural Decisions:**
+1. **Per-Tab Context Pill (NOT global switcher)** — Mobile bottom nav is already 6 columns; global context changes confuses users
+2. **Data source** — Queries `groups/{groupId}/matches` (all) for stats computation
+3. **Components that need changes:**
+   - `PlayersTab`, `HeroesTab`, `MapsTab` — Add optional `dataSource?: { label: string, matches: Match[] }` prop
+   - New `DataContextSelector` component (~30 lines)
+4. **Components unchanged** — MatchCard, all stat calculation functions, HeroMatchupHeatmap
+5. **Phasing:** Phase 1 (PlayersTab + HeroesTab), Phase 2 (MapsTab + badges), Phase 3 (React Query, pre-computed stats)
+6. **What we explicitly defer:** Global switcher, group matches in Matches tab, group influence on Community tab
+
+**Safety & Quality:**
+- Won't break existing behavior (default context always "My Data")
+- DataContextSelector only renders when user has groups
+- All existing props remain unchanged (dataSource is optional)
+- No Firestore schema changes or new indexes needed
+- Edge cases documented: user leaves group, zero matches, guest players, network errors
+
+**Testing Plan (for Lambert):**
+1. Unit: `calculatePlayerStats` with GroupMatch[] (verify it works unmodified)
+2. Component: DataContextSelector renders groups, handles selection
+3. Integration: PlayersTab with dataSource override shows correct stats
+4. Manual: Rapid personal/group switching — no stale data
+
+**Open Questions for Devin:**
+1. Tab header change when in group context?
+2. Show badge on Groups tab for new group matches?
+3. Randomizer integration ("pick heroes from group's collection")?
+
+---
+
+### 2026-04-29T13:28:49-07:00: User decisions on group UX design
+**By:** Devin (via Copilot)
+**What:**
+1. Per-tab context pill APPROVED — confirmed for implementation
+2. New match notifications on Groups tab APPROVED
+3. Group collection for Randomizer APPROVED — future phase
+
+**Why:** User review of Ripley's Group Data Integration design — these are the confirmed directions
+
+---
+
 ## Governance
 
 - All meaningful changes require team consensus
