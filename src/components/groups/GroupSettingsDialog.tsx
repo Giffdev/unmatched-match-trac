@@ -112,7 +112,7 @@ export function GroupSettingsDialog({
           <button
             type="button"
             onClick={() => setShowDeleteConfirm(true)}
-            className="text-muted-foreground hover:text-destructive transition-colors p-2 rounded-md -mt-1 -mr-2"
+            className="text-muted-foreground hover:text-destructive transition-colors p-2 rounded-md -mt-1 mr-6"
             aria-label="Delete group"
           >
             <Trash2 className="h-4 w-4" />
