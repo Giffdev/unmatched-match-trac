@@ -34,6 +34,7 @@ import HamletImg from '@/assets/images/Hamlet.webp'
 import HoudiniImg from '@/assets/images/Houdini.webp'
 import InvisibleManImg from '@/assets/images/Invisible_Man.png'
 import KingArthurImg from '@/assets/images/King_Arthur.png'
+import KrangImg from '@/assets/images/Krang.webp'
 import LeonardoImg from '@/assets/images/Leonardo.webp'
 import LokiImg from '@/assets/images/Loki.webp'
 import LukeCageImg from '@/assets/images/Luke_Cage.webp'
@@ -52,6 +53,7 @@ import RobertMuldoonImg from '@/assets/images/Robert_Muldoon.webp'
 import RobinHoodImg from '@/assets/images/Robin_Hood.jpg'
 import ShakespeareImg from '@/assets/images/Shakespeare.webp'
 import SheHulkImg from '@/assets/images/She-Hulk.webp'
+import ShredderImg from '@/assets/images/Shredder.webp'
 import SherlockHolmesImg from '@/assets/images/Sherlock_Holmes.png'
 import SinbadImg from '@/assets/images/Sinbad.png'
 import SpiderManImg from '@/assets/images/Spider-Man.webp'
@@ -208,8 +210,8 @@ export const HEROES: Hero[] = [
   { id: 'raphael', name: 'Raphael', hp: 16, move: 2, attack: 'MELEE', set: 'Unmatched Adventures: Teenage Mutant Ninja Turtles', sidekicks: [{ name: 'Casey', count: 1, hp: 7, attack: 'MELEE' }], imageUrl: RaphaelImg, abilityTitle: "ANGER ISSUES", abilityDescription: "On each of your turns, the first time you lose combat, gain 1 action." },
   { id: 'donatello', name: 'Donatello', hp: 12, move: 2, attack: 'RANGED', set: 'Unmatched Adventures: Teenage Mutant Ninja Turtles', sidekicks: [{ name: 'Metalhead', count: 1, hp: 8, attack: 'MELEE' }], imageUrl: DonatelloImg, abilityTitle: "INVENTIVE", abilityDescription: "When you maneuver, you may draw 2 cards instead of 1. If you do, put a card in your hand on the bottom of your deck. After you play an invention, tuck it under this card." },
   { id: 'michelangelo', name: 'Michelangelo', hp: 13, move: 3, attack: 'MELEE', set: 'Unmatched Adventures: Teenage Mutant Ninja Turtles', sidekicks: [{ name: 'April', count: 1, hp: 5, attack: 'MELEE' }], imageUrl: MichaelangeloImg, abilityTitle: "PIZZA PARTY", abilityDescription: "After you attack or scheme, draw 1 card. Your starting and maximum hand size is 3." },
-  { id: 'krang', name: 'Krang', hp: 16, move: 1, attack: 'MELEE', set: 'TMNT: Shredder and Krang', imageUrl: '', abilityTitle: "DOOOOOM", abilityDescription: "Krang has 3 doomsday machines. Start with one machine active. After you roll the Die of Ultimate Destruction, you can deactivate an active machine to reroll the die. Add +1 to your move value for each active machine." },
-  { id: 'shredder', name: 'Shredder', hp: 15, move: 3, attack: 'MELEE', set: 'TMNT: Shredder and Krang', sidekicks: [{ name: 'Bebop & Rocksteady', count: 1, hp: 7, attack: 'MELEE' }], imageUrl: '', abilityTitle: "MASTER OF THE CLAN", abilityDescription: "At the start of your turn, deploy a Foot soldier to a path adjacent to a friendly fighter. You may attack opposing fighters adjacent to Foot soldiers. If an opponent boosts their maneuver, they may remove any Foot soldiers their hero moves through." },
+  { id: 'krang', name: 'Krang', hp: 16, move: 1, attack: 'MELEE', set: 'TMNT: Shredder and Krang', imageUrl: KrangImg, abilityTitle: "DOOOOOM", abilityDescription: "Krang has 3 doomsday machines. Start with one machine active. After you roll the Die of Ultimate Destruction, you can deactivate an active machine to reroll the die. Add +1 to your move value for each active machine." },
+  { id: 'shredder', name: 'Shredder', hp: 15, move: 3, attack: 'MELEE', set: 'TMNT: Shredder and Krang', sidekicks: [{ name: 'Bebop & Rocksteady', count: 1, hp: 7, attack: 'MELEE' }], imageUrl: ShredderImg, abilityTitle: "MASTER OF THE CLAN", abilityDescription: "At the start of your turn, deploy a Foot soldier to a path adjacent to a friendly fighter. You may attack opposing fighters adjacent to Foot soldiers. If an opponent boosts their maneuver, they may remove any Foot soldiers their hero moves through." },
   { id: 'rosie-the-riveter', name: 'Rosie the Riveter', hp: 15, move: 2, attack: 'MELEE', set: 'Stars and Stripes', sidekicks: [{ name: 'Wendy the Welder', count: 1, hp: 7, attack: 'MELEE' }], imageUrl: RosieRiveterImg, abilityTitle: "FREEDOM XK-II MECH SUIT", abilityDescription: "You have 4 upgrade tokens. Start the game with all 4 inactive. At the start of your turn, activate an upgrade. At the end of your turn, if all 4 upgrades are active, deactivate all of them." },
   { id: 'john-henry', name: 'John Henry', hp: 17, move: 2, attack: 'MELEE', set: 'Stars and Stripes', imageUrl: JohnHenryImg, abilityTitle: "STEEL-DRIVING MAN", abilityDescription: "You have 10 track tokens. At the start of your turn, summon a track token in a space in John Henry's zone. When you move John Henry, do not count spaces with track tokens." },
   { id: 'wyatt-earp', name: 'Wyatt Earp', hp: 15, move: 2, attack: 'RANGED', set: 'Stars and Stripes', sidekicks: [{ name: 'Doc Holliday', count: 1, hp: 8, attack: 'RANGED' }], imageUrl: WyattEarpImg, abilityTitle: "SHOWDOWN", abilityDescription: "After you attack and win combat, choose one effect. You cannot choose the same effect twice in a turn. • draw 1 card • gain 1 free action to attack • move your fighter up to 1 space" },
