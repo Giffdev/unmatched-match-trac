@@ -56,9 +56,9 @@ function App() {
 
   const handleReplaceAllMatches = async () => {
     if (!currentUserId) return
-    const password = prompt('Enter import password:')
-    if (password !== import.meta.env.VITE_IMPORT_PASSWORD) {
-      alert('Wrong password')
+    const confirmation = prompt('This will REPLACE ALL your matches. Type "REPLACE ALL" to confirm:')
+    if (confirmation !== 'REPLACE ALL') {
+      if (confirmation !== null) alert('Import cancelled — confirmation text did not match.')
       return
     }
     try {
