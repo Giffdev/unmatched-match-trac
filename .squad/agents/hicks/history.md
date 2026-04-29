@@ -65,3 +65,9 @@ Unmatched Tracker: a web app for tracking Unmatched board game matches. Built wi
 - **What:** The team must test their own work before presenting to the user. Never ask the user to test — have Lambert verify first. Only report results after internal QA passes.
 - **Why:** User request — the team should own quality, not push testing burden to the user.
 - **Action:** Integrate Lambert's testing workflow into delivery checklist.
+
+### 2026-04-29T12:35:06-07:00: Fixed group rename not propagating to member lists
+- **Bug:** User renamed group from "test" to "Unmatched!" but groups list still showed "test"
+- **Root cause:** `updateGroupInfo()` used `arrayRemove(oldEntry)` + `arrayUnion(newEntry)` for denormalized `UserGroupMembership`. `arrayRemove` requires EXACT object equality — if stored entry has extra fields or different shape, it silently fails, leaving the old entry in place.
+- **Fix:** Replaced with direct array manipulation: read user's groups array, find entry by `groupId`, replace `groupName` in-place, write full updated array via `batch.set(merge: true)`. Deterministic regardless of stored object shape.
+- **Pattern to remember:** NEVER use `arrayRemove` on complex objects in Firestore — it depends on exact field-by-field equality which is fragile. For objects with an ID field, always read-modify-write the full array by matching on ID.
