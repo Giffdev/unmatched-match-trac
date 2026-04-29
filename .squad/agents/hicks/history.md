@@ -6,6 +6,13 @@ Unmatched Tracker: a web app for tracking Unmatched board game matches. Built wi
 ## Learnings
 
 **Note:** Earlier entries (2026-04-28 through 2026-04-29T10:58:21Z) archived to `history-archive.md` for readability. This file maintains recent work log.
+
+### 2026-04-29T13:51:30-07:00: Fixed Players tab crash from group context integration
+- **Root cause #1 — Wrong hook import:** App.tsx imported `useGroupMatches` from `@/hooks/use-group-matches` (paginated, PAGE_SIZE=20) instead of `@/hooks/useGroupMatches` (full-fetch stats hook with caching). The paginated hook's return type worked structurally but only fetched 20 matches — not the real crash cause but wrong behavior.
+- **Root cause #2 — React hooks rule violation:** PlayersTab had `useMemo` calls AFTER an early return (`if (playerNames.length === 0)`). When matches were empty (e.g., group matches still loading), the early return fired before hooks ran, causing React to throw "Rendered fewer hooks than expected" — this was the ErrorBoundary trigger.
+- Fix: moved all `useMemo` calls above the early return; added `|| []` fallback for effectiveMatches defensively.
+- Pattern to remember: Early returns in React components MUST come after ALL hook calls. If you add hooks to an existing component, check for early returns above them.
+- All 183 tests pass. TypeScript clean. Deployed to Vercel prod.
 ### 2026-04-29T17:58:21Z: Hicks-15 Complete — Retroactive Match Import (Scribe Log)
 - Session hicks-15 successfully completed: ImportMatchesDialog, importMatchesToGroup, dedup logic fully delivered
 - 4 files created/modified; TypeScript clean build
