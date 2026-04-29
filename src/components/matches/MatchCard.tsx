@@ -31,7 +31,7 @@ export function MatchCard({ match, onDelete, onEdit, onHeroClick, onMapClick, ex
   const map = getMapById(match.mapId)
   const winner = match.players.find(p => p.heroId === match.winnerId)
   const winnerHero = winner ? getHeroById(winner.heroId) : null
-  const maxNameLen = Math.max(...match.players.map(p => p.playerName.length))
+
 
   const formatMatchDate = (dateString: string): string => {
     try {
@@ -97,9 +97,14 @@ export function MatchCard({ match, onDelete, onEdit, onHeroClick, onMapClick, ex
                       {player.turnOrder}
                     </Badge>
                     <div className="grid items-center gap-1.5 md:gap-2 flex-1 min-w-0"
-                      style={{ gridTemplateColumns: `${maxNameLen}ch auto 1fr auto` }}
+                      style={{ gridTemplateColumns: `auto auto 1fr auto` }}
                     >
-                      <span className="text-xs md:text-sm truncate">{player.playerName}</span>
+                      <span className="flex items-center gap-1 text-xs md:text-sm">
+                        <span className="truncate">{player.playerName}</span>
+                        {isWinner && (
+                          <Trophy className="text-accent shrink-0" size={14} weight="fill" />
+                        )}
+                      </span>
                       <span className="text-xs text-muted-foreground">as</span>
                       <button
                         onClick={() => onHeroClick(player.heroId)}
@@ -107,10 +112,7 @@ export function MatchCard({ match, onDelete, onEdit, onHeroClick, onMapClick, ex
                       >
                         {getHeroDisplayName(player)}
                       </button>
-                      <div className="flex items-center gap-1">
-                        {isWinner && (
-                          <Trophy className="text-accent shrink-0" size={14} weight="fill" />
-                        )}
+                      <div className="flex items-center">
                         {match.isDraw && (
                           <span className="text-[10px] md:text-xs text-muted-foreground shrink-0">(Draw)</span>
                         )}
