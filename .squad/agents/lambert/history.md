@@ -37,3 +37,10 @@ Unmatched Tracker: a web app for tracking Unmatched board game matches. Built wi
 - Session checkpoint logged for team visibility
 - Decisions now canonical reference for all 5 team decisions
 
+### 2026-04-28T23:55:03Z: Firestore Migration Diff Tests
+- **Created:** `src/lib/match-diff.ts` — pure utility with `diffMatches()`, `isValidMigrationState()`, `getDefaultMigrationState()`
+- **Created:** `src/lib/__tests__/match-diff.test.ts` — 27 tests covering diff logic + migration state validation
+- **Coverage:** additions, deletions, modifications, mixed ops, complete replacement, 500+ match arrays, duplicate IDs, undefined fields, large objects, performance
+- **Pattern:** Pure functions decoupled from Firebase — Hicks can import `diffMatches` into the dual-write layer
+- **All 94 tests pass (67 existing + 27 new)**
+
