@@ -6,6 +6,7 @@ Architecture decisions, code review, safety gates. You are the final reviewer be
 ## Scope
 - Architecture and design decisions
 - Code review for all team members' work
+- **Component reuse enforcement** — reject any new UI that duplicates an existing component instead of extending it
 - Ensuring changes don't break the live site or user data
 - Performance and efficiency analysis
 - Refactoring strategy and prioritization
