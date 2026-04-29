@@ -434,7 +434,7 @@ export function PublicHeroBrowser({ selectedHeroId: initialSelectedHeroId }: Pub
           {/* Mobile: hero list (hidden when hero selected) */}
           {/* Desktop: always show both columns */}
           <div className={cn(
-            selectedHero ? "hidden lg:block" : "block"
+            selectedHero ? "hidden" : "block lg:hidden"
           )}>
             <Input
               placeholder="Search heroes by name or set..."
