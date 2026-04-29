@@ -48,7 +48,7 @@ export function MatchCard({ match, onDelete, onEdit, onHeroClick, onMapClick, ex
 
   return (
     <>
-      <Card className="p-3 md:p-6 hover:shadow-md transition-shadow">
+      <Card className="p-3 md:p-6 hover:shadow-md transition-shadow max-w-2xl xl:max-w-none w-full">
         <div className="flex items-start justify-between gap-2 md:gap-4">
           <div className="flex-1 space-y-3 min-w-0">
           <div className="flex flex-col md:flex-row md:items-start justify-between gap-2 md:gap-4">
@@ -81,8 +81,8 @@ export function MatchCard({ match, onDelete, onEdit, onHeroClick, onMapClick, ex
             </span>
           </div>
 
-          <div className="grid gap-y-2 gap-x-1.5 md:gap-x-2 items-center"
-            style={{ gridTemplateColumns: 'auto minmax(0, auto) auto minmax(0, 1fr) auto' }}
+          <div className="grid gap-y-2 gap-x-1.5 md:gap-x-3 items-center md:mx-auto md:w-fit"
+            style={{ gridTemplateColumns: 'auto minmax(0, auto) auto minmax(0, auto) auto' }}
           >
             {match.players
               .sort((a, b) => a.turnOrder - b.turnOrder)

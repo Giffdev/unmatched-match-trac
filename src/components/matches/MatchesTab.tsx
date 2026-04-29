@@ -84,7 +84,7 @@ export function MatchesTab({ matches, setMatches, onHeroClick }: MatchesTabProps
           </div>
         </Card>
       ) : (
-        <div className="space-y-4">
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 max-w-6xl mx-auto">
           {sortedMatches.map((match) => (
             <MatchCard 
               key={match.id} 

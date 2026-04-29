@@ -60,3 +60,15 @@ Unmatched Tracker: a web app for tracking Unmatched board game matches. Built wi
 - Awaiting your verification: open app in incognito (not logged in), confirm community stats load, sign in and verify personal features, verify setDoc fails with permission denied
 - Orchestration log written; decision ready for Devin to deploy to Firebase Console
 
+### 2026-04-28T19:29:31-07:00: Firestore Security Rules — Live Verification PASSED
+- **Test suite:** All 94 tests pass (vitest run) — no regressions
+- **Live site (non-authenticated, headless Chromium):**
+  - Site loads, title "Unmatched Tracker"
+  - 3 public tabs visible: Community Stats, Hero Browser, Matchup Heatmap
+  - Community Stats tab loads and shows real data ("Insights from 80 matches played by the community", hero stats like Bruce Lee 7 games, Tomoe Gozen 5 games)
+  - Hero Browser tab loads with hero content
+  - Matchup Heatmap tab accessible and clickable
+  - **Zero console errors** — no permission-denied, no Firestore errors, no page errors, no warnings
+- **Verdict:** Rules are correctly configured. Public read access works for community features. No over-restriction detected.
+- **Methodology:** Used playwright-core (headless Chromium) to simulate unauthenticated user, captured all console messages, navigated all public tabs, waited for data to load.
+

@@ -24,4 +24,5 @@ Unmatched Tracker: a web app for tracking Unmatched board game matches. Built wi
 - Session logged in `.squad/log/` and orchestration logs in `.squad/orchestration-log/`
 - All decisions merged to canonical `decisions.md`
 
-
+- **2026-04-28T19:43:11-07:00:** Moved trophy icon from far-right grid column to inline with winner's player name in `MatchCard.tsx`. Changed grid from fixed `${maxNameLen}ch` first column to `auto` sizing. Trophy now renders as "PlayerName 🏆" making winner immediately visible. Removed unused `maxNameLen` variable. 94 tests pass, build clean.
+- **2026-04-28T20:29:25-07:00:** Aligned hero names into a separate column in MatchCard. Moved from per-row grids to a single parent grid with CSS subgrid rows (`grid-cols-subgrid col-span-5`). Columns: turn-badge | player-name+trophy | "as" | hero-name | draw-badge. Hero names now align vertically across all players in a match. Uses `min-w-0 + truncate` for mobile overflow. 94 tests pass, build clean, deployed to prod.
