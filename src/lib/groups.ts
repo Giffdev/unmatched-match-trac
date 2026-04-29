@@ -137,20 +137,19 @@ export async function updateGroupInfo(
   const group = groupSnap.data() as GameGroup
   const memberUids: string[] = group.memberUids || []
 
-  // Collect member docs to update
-  const memberUpdates: { ref: any; oldEntry: UserGroupMembership; newEntry: UserGroupMembership }[] = []
+  // Collect member docs to update — build the full replacement array for each user
+  const memberUpdates: { ref: any; updatedGroups: UserGroupMembership[] }[] = []
   for (const uid of memberUids) {
     const userGroupsRef = doc(db, 'users', uid, 'data', 'groups')
     const userGroupsSnap = await getDoc(userGroupsRef)
     if (userGroupsSnap.exists()) {
-      const currentGroups: UserGroupMembership[] = userGroupsSnap.data().groups || []
-      const entry = currentGroups.find(g => g.groupId === groupId)
-      if (entry) {
-        memberUpdates.push({
-          ref: userGroupsRef,
-          oldEntry: entry,
-          newEntry: { ...entry, groupName: data.name! },
-        })
+      const currentGroups: UserGroupMembership[] = (userGroupsSnap.data() as any).groups || []
+      const hasEntry = currentGroups.some(g => g.groupId === groupId)
+      if (hasEntry) {
+        const updatedGroups = currentGroups.map(g =>
+          g.groupId === groupId ? stripUndefined({ ...g, groupName: data.name! }) : g
+        )
+        memberUpdates.push({ ref: userGroupsRef, updatedGroups })
       }
     }
   }
@@ -166,12 +165,7 @@ export async function updateGroupInfo(
   batch.update(doc(db, 'groups', groupId), updates)
 
   for (const mu of memberUpdates) {
-    batch.update(mu.ref, {
-      groups: arrayRemove(stripUndefined(mu.oldEntry)),
-    })
-    batch.update(mu.ref, {
-      groups: arrayUnion(stripUndefined(mu.newEntry)),
-    })
+    batch.set(mu.ref, { groups: mu.updatedGroups }, { merge: true })
   }
 
   for (const inviteRef of pendingInviteRefs) {
