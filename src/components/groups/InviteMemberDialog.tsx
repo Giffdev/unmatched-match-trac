@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { MagnifyingGlass } from '@phosphor-icons/react'
 import { searchUserByEmail, searchUserByPlayerName } from '@/lib/user-discovery'
-import { sendInvite } from '@/lib/group-invites'
+import { sendInvite, sendEmailInvite, getGroupInvites } from '@/lib/group-invites'
 import { useAuth } from '@/hooks/use-auth'
 import { toast } from 'sonner'
 import type { DiscoveredUser } from '@/lib/user-discovery'
@@ -34,6 +34,8 @@ export function InviteMemberDialog({
   const [results, setResults] = useState<DiscoveredUser[]>([])
   const [searching, setSearching] = useState(false)
   const [invitingUid, setInvitingUid] = useState<string | null>(null)
+  const [invitingEmail, setInvitingEmail] = useState(false)
+  const [searchDone, setSearchDone] = useState(false)
 
   const canInvite = isOwner || allowMemberInvites
 
@@ -42,6 +44,7 @@ export function InviteMemberDialog({
 
     setSearching(true)
     setResults([])
+    setSearchDone(false)
     try {
       const query = searchQuery.trim()
       // Try email first, then player name search
@@ -56,6 +59,7 @@ export function InviteMemberDialog({
       toast.error('Search failed')
     } finally {
       setSearching(false)
+      setSearchDone(true)
     }
   }
 
@@ -64,6 +68,16 @@ export function InviteMemberDialog({
 
     setInvitingUid(targetUser.uid)
     try {
+      // Check for existing pending invite
+      const existingInvites = await getGroupInvites(groupId)
+      const hasPending = existingInvites.some(
+        i => i.invitedUid === targetUser.uid && i.status === 'pending'
+      )
+      if (hasPending) {
+        toast.error(`An invite is already pending for ${targetUser.displayName || targetUser.email}`)
+        return
+      }
+
       const inviterName = user.displayName || user.email || 'Someone'
       await sendInvite(groupId, groupName, targetUser.uid, user.uid, inviterName)
       toast.success(`Invite sent to ${targetUser.displayName || targetUser.email}`)
@@ -73,6 +87,41 @@ export function InviteMemberDialog({
       console.error(err)
     } finally {
       setInvitingUid(null)
+    }
+  }
+
+  const isValidEmail = (email: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
+
+  const handleEmailInvite = async () => {
+    if (!user?.uid) return
+    const email = searchQuery.trim()
+    if (!isValidEmail(email)) {
+      toast.error('Please enter a valid email address')
+      return
+    }
+
+    setInvitingEmail(true)
+    try {
+      // Check for existing pending invite for this email in the group
+      const existingInvites = await getGroupInvites(groupId)
+      const hasPending = existingInvites.some(
+        i => i.invitedEmail === email.toLowerCase() && i.status === 'pending'
+      )
+      if (hasPending) {
+        toast.error(`An invite is already pending for ${email}`)
+        return
+      }
+
+      const inviterName = user.displayName || user.email || 'Someone'
+      await sendEmailInvite(groupId, groupName, email, user.uid, inviterName)
+      toast.success(`Invite sent to ${email}`)
+      setSearchQuery('')
+      setSearchDone(false)
+    } catch (err) {
+      toast.error('Failed to send invite')
+      console.error(err)
+    } finally {
+      setInvitingEmail(false)
     }
   }
 
@@ -108,8 +157,20 @@ export function InviteMemberDialog({
             <p className="text-sm text-muted-foreground text-center py-2">Searching...</p>
           )}
 
-          {!searching && results.length === 0 && searchQuery && (
-            <p className="text-sm text-muted-foreground text-center py-2">No users found</p>
+          {!searching && results.length === 0 && searchDone && searchQuery && (
+            <div className="text-center py-2 space-y-2">
+              <p className="text-sm text-muted-foreground">No users found</p>
+              {searchQuery.includes('@') && isValidEmail(searchQuery.trim()) && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleEmailInvite}
+                  disabled={invitingEmail}
+                >
+                  {invitingEmail ? 'Sending...' : `Invite ${searchQuery.trim()} by email`}
+                </Button>
+              )}
+            </div>
           )}
 
           {results.length > 0 && (

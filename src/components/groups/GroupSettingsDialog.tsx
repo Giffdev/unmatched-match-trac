@@ -1,16 +1,22 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { deleteGroup } from '@/lib/groups'
+import { Label } from '@/components/ui/label'
+import { Switch } from '@/components/ui/switch'
+import { deleteGroup, updateGroupInfo } from '@/lib/groups'
 import { toast } from 'sonner'
+import type { GroupSettings } from '@/lib/group-types'
 
 type GroupSettingsDialogProps = {
   open: boolean
   onOpenChange: (open: boolean) => void
   groupId: string
   groupName: string
+  groupDescription?: string
+  settings: GroupSettings
   onDeleted: () => void
+  onUpdated?: () => void
 }
 
 export function GroupSettingsDialog({
@@ -18,11 +24,54 @@ export function GroupSettingsDialog({
   onOpenChange,
   groupId,
   groupName,
+  groupDescription,
+  settings,
   onDeleted,
+  onUpdated,
 }: GroupSettingsDialogProps) {
+  const [name, setName] = useState(groupName)
+  const [description, setDescription] = useState(groupDescription || '')
+  const [allowMemberInvites, setAllowMemberInvites] = useState(settings.allowMemberInvites)
+  const [autoAddToPersonal, setAutoAddToPersonal] = useState(settings.autoAddToPersonal)
+  const [saving, setSaving] = useState(false)
   const [confirmName, setConfirmName] = useState('')
   const [deleting, setDeleting] = useState(false)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+
+  // Sync form state when props change (e.g. dialog re-opened after update)
+  useEffect(() => {
+    setName(groupName)
+    setDescription(groupDescription || '')
+    setAllowMemberInvites(settings.allowMemberInvites)
+    setAutoAddToPersonal(settings.autoAddToPersonal)
+  }, [groupName, groupDescription, settings])
+
+  const hasChanges =
+    name !== groupName ||
+    description !== (groupDescription || '') ||
+    allowMemberInvites !== settings.allowMemberInvites ||
+    autoAddToPersonal !== settings.autoAddToPersonal
+
+  const canSave = hasChanges && name.trim().length > 0
+
+  const handleSave = async () => {
+    if (!canSave) return
+    setSaving(true)
+    try {
+      await updateGroupInfo(groupId, {
+        name: name.trim(),
+        description: description.trim() || undefined,
+        settings: { allowMemberInvites, autoAddToPersonal },
+      })
+      toast.success('Group settings saved')
+      onUpdated?.()
+    } catch (err) {
+      console.error('Failed to save group settings:', err)
+      toast.error('Failed to save settings')
+    } finally {
+      setSaving(false)
+    }
+  }
 
   const canDelete = confirmName === groupName
 
@@ -59,10 +108,57 @@ export function GroupSettingsDialog({
         </DialogHeader>
 
         <div className="space-y-6 pt-2">
-          {/* Group Info */}
-          <div>
-            <label className="text-sm font-medium text-muted-foreground">Group Name</label>
-            <p className="text-foreground mt-1">{groupName}</p>
+          {/* Editable fields */}
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="group-name">Group Name</Label>
+              <Input
+                id="group-name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="Group name"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="group-description">Description</Label>
+              <Input
+                id="group-description"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                placeholder="Optional description"
+              />
+            </div>
+
+            <div className="flex items-center justify-between">
+              <Label htmlFor="allow-member-invites" className="text-sm">
+                Allow members to invite others
+              </Label>
+              <Switch
+                id="allow-member-invites"
+                checked={allowMemberInvites}
+                onCheckedChange={setAllowMemberInvites}
+              />
+            </div>
+
+            <div className="flex items-center justify-between">
+              <Label htmlFor="auto-add-personal" className="text-sm">
+                Auto-add group matches to personal log
+              </Label>
+              <Switch
+                id="auto-add-personal"
+                checked={autoAddToPersonal}
+                onCheckedChange={setAutoAddToPersonal}
+              />
+            </div>
+
+            <Button
+              onClick={handleSave}
+              disabled={!canSave || saving}
+              className="w-full"
+            >
+              {saving ? 'Saving...' : 'Save Changes'}
+            </Button>
           </div>
 
           {/* Danger Zone */}

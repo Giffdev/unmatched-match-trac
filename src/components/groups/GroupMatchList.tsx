@@ -1,9 +1,9 @@
 import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { WarningCircle } from '@phosphor-icons/react'
 import { useGroupMatches } from '@/hooks/use-group-matches'
 import { getHeroById } from '@/lib/data'
-import { getHeroDisplayName } from '@/lib/utils'
 import { format } from 'date-fns'
 import type { GroupMatch } from '@/lib/group-types'
 
@@ -12,10 +12,23 @@ type GroupMatchListProps = {
 }
 
 export function GroupMatchList({ groupId }: GroupMatchListProps) {
-  const { matches, loading, loadMore, hasMore } = useGroupMatches(groupId)
+  const { matches, loading, error, loadMore, hasMore, refetch } = useGroupMatches(groupId)
 
   if (loading) {
     return <p className="text-sm text-muted-foreground text-center py-4">Loading matches...</p>
+  }
+
+  if (error) {
+    return (
+      <div className="text-center py-8 space-y-3">
+        <WarningCircle size={36} className="mx-auto text-destructive" />
+        <p className="text-sm text-destructive font-medium">Failed to load matches</p>
+        <p className="text-xs text-muted-foreground">{error.message}</p>
+        <Button variant="outline" size="sm" onClick={refetch}>
+          Try Again
+        </Button>
+      </div>
+    )
   }
 
   if (matches.length === 0) {
@@ -80,7 +93,7 @@ function GroupMatchCard({ match }: { match: GroupMatch }) {
               </span>
               <span className="text-muted-foreground">as</span>
               <span className="text-muted-foreground truncate">
-                {hero ? getHeroDisplayName(hero) : player.heroId}
+                {hero ? hero.name : player.heroId}
               </span>
               {isWinner && <span className="flex-shrink-0">🏆</span>}
             </div>

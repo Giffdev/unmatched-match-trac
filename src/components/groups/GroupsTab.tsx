@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Users, Plus } from '@phosphor-icons/react'
+import { Users, Plus, WarningCircle } from '@phosphor-icons/react'
 import { useGroups, usePendingInvites } from '@/hooks/use-groups'
 import { useAuth } from '@/hooks/use-auth'
 import { GroupView } from './GroupView'
@@ -13,7 +13,7 @@ import type { UserGroupMembership } from '@/lib/group-types'
 export function GroupsTab() {
   const { user } = useAuth()
   const userId = user?.uid ?? null
-  const { groups, loading, refetch } = useGroups(userId)
+  const { groups, loading, error, refetch } = useGroups(userId)
   const { invites, count: inviteCount, refetch: refetchInvites } = usePendingInvites(userId)
   const [selectedGroupId, setSelectedGroupId] = useState<string | null>(null)
   const [createOpen, setCreateOpen] = useState(false)
@@ -50,7 +50,16 @@ export function GroupsTab() {
         />
       )}
 
-      {loading ? (
+      {error ? (
+        <Card className="p-8 text-center">
+          <WarningCircle size={48} className="mx-auto text-destructive mb-3" />
+          <p className="text-destructive font-medium mb-2">Failed to load groups</p>
+          <p className="text-sm text-muted-foreground mb-4">{error.message}</p>
+          <Button variant="outline" size="sm" onClick={refetch}>
+            Try Again
+          </Button>
+        </Card>
+      ) : loading ? (
         <div className="flex items-center justify-center py-12">
           <p className="text-muted-foreground">Loading groups...</p>
         </div>

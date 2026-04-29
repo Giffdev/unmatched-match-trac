@@ -3,12 +3,13 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Checkbox } from '@/components/ui/checkbox'
 import type { Match, GameMode, PlayerAssignment } from '@/lib/types'
 import { getMapsByPlayerCount, getCooperativeMaps } from '@/lib/data'
 import { toast } from 'sonner'
 import { useAuth } from '@/hooks/use-auth'
 import { useGroups } from '@/hooks/use-groups'
-import { logGroupMatch } from '@/lib/group-matches'
+import { addMatchToGroups } from '@/lib/groups'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Plus, CalendarBlank } from '@phosphor-icons/react'
 import { cn, normalizePlayerName } from '@/lib/utils'
@@ -46,7 +47,15 @@ export function LogMatchDialog({ open, onOpenChange, onSave, prefilled, existing
   const { user } = useAuth()
   const currentUserId = user?.uid ?? null
   const { groups } = useGroups(currentUserId)
-  const [logTarget, setLogTarget] = useState<string>('personal')
+  const [selectedGroupIds, setSelectedGroupIds] = useState<string[]>([])
+
+  const toggleGroup = (groupId: string) => {
+    setSelectedGroupIds(prev =>
+      prev.includes(groupId)
+        ? prev.filter(id => id !== groupId)
+        : [...prev, groupId]
+    )
+  }
 
   const isCooperative = mode === 'cooperative'
   const playerCount = isCooperative 
@@ -150,21 +159,23 @@ export function LogMatchDialog({ open, onOpenChange, onSave, prefilled, existing
       cooperativeResult: isCooperative ? cooperativeResult : undefined,
     }
 
-    // Route to group or personal
-    if (logTarget !== 'personal') {
+    // Always save personally; optionally also write to selected groups
+    if (selectedGroupIds.length > 0) {
       try {
         const userName = user?.displayName || user?.email || 'Unknown'
-        await logGroupMatch(logTarget, match, currentUserId, userName)
-        toast.success('Match logged to group!')
+        const groupRef = await addMatchToGroups(selectedGroupIds, match, currentUserId, userName)
+        if (groupRef) {
+          match.groupRef = groupRef
+        }
       } catch (err) {
-        toast.error('Failed to log match to group')
+        toast.error('Failed to log match to group(s)')
         console.error(err)
         return
       }
-    } else {
-      onSave(match)
-      toast.success('Match logged successfully!')
     }
+
+    onSave(match)
+    toast.success('Match logged successfully!')
 
     onOpenChange(false)
     resetForm()
@@ -181,7 +192,7 @@ export function LogMatchDialog({ open, onOpenChange, onSave, prefilled, existing
     setIsDraw(false)
     setCooperativeResult(undefined)
     setSelectedDate(new Date())
-    setLogTarget('personal')
+    setSelectedGroupIds([])
   }
 
   return (
@@ -194,20 +205,18 @@ export function LogMatchDialog({ open, onOpenChange, onSave, prefilled, existing
         <div className="space-y-6 py-4 px-6 overflow-y-auto flex-1 min-h-0">
           {groups.length > 0 && (
             <div className="space-y-2">
-              <Label>Log to</Label>
-              <Select value={logTarget} onValueChange={setLogTarget}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="personal">Personal</SelectItem>
-                  {groups.map((g) => (
-                    <SelectItem key={g.groupId} value={g.groupId}>
-                      {g.groupName}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Label>Also log to group(s)</Label>
+              <div className="space-y-1.5 rounded-md border p-3">
+                {groups.map((g) => (
+                  <label key={g.groupId} className="flex items-center gap-2 cursor-pointer">
+                    <Checkbox
+                      checked={selectedGroupIds.includes(g.groupId)}
+                      onCheckedChange={() => toggleGroup(g.groupId)}
+                    />
+                    <span className="text-sm">{g.groupName}</span>
+                  </label>
+                ))}
+              </div>
             </div>
           )}
 

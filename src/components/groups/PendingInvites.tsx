@@ -15,6 +15,10 @@ export function PendingInvites({ invites, onRespond }: PendingInvitesProps) {
   const [respondingId, setRespondingId] = useState<string | null>(null)
 
   const handleAccept = async (invite: GroupInvite) => {
+    if (!invite.invitedUid) {
+      toast.error('Invite is not yet associated with your account')
+      return
+    }
     setRespondingId(invite.id)
     try {
       await acceptInvite(invite.id, invite.groupId, invite.invitedUid)

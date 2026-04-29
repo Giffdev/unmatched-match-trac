@@ -33,6 +33,7 @@ export type GroupMatch = Match & {
   groupId: string
   loggedBy: string
   loggedByName: string
+  sourceMatchId?: string
 }
 
 export type GroupInviteStatus = 'pending' | 'accepted' | 'declined'
@@ -41,7 +42,8 @@ export type GroupInvite = {
   id: string
   groupId: string
   groupName: string
-  invitedUid: string
+  invitedUid?: string
+  invitedEmail?: string
   invitedBy: string
   invitedByName: string
   status: GroupInviteStatus

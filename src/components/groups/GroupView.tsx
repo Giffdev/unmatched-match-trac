@@ -1,13 +1,14 @@
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { ArrowLeft, GearSix, Plus } from '@phosphor-icons/react'
+import { ArrowLeft, GearSix, Plus, DownloadSimple } from '@phosphor-icons/react'
 import { useGroup } from '@/hooks/use-groups'
 import { useAuth } from '@/hooks/use-auth'
 import { GroupMatchList } from './GroupMatchList'
 import { MemberList } from './MemberList'
 import { InviteMemberDialog } from './InviteMemberDialog'
 import { GroupSettingsDialog } from './GroupSettingsDialog'
+import { ImportMatchesDialog } from './ImportMatchesDialog'
 
 type GroupViewProps = {
   groupId: string
@@ -19,12 +20,15 @@ type SubTab = 'matches' | 'members' | 'stats'
 export function GroupView({ groupId, onBack }: GroupViewProps) {
   const { user } = useAuth()
   const userId = user?.uid ?? null
-  const { group, loading } = useGroup(groupId)
+  const { group, loading, refetch: refetchGroup } = useGroup(groupId)
   const [activeSubTab, setActiveSubTab] = useState<SubTab>('matches')
   const [inviteOpen, setInviteOpen] = useState(false)
   const [settingsOpen, setSettingsOpen] = useState(false)
+  const [importOpen, setImportOpen] = useState(false)
+  const [matchListKey, setMatchListKey] = useState(0)
 
   const isOwner = group?.createdBy === userId
+  const isMember = group?.memberUids?.includes(userId ?? '') ?? false
 
   if (loading) {
     return (
@@ -88,7 +92,20 @@ export function GroupView({ groupId, onBack }: GroupViewProps) {
 
       {/* Sub-tab content */}
       {activeSubTab === 'matches' && (
-        <GroupMatchList groupId={groupId} />
+        <div className="space-y-3">
+          {isMember && (
+            <Button
+              onClick={() => setImportOpen(true)}
+              size="sm"
+              variant="outline"
+              className="gap-1.5"
+            >
+              <DownloadSimple size={16} />
+              Import Matches
+            </Button>
+          )}
+          <GroupMatchList key={matchListKey} groupId={groupId} />
+        </div>
       )}
 
       {activeSubTab === 'members' && (
@@ -104,7 +121,7 @@ export function GroupView({ groupId, onBack }: GroupViewProps) {
               Invite Member
             </Button>
           )}
-          <MemberList groupId={groupId} currentUserId={userId} isOwner={isOwner} onMemberRemoved={() => {}} />
+          <MemberList groupId={groupId} currentUserId={userId} isOwner={isOwner} onMemberRemoved={refetchGroup} />
         </div>
       )}
 
@@ -130,9 +147,19 @@ export function GroupView({ groupId, onBack }: GroupViewProps) {
           onOpenChange={setSettingsOpen}
           groupId={groupId}
           groupName={group.name}
+          groupDescription={group.description}
+          settings={group.settings}
           onDeleted={onBack}
+          onUpdated={refetchGroup}
         />
       )}
+
+      <ImportMatchesDialog
+        open={importOpen}
+        onOpenChange={setImportOpen}
+        groupId={groupId}
+        onImportComplete={() => setMatchListKey(k => k + 1)}
+      />
     </div>
   )
 }

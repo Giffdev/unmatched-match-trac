@@ -65,6 +65,7 @@ export type Match = {
   isDraw: boolean
   userId: string
   cooperativeResult?: 'win' | 'loss'
+  groupRef?: { groupId: string; groupMatchId: string }
 }
 
 export type PlayerStats = {

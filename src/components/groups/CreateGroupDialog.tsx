@@ -17,7 +17,6 @@ type CreateGroupDialogProps = {
 export function CreateGroupDialog({ open, onOpenChange, onCreated }: CreateGroupDialogProps) {
   const { user } = useAuth()
   const [name, setName] = useState('')
-  const [description, setDescription] = useState('')
   const [allowMemberInvites, setAllowMemberInvites] = useState(false)
   const [autoAddToPersonal, setAutoAddToPersonal] = useState(true)
   const [creating, setCreating] = useState(false)
@@ -27,10 +26,9 @@ export function CreateGroupDialog({ open, onOpenChange, onCreated }: CreateGroup
 
     setCreating(true)
     try {
-      await createGroup(user.uid, name.trim(), description.trim() || undefined)
+      await createGroup(user.uid, name.trim(), undefined, { allowMemberInvites, autoAddToPersonal })
       toast.success(`Group "${name.trim()}" created!`)
       setName('')
-      setDescription('')
       setAllowMemberInvites(false)
       setAutoAddToPersonal(true)
       onCreated()
@@ -58,17 +56,6 @@ export function CreateGroupDialog({ open, onOpenChange, onCreated }: CreateGroup
               value={name}
               onChange={(e) => setName(e.target.value)}
               maxLength={50}
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="group-desc">Description</Label>
-            <Input
-              id="group-desc"
-              placeholder="What's this group for?"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              maxLength={200}
             />
           </div>
 

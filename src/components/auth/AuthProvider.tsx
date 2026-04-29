@@ -3,6 +3,7 @@ import { onAuthStateChanged } from 'firebase/auth'
 import { auth } from '@/lib/firebase'
 import { AuthContext } from '@/hooks/use-auth'
 import { getUserProfile } from '@/lib/firestore'
+import { checkPendingEmailInvites } from '@/lib/group-invites'
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<any>(null)
@@ -22,6 +23,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       playerName: profile?.playerName,
       authProvider: firebaseUser.providerData[0]?.providerId === 'google.com' ? 'google' : 'email',
     })
+
+    // Check for pending email invites and migrate them to UID-based
+    if (firebaseUser.email) {
+      try {
+        await checkPendingEmailInvites(firebaseUser.email, firebaseUser.uid)
+      } catch (err) {
+        console.error('Failed to check pending email invites:', err)
+      }
+    }
   }, [])
 
   const refreshProfile = useCallback(async () => {

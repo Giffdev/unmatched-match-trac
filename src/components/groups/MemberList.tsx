@@ -43,7 +43,8 @@ export function MemberList({ groupId, currentUserId, isOwner, onMemberRemoved }:
       toast.success('Left group')
       onMemberRemoved()
     } catch (err) {
-      toast.error('Failed to leave group')
+      const message = err instanceof Error ? err.message : 'Failed to leave group'
+      toast.error(message)
       console.error(err)
     }
   }
@@ -73,7 +74,8 @@ export function MemberList({ groupId, currentUserId, isOwner, onMemberRemoved }:
                 <p className="text-sm font-medium truncate">
                   {member.displayName || member.playerName || 'Unknown'}
                 </p>
-                {member.playerName && member.displayName && (
+                {member.playerName && member.displayName &&
+                  member.playerName.toLowerCase() !== member.displayName.toLowerCase() && (
                   <p className="text-xs text-muted-foreground">@{member.playerName}</p>
                 )}
               </div>
