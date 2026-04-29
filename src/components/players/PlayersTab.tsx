@@ -30,7 +30,7 @@ type PlayersTabProps = {
 }
 
 export function PlayersTab({ matches, ownedSets = [], onHeroClick, dataSource, groups = [], dataContext = 'personal', onDataContextChange }: PlayersTabProps) {
-  const effectiveMatches = dataSource ? dataSource.matches : matches
+  const effectiveMatches = dataSource ? dataSource.matches : (matches || [])
   const playerNames = getAllPlayerNames(effectiveMatches)
   const [selectedPlayer, setSelectedPlayer] = useState(playerNames[0] || '')
   const [showOnlyOwnedHeroes, setShowOnlyOwnedHeroes] = useState(false)
@@ -46,24 +46,7 @@ export function PlayersTab({ matches, ownedSets = [], onHeroClick, dataSource, g
     }
   }
 
-  if (playerNames.length === 0) {
-    return (
-      <Card className="p-12 text-center">
-        <div className="flex flex-col items-center gap-4">
-          <div className="rounded-full bg-primary/10 p-6">
-            <Target className="w-12 h-12 text-primary" />
-          </div>
-          <div>
-            <h3 className="text-lg font-semibold mb-2">No player data</h3>
-            <p className="text-muted-foreground">
-              Log some matches to see player statistics
-            </p>
-          </div>
-        </div>
-      </Card>
-    )
-  }
-
+  // All hooks must be called before any early return (React rules of hooks)
   const stats = useMemo(() => calculatePlayerStats(effectiveMatches, selectedPlayer), [effectiveMatches, selectedPlayer])
   const heroesPlayedEntries = useMemo(() => Object.entries(stats.heroesPlayed).sort((a, b) => b[1] - a[1]), [stats])
   
@@ -85,6 +68,24 @@ export function PlayersTab({ matches, ownedSets = [], onHeroClick, dataSource, g
     return maps.sort((a, b) => a.name.localeCompare(b.name))
   }, [stats, showOnlyOwnedMaps, ownedSets])
   const vsPlayersEntries = useMemo(() => Object.entries(stats.vsPlayers).sort((a, b) => b[1].total - a[1].total), [stats])
+
+  if (playerNames.length === 0) {
+    return (
+      <Card className="p-12 text-center">
+        <div className="flex flex-col items-center gap-4">
+          <div className="rounded-full bg-primary/10 p-6">
+            <Target className="w-12 h-12 text-primary" />
+          </div>
+          <div>
+            <h3 className="text-lg font-semibold mb-2">No player data</h3>
+            <p className="text-muted-foreground">
+              Log some matches to see player statistics
+            </p>
+          </div>
+        </div>
+      </Card>
+    )
+  }
 
   return (
     <div className="space-y-4 md:space-y-6">
