@@ -7,6 +7,7 @@ import { useAuth } from '@/hooks/use-auth'
 import { GroupMatchList } from './GroupMatchList'
 import { MemberList } from './MemberList'
 import { InviteMemberDialog } from './InviteMemberDialog'
+import { GroupSettingsDialog } from './GroupSettingsDialog'
 
 type GroupViewProps = {
   groupId: string
@@ -21,6 +22,7 @@ export function GroupView({ groupId, onBack }: GroupViewProps) {
   const { group, loading } = useGroup(groupId)
   const [activeSubTab, setActiveSubTab] = useState<SubTab>('matches')
   const [inviteOpen, setInviteOpen] = useState(false)
+  const [settingsOpen, setSettingsOpen] = useState(false)
 
   const isOwner = group?.createdBy === userId
 
@@ -57,7 +59,7 @@ export function GroupView({ groupId, onBack }: GroupViewProps) {
           </p>
         </div>
         {isOwner && (
-          <Button variant="ghost" size="icon" className="h-9 w-9">
+          <Button variant="ghost" size="icon" className="h-9 w-9" onClick={() => setSettingsOpen(true)}>
             <GearSix size={20} />
           </Button>
         )}
@@ -121,6 +123,16 @@ export function GroupView({ groupId, onBack }: GroupViewProps) {
         allowMemberInvites={group.settings.allowMemberInvites}
         isOwner={isOwner}
       />
+
+      {isOwner && (
+        <GroupSettingsDialog
+          open={settingsOpen}
+          onOpenChange={setSettingsOpen}
+          groupId={groupId}
+          groupName={group.name}
+          onDeleted={onBack}
+        />
+      )}
     </div>
   )
 }
