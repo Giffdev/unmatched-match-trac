@@ -12,14 +12,26 @@ import { Badge } from '@/components/ui/badge'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { MapImageDialog } from './MapImageDialog'
 
+import { DataContextSelector } from '@/components/shared/DataContextSelector'
+
+type DataSource = {
+  label: string
+  matches: Match[]
+}
+
 type PlayersTabProps = {
   matches: Match[]
   ownedSets?: string[]
   onHeroClick?: (heroId: string) => void
+  dataSource?: DataSource
+  groups?: { id: string; name: string }[]
+  dataContext?: string
+  onDataContextChange?: (value: string) => void
 }
 
-export function PlayersTab({ matches, ownedSets = [], onHeroClick }: PlayersTabProps) {
-  const playerNames = getAllPlayerNames(matches)
+export function PlayersTab({ matches, ownedSets = [], onHeroClick, dataSource, groups = [], dataContext = 'personal', onDataContextChange }: PlayersTabProps) {
+  const effectiveMatches = dataSource ? dataSource.matches : matches
+  const playerNames = getAllPlayerNames(effectiveMatches)
   const [selectedPlayer, setSelectedPlayer] = useState(playerNames[0] || '')
   const [showOnlyOwnedHeroes, setShowOnlyOwnedHeroes] = useState(false)
   const [showOnlyOwnedMaps, setShowOnlyOwnedMaps] = useState(false)
@@ -52,7 +64,7 @@ export function PlayersTab({ matches, ownedSets = [], onHeroClick }: PlayersTabP
     )
   }
 
-  const stats = useMemo(() => calculatePlayerStats(matches, selectedPlayer), [matches, selectedPlayer])
+  const stats = useMemo(() => calculatePlayerStats(effectiveMatches, selectedPlayer), [effectiveMatches, selectedPlayer])
   const heroesPlayedEntries = useMemo(() => Object.entries(stats.heroesPlayed).sort((a, b) => b[1] - a[1]), [stats])
   
   const selectableHeroes = getSelectableHeroes()
@@ -76,6 +88,11 @@ export function PlayersTab({ matches, ownedSets = [], onHeroClick }: PlayersTabP
 
   return (
     <div className="space-y-4 md:space-y-6">
+      <DataContextSelector
+        groups={groups}
+        value={dataContext}
+        onChange={onDataContextChange || (() => {})}
+      />
       <div>
         <h2 className="text-xl md:text-2xl font-semibold mb-3 md:mb-4">Player Statistics</h2>
         <Select value={selectedPlayer} onValueChange={setSelectedPlayer}>

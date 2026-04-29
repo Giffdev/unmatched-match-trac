@@ -15,8 +15,14 @@ import { useAuth } from '@/hooks/use-auth'
 import { getAllUserMatches } from '@/lib/firestore'
 import { HeroImage } from './HeroImage'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { DataContextSelector } from '@/components/shared/DataContextSelector'
 
 import { HeroMatchupHeatmap } from '@/components/global/HeroMatchupHeatmap'
+
+type DataSource = {
+  label: string
+  matches: Match[]
+}
 
 type HeroesTabProps = {
   matches: Match[]
@@ -24,15 +30,21 @@ type HeroesTabProps = {
   initialSelectedHero?: string | null
   onHeroChange?: () => void
   onHeroClick?: (heroId: string) => void
+  dataSource?: DataSource
+  groups?: { id: string; name: string }[]
+  dataContext?: string
+  onDataContextChange?: (value: string) => void
 }
 
-export function HeroesTab({ matches, currentUserId, initialSelectedHero, onHeroChange, onHeroClick }: HeroesTabProps) {
+export function HeroesTab({ matches, currentUserId, initialSelectedHero, onHeroChange, onHeroClick, dataSource, groups = [], dataContext = 'personal', onDataContextChange }: HeroesTabProps) {
   const [selectedHero, setSelectedHero] = useState(initialSelectedHero || '')
   const [open, setOpen] = useState(false)
   const [search, setSearch] = useState('')
   const [allMatches, setAllMatches] = useState<Match[]>([])
   const { user } = useAuth()
   const [selectedPlayerName, setSelectedPlayerName] = useState<string>('')
+  const effectiveMatches = dataSource ? dataSource.matches : matches
+  const isGroupContext = dataContext !== 'personal'
 
   useEffect(() => {
     if (user?.playerName) {
@@ -42,13 +54,13 @@ export function HeroesTab({ matches, currentUserId, initialSelectedHero, onHeroC
 
   const availablePlayers = useMemo(() => {
     const playerSet = new Set<string>()
-    matches.forEach(match => {
+    effectiveMatches.forEach(match => {
       match.players.forEach(player => {
         playerSet.add(player.playerName)
       })
     })
     return Array.from(playerSet).sort()
-  }, [matches])
+  }, [effectiveMatches])
 
   useEffect(() => {
     if (initialSelectedHero) {
@@ -86,6 +98,11 @@ export function HeroesTab({ matches, currentUserId, initialSelectedHero, onHeroC
    if (!selectedHero) {
     return (
       <div className="space-y-6">
+        <DataContextSelector
+          groups={groups}
+          value={dataContext}
+          onChange={onDataContextChange || (() => {})}
+        />
         <div>
           <h2 className="text-2xl font-semibold mb-4">Hero Statistics</h2>
           <Card className="p-6 mb-2 border-primary/20 bg-primary/5">
@@ -151,28 +168,30 @@ export function HeroesTab({ matches, currentUserId, initialSelectedHero, onHeroC
             </div>
           </Card>
         </div>
-        <Card className="p-6">
-          <h3 className="text-lg font-semibold mb-1">Global Matchup Heatmap</h3>
-          <p className="text-sm text-muted-foreground mb-4">
-            Win rates across all users — click any hero below to jump to their stats
-          </p>
-          <HeroMatchupHeatmap 
-            matches={allMatches} 
-            onHeroClick={(heroId) => {
-              setSelectedHero(heroId)
-              setOpen(false)
-              setSearch('')
-              onHeroClick?.(heroId)
-            }}
-            isLoading={allMatches.length === 0}
-          />
-        </Card>
+        {!isGroupContext && (
+          <Card className="p-6">
+            <h3 className="text-lg font-semibold mb-1">Global Matchup Heatmap</h3>
+            <p className="text-sm text-muted-foreground mb-4">
+              Win rates across all users — click any hero below to jump to their stats
+            </p>
+            <HeroMatchupHeatmap 
+              matches={allMatches} 
+              onHeroClick={(heroId) => {
+                setSelectedHero(heroId)
+                setOpen(false)
+                setSearch('')
+                onHeroClick?.(heroId)
+              }}
+              isLoading={allMatches.length === 0}
+            />
+          </Card>
+        )}
       </div>
     )
   }
 
-  const userPersonalStats = useMemo(() => calculateUserHeroStats(matches, selectedHero, selectedPlayerName || undefined), [matches, selectedHero, selectedPlayerName])
-  const userLoggedMatchesStats = useMemo(() => calculateUserHeroStats(matches, selectedHero), [matches, selectedHero])
+  const userPersonalStats = useMemo(() => calculateUserHeroStats(effectiveMatches, selectedHero, selectedPlayerName || undefined), [effectiveMatches, selectedHero, selectedPlayerName])
+  const userLoggedMatchesStats = useMemo(() => calculateUserHeroStats(effectiveMatches, selectedHero), [effectiveMatches, selectedHero])
   const globalStats = useMemo(() => calculateHeroStats(allMatches || [], selectedHero), [allMatches, selectedHero])
   const hero = getHeroById(selectedHero)
 
@@ -190,6 +209,11 @@ export function HeroesTab({ matches, currentUserId, initialSelectedHero, onHeroC
 
   return (
     <div className="space-y-6">
+      <DataContextSelector
+        groups={groups}
+        value={dataContext}
+        onChange={onDataContextChange || (() => {})}
+      />
       <div>
         <h2 className="text-2xl font-semibold mb-4">Hero Statistics</h2>
         <Popover open={open} onOpenChange={setOpen}>
@@ -484,23 +508,25 @@ export function HeroesTab({ matches, currentUserId, initialSelectedHero, onHeroC
         )}
       </Card>
 
-      {/* Global Matchup Heatmap - always visible */}
-      <Card className="p-6">
-        <h3 className="text-lg font-semibold mb-1">Global Matchup Heatmap</h3>
-        <p className="text-sm text-muted-foreground mb-4">
-          Win rates across all users — click any hero to switch to their stats
-        </p>
-        <HeroMatchupHeatmap 
-          matches={allMatches} 
-          onHeroClick={(heroId) => {
-            setSelectedHero(heroId)
-            setOpen(false)
-            setSearch('')
-            onHeroClick?.(heroId)
-          }}
-          isLoading={allMatches.length === 0}
-        />
-      </Card>
+      {/* Global Matchup Heatmap - hidden in group context */}
+      {!isGroupContext && (
+        <Card className="p-6">
+          <h3 className="text-lg font-semibold mb-1">Global Matchup Heatmap</h3>
+          <p className="text-sm text-muted-foreground mb-4">
+            Win rates across all users — click any hero to switch to their stats
+          </p>
+          <HeroMatchupHeatmap 
+            matches={allMatches} 
+            onHeroClick={(heroId) => {
+              setSelectedHero(heroId)
+              setOpen(false)
+              setSearch('')
+              onHeroClick?.(heroId)
+            }}
+            isLoading={allMatches.length === 0}
+          />
+        </Card>
+      )}
     </div>
   )
 }

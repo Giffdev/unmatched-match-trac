@@ -1,6 +1,6 @@
 import { useAuth } from '@/hooks/use-auth'
 import { useUserMatches, useUserOwnedSets } from '@/hooks/use-user-data'
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useMemo } from 'react'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Button } from '@/components/ui/button'
 import { MatchesTab } from '@/components/matches/MatchesTab'
@@ -16,7 +16,8 @@ import { DataCleanup } from '@/components/auth/DataCleanup'
 import { ErrorBoundary } from '@/components/ErrorBoundary'
 import { Toaster } from '@/components/ui/sonner'
 import { ListChecks, Users, User, Shuffle, MapTrifold, UsersThree } from '@phosphor-icons/react'
-import { usePendingInvites } from '@/hooks/use-groups'
+import { usePendingInvites, useGroups } from '@/hooks/use-groups'
+import { useGroupMatches } from '@/hooks/use-group-matches'
 import type { Match } from '@/lib/types'
 import { normalizeMatchPlayerNames } from '@/lib/utils'
 import { useIsMobile } from '@/hooks/use-mobile'
@@ -35,6 +36,31 @@ function App() {
   const normalizationRan = useRef(false)
   const isMobile = useIsMobile()
   const { count: pendingInviteCount } = usePendingInvites(currentUserId)
+  const { groups: userGroups } = useGroups(currentUserId)
+
+  // Per-tab data context: 'personal' or a groupId
+  const [playersContext, setPlayersContext] = useState<string>('personal')
+  const [heroesContext, setHeroesContext] = useState<string>('personal')
+
+  // Fetch group matches when a group is selected
+  const { matches: playersGroupMatches } = useGroupMatches(playersContext !== 'personal' ? playersContext : null)
+  const { matches: heroesGroupMatches } = useGroupMatches(heroesContext !== 'personal' ? heroesContext : null)
+
+  // Build group list for selector
+  const groupOptions = useMemo(() => userGroups.map(g => ({ id: g.groupId, name: g.groupName })), [userGroups])
+
+  // Build dataSource objects for tabs when in group context
+  const playersDataSource = useMemo(() => {
+    if (playersContext === 'personal') return undefined
+    const group = userGroups.find(g => g.groupId === playersContext)
+    return { label: group?.groupName || 'Group', matches: playersGroupMatches as Match[] }
+  }, [playersContext, playersGroupMatches, userGroups])
+
+  const heroesDataSource = useMemo(() => {
+    if (heroesContext === 'personal') return undefined
+    const group = userGroups.find(g => g.groupId === heroesContext)
+    return { label: group?.groupName || 'Group', matches: heroesGroupMatches as Match[] }
+  }, [heroesContext, heroesGroupMatches, userGroups])
 
 
   const matchesData = matches || []
@@ -194,6 +220,10 @@ function App() {
                   matches={matchesData}
                   ownedSets={ownedSetsData}
                   onHeroClick={handleHeroClick}
+                  dataSource={playersDataSource}
+                  groups={groupOptions}
+                  dataContext={playersContext}
+                  onDataContextChange={setPlayersContext}
                 />
               </ErrorBoundary>
             </TabsContent>
@@ -205,6 +235,10 @@ function App() {
                   currentUserId={currentUserId}
                   initialSelectedHero={selectedHeroId}
                   onHeroChange={() => setSelectedHeroId(null)}
+                  dataSource={heroesDataSource}
+                  groups={groupOptions}
+                  dataContext={heroesContext}
+                  onDataContextChange={setHeroesContext}
                 />
               </ErrorBoundary>
             </TabsContent>

@@ -71,3 +71,11 @@ Unmatched Tracker: a web app for tracking Unmatched board game matches. Built wi
 - **Root cause:** `updateGroupInfo()` used `arrayRemove(oldEntry)` + `arrayUnion(newEntry)` for denormalized `UserGroupMembership`. `arrayRemove` requires EXACT object equality — if stored entry has extra fields or different shape, it silently fails, leaving the old entry in place.
 - **Fix:** Replaced with direct array manipulation: read user's groups array, find entry by `groupId`, replace `groupName` in-place, write full updated array via `batch.set(merge: true)`. Deterministic regardless of stored object shape.
 - **Pattern to remember:** NEVER use `arrayRemove` on complex objects in Firestore — it depends on exact field-by-field equality which is fragile. For objects with an ID field, always read-modify-write the full array by matching on ID.
+
+### 2026-04-29T13:29:46-07:00: Created useGroupMatches (all-matches) + useUserGroups hooks
+- **Task:** Data layer for group context integration — stats computation needs ALL matches, not paginated
+- **useGroupMatches (src/hooks/useGroupMatches.ts):** Fetches entire `groups/{groupId}/matches` collection ordered by date DESC. Module-level cache (5min TTL) shared across component instances so tab switching doesn't re-fetch. Abort guard prevents stale responses when groupId changes mid-flight. Returns `{ matches, loading, error, refetch, invalidateCache }`.
+- **useUserGroups (src/hooks/useUserGroups.ts):** Thin wrapper around existing `useGroups` hook with consistent interface for DataContextSelector consumption.
+- **Design decision:** @tanstack/react-query is installed but has no QueryClientProvider — wiring that up would require touching app shell (out of scope). Used module-level Map cache instead. When react-query gets wired up, this hook can be trivially migrated to `useQuery`.
+- **Naming:** camelCase `useGroupMatches.ts` coexists with kebab-case `use-group-matches.ts` (paginated version for list view). Different files, different use cases.
+- All 183 tests pass. TypeScript clean.

@@ -126,3 +126,18 @@ Full audit written to `.squad/decisions/inbox/ripley-codebase-audit.md`.
 - **What:** Team must test before user delivery. Have Lambert verify first. Report results only after internal QA passes.
 - **Why:** Team owns quality, not the user
 - **Impact:** Ripley's design reviews must account for Lambert's testing workflow
+
+### 2026-04-29T13:18:38-07:00 — Group Data Integration UX Design (Ripley)
+- **Status:** 📋 DESIGN WRITTEN — Awaiting Devin's review
+- **Request:** How should group data flow into Players, Heroes, Maps, and Matches tabs across the site?
+- **Key decisions:**
+  1. Per-tab context pill (Shadcn Select) — NOT a global switcher. Mobile bottom nav has no room, and independent tab contexts are less confusing.
+  2. Players tab first (highest value, simplest — just swap the Match[] array fed to existing stats functions)
+  3. Group matches stay in Groups tab — do NOT mix into personal Matches tab (ownership confusion)
+  4. Community tab unaffected — group data is private, personal copies already contribute to community
+  5. On-the-fly stats computation (groups are small, <200 matches typically, <5ms to compute)
+  6. No new Firestore indexes needed, no schema changes, no pre-computed stats (yet)
+- **Architectural insight:** All stats functions (`calculatePlayerStats`, `calculateHeroStats`, etc.) already operate on generic `Match[]`. GroupMatch extends Match. Just pass group matches to existing components — zero new computation logic.
+- **Component reuse:** Add optional `dataSource?: { label, matches }` prop to PlayersTab/HeroesTab/MapsTab. One new ~30-line `DataContextSelector` shared component.
+- **Phasing:** Phase 1 (Players+Heroes with group context) → Phase 2 (Maps, polish) → Phase 3 (React Query caching, pre-computed stats if needed)
+- **Design file:** `.squad/decisions/inbox/ripley-group-ux-design.md`
