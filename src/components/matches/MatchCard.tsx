@@ -48,7 +48,7 @@ export function MatchCard({ match, onDelete, onEdit, onHeroClick, onMapClick, ex
 
   return (
     <>
-      <Card className="p-3 md:p-6 hover:shadow-md transition-shadow max-w-2xl xl:max-w-none w-full">
+      <Card className="p-3 md:p-6 hover:shadow-md transition-shadow w-full">
         <div className="flex items-start justify-between gap-2 md:gap-4">
           <div className="flex-1 space-y-3 min-w-0">
           <div className="flex flex-col md:flex-row md:items-start justify-between gap-2 md:gap-4">
