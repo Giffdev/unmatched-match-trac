@@ -75,8 +75,12 @@ function App() {
   }
 
   // Scroll to top when switching tabs (fixes mobile nav not resetting scroll position)
+  // On iOS Safari, window.scrollTo alone may not work — the actual scroll element
+  // can be document.documentElement or document.body depending on the browser.
   useEffect(() => {
-    window.scrollTo(0, 0)
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' })
+    document.documentElement.scrollTop = 0
+    document.body.scrollTop = 0
   }, [currentTab])
 
   useEffect(() => {
