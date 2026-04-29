@@ -9,12 +9,14 @@ import { HeroesTab } from '@/components/heroes/HeroesTab'
 import { CollectionTab } from '@/components/collection/CollectionTab'
 import { RandomizerTab } from '@/components/randomizer/RandomizerTab'
 import { MapsTab } from '@/components/maps/MapsTab'
+import { GroupsTab } from '@/components/groups/GroupsTab'
 import { UserProfile } from '@/components/auth/UserProfile'
 import { SignInPrompt } from '@/components/auth/SignInPrompt'
 import { DataCleanup } from '@/components/auth/DataCleanup'
 import { ErrorBoundary } from '@/components/ErrorBoundary'
 import { Toaster } from '@/components/ui/sonner'
-import { ListChecks, Users, User, Shuffle, MapTrifold } from '@phosphor-icons/react'
+import { ListChecks, Users, User, Shuffle, MapTrifold, UsersThree } from '@phosphor-icons/react'
+import { usePendingInvites } from '@/hooks/use-groups'
 import type { Match } from '@/lib/types'
 import { normalizeMatchPlayerNames } from '@/lib/utils'
 import { useIsMobile } from '@/hooks/use-mobile'
@@ -32,6 +34,7 @@ function App() {
   const [selectedHeroId, setSelectedHeroId] = useState<string | null>(null)
   const normalizationRan = useRef(false)
   const isMobile = useIsMobile()
+  const { count: pendingInviteCount } = usePendingInvites(currentUserId)
 
 
   const matchesData = matches || []
@@ -154,11 +157,19 @@ function App() {
         ) : (
           <Tabs value={currentTab} onValueChange={setCurrentTab} className="w-full">
             {!isMobile && (
-              <TabsList className="grid w-full grid-cols-5 mb-6">
+              <TabsList className="grid w-full grid-cols-6 mb-6">
                 <TabsTrigger value="matches">Matches</TabsTrigger>
                 <TabsTrigger value="players">Players</TabsTrigger>
                 <TabsTrigger value="heroes">Heroes</TabsTrigger>
                 <TabsTrigger value="maps">Maps</TabsTrigger>
+                <TabsTrigger value="groups" className="relative">
+                  Groups
+                  {pendingInviteCount > 0 && (
+                    <span className="absolute -top-1 -right-1 w-4 h-4 bg-destructive text-destructive-foreground text-[10px] rounded-full flex items-center justify-center">
+                      {pendingInviteCount}
+                    </span>
+                  )}
+                </TabsTrigger>
                 <TabsTrigger value="randomizer">Randomizer</TabsTrigger>
               </TabsList>
             )}
@@ -200,6 +211,12 @@ function App() {
               </ErrorBoundary>
             </TabsContent>
 
+            <TabsContent value="groups">
+              <ErrorBoundary fallbackTitle="Something went wrong in Groups">
+                <GroupsTab />
+              </ErrorBoundary>
+            </TabsContent>
+
             <TabsContent value="randomizer">
               <ErrorBoundary fallbackTitle="Something went wrong in Randomizer">
                 <RandomizerTab ownedSets={ownedSetsData} matches={matchesData} setMatches={setMatches} />
@@ -212,7 +229,7 @@ function App() {
 
       {isMobile && currentUserId && currentView === 'main' && (
         <nav className="fixed bottom-0 left-0 right-0 bg-card border-t border-border z-20">
-          <div className="grid grid-cols-5 h-14">
+          <div className="grid grid-cols-6 h-14">
             <button
               onClick={() => setCurrentTab('matches')}
               className={`flex flex-col items-center justify-center gap-0.5 transition-colors ${
@@ -259,6 +276,21 @@ function App() {
             >
               <MapTrifold size={20} weight={currentTab === 'maps' ? 'fill' : 'regular'} />
               <span className="text-[10px] leading-tight">Maps</span>
+            </button>
+
+            <button
+              onClick={() => setCurrentTab('groups')}
+              className={`relative flex flex-col items-center justify-center gap-0.5 transition-colors ${
+                currentTab === 'groups' 
+                  ? 'text-primary' 
+                  : 'text-muted-foreground'
+              }`}
+            >
+              <UsersThree size={20} weight={currentTab === 'groups' ? 'fill' : 'regular'} />
+              <span className="text-[10px] leading-tight">Groups</span>
+              {pendingInviteCount > 0 && (
+                <span className="absolute top-1 right-1/4 w-2 h-2 bg-destructive rounded-full" />
+              )}
             </button>
             
             <button

@@ -7,6 +7,8 @@ import type { Match, GameMode, PlayerAssignment } from '@/lib/types'
 import { getMapsByPlayerCount, getCooperativeMaps } from '@/lib/data'
 import { toast } from 'sonner'
 import { useAuth } from '@/hooks/use-auth'
+import { useGroups } from '@/hooks/use-groups'
+import { logGroupMatch } from '@/lib/group-matches'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Plus, CalendarBlank } from '@phosphor-icons/react'
 import { cn, normalizePlayerName } from '@/lib/utils'
@@ -43,6 +45,8 @@ export function LogMatchDialog({ open, onOpenChange, onSave, prefilled, existing
   })
   const { user } = useAuth()
   const currentUserId = user?.uid ?? null
+  const { groups } = useGroups(currentUserId)
+  const [logTarget, setLogTarget] = useState<string>('personal')
 
   const isCooperative = mode === 'cooperative'
   const playerCount = isCooperative 
@@ -87,7 +91,7 @@ export function LogMatchDialog({ open, onOpenChange, onSave, prefilled, existing
     }
   }
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!currentUserId) {
       toast.error('Please sign in to log matches')
       return
@@ -146,8 +150,22 @@ export function LogMatchDialog({ open, onOpenChange, onSave, prefilled, existing
       cooperativeResult: isCooperative ? cooperativeResult : undefined,
     }
 
-    onSave(match)
-    toast.success('Match logged successfully!')
+    // Route to group or personal
+    if (logTarget !== 'personal') {
+      try {
+        const userName = user?.displayName || user?.email || 'Unknown'
+        await logGroupMatch(logTarget, match, currentUserId, userName)
+        toast.success('Match logged to group!')
+      } catch (err) {
+        toast.error('Failed to log match to group')
+        console.error(err)
+        return
+      }
+    } else {
+      onSave(match)
+      toast.success('Match logged successfully!')
+    }
+
     onOpenChange(false)
     resetForm()
   }
@@ -163,6 +181,7 @@ export function LogMatchDialog({ open, onOpenChange, onSave, prefilled, existing
     setIsDraw(false)
     setCooperativeResult(undefined)
     setSelectedDate(new Date())
+    setLogTarget('personal')
   }
 
   return (
@@ -173,6 +192,25 @@ export function LogMatchDialog({ open, onOpenChange, onSave, prefilled, existing
         </DialogHeader>
 
         <div className="space-y-6 py-4 px-6 overflow-y-auto flex-1 min-h-0">
+          {groups.length > 0 && (
+            <div className="space-y-2">
+              <Label>Log to</Label>
+              <Select value={logTarget} onValueChange={setLogTarget}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="personal">Personal</SelectItem>
+                  {groups.map((g) => (
+                    <SelectItem key={g.groupId} value={g.groupId}>
+                      {g.groupName}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+
           <div className="space-y-2">
             <Label>Date</Label>
             <Popover>
