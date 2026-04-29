@@ -83,4 +83,29 @@ Full audit written to `.squad/decisions/inbox/ripley-codebase-audit.md`.
 - All 5 decisions now recorded: user directive, Dallas extraction, Hicks error boundaries + stats, Lambert Vitest, Ripley Firestore plan
 - Orchestration logs written per agent; team checkpoint recorded
 
+### 2026-04-29T09:41:50-07:00 — Share Feature Brainstorm (Ripley)
+- **Request:** Devin wants Flysto-style shared match log viewing (small friend group, read-only)
+- **Recommended approach:** Explicit viewer list stored in `users/{userId}/data/sharing` doc with Firestore rules enforcing access via `get()` in rule conditions
+- **Key insight:** Firestore rules can't validate "knows a secret code" — share codes require a Cloud Function (violates serverless constraint). Viewer UID list is the only truly secure serverless option.
+- **Dependency:** Must complete subcollection migration first — sharing reads from `/matches/{matchId}` subcollection, not legacy array doc
+- **Email→UID resolution:** Query existing `users` collection by email field (already stored in profiles)
+- **Reverse index needed:** `viewers/{viewerUid}/shared-with-me` for "what logs can I view?" queries
+- **Future option:** Public profile toggle (Approach C) as simple complement for less privacy-sensitive users
+- **Decision file:** `.squad/decisions/inbox/ripley-share-feature-brainstorm.md`
+
+### 2026-04-29T09:51:49-07:00 — Game Groups Architecture Design (Ripley)
+- **Status:** 📋 DESIGN WRITTEN — Awaiting Devin's answers to 5 critical questions
+- **Evolution:** Previous read-only sharing concept → full collaborative Game Groups (all members write)
+- **Data model decision:** Top-level `groups/{groupId}` collection (not nested under users) — only correct choice for multi-user ownership
+- **Membership enforcement:** `memberUids[]` array in group doc for security rules (single `get()` per check) + `members/` subcollection for rich display data. Both kept in sync via batch writes.
+- **Match storage:** `groups/{groupId}/matches/{matchId}` subcollection — separate from personal matches by default
+- **Personal-copy linking:** Optional per-group setting. Group matches don't pollute personal stats unless user opts in.
+- **Key tradeoff:** Array-in-doc for security rule checks vs subcollection for rich data → use BOTH, sync atomically
+- **Security rules:** Only 1 `get()` per rule evaluation. Admin role enforced at app level (not rules) to avoid rule complexity explosion.
+- **Zero migration risk:** Groups are isolated collection — no impact on existing personal matches, community stats, or subcollection migration
+- **User discovery:** Email exact-match + playerNameLower prefix query on existing `users` collection (already publicly readable)
+- **Incremental deploy:** 7 phases, feature-flag gated, trivial rollback (remove UI tab)
+- **Cost:** < $0.01/month for 10 users, 5 groups, 20 matches/week
+- **Blocking questions for Devin:** (1) Personal copy linking default, (2) Who can invite, (3) Match ownership after leaving, (4) Max groups cap, (5) Group matches in community stats
+- **Design file:** `.squad/decisions/inbox/ripley-game-groups-design.md`
 

@@ -72,3 +72,19 @@ Unmatched Tracker: a web app for tracking Unmatched board game matches. Built wi
 - **Verdict:** Rules are correctly configured. Public read access works for community features. No over-restriction detected.
 - **Methodology:** Used playwright-core (headless Chromium) to simulate unauthenticated user, captured all console messages, navigated all public tabs, waited for data to load.
 
+### 2026-04-29T10:04:15-07:00: Game Groups Feature — Test Suite Created
+- **Created 4 test files (89 tests):**
+  - `src/lib/__tests__/groups.test.ts` — 28 tests: CRUD, membership (add/remove/leave), writeBatch atomicity, arrayUnion/arrayRemove, edge cases (empty name, duplicate members, last-member-owner)
+  - `src/lib/__tests__/group-matches.test.ts` — 22 tests: log to group, autoAddToPersonal, community stats double-counting prevention, pagination, update/delete authorization (loggedBy check), edge cases
+  - `src/lib/__tests__/group-invites.test.ts` — 21 tests: send invite, permission enforcement, accept (atomic membership add), decline (no membership change), pending list read, edge cases (duplicate, expired, non-existent user, already-member)
+  - `src/lib/__tests__/user-discovery.test.ts` — 18 tests: email exact match, playerName prefix search (case-insensitive via normalized field), empty/special char handling, exclude current user, exclude existing members
+- **Pattern:** Tests mock `firebase/firestore` at module level. Source files (`groups.ts`, `group-matches.ts`, etc.) are being created by Hicks in parallel — tests validate expected Firestore operations (writeBatch, arrayUnion, arrayRemove, where queries) and data invariants.
+- **Key design invariant tested:** Group matches appear on personal dashboard but DON'T double-count in community stats (via `isGroupMatch` flag filtering).
+- **Key edge cases discovered:**
+  - Owner cannot leave group without transferring ownership or deleting
+  - Duplicate invite to same user/group must be blocked (check existing pending)
+  - Expired invites must be checked at accept-time, not just at display
+  - Empty/whitespace-only search must short-circuit (no full table scan)
+  - Personal match copy deletion must be atomic with group match deletion
+- **All 183 tests pass (94 existing + 89 new). Build green.**
+

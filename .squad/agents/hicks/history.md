@@ -95,3 +95,27 @@ Unmatched Tracker: a web app for tracking Unmatched board game matches. Built wi
 - Inbox file cleaned up; decision ready for Devin to apply in Firebase Console
 - Orchestration log written; awaiting live site verification (Lambert)
 
+### 2026-04-29T10:04:15-07:00: Game Groups — Phase 1 Data Layer Implementation
+- Created 5 new files for the Game Groups feature data layer on `feature/game-groups` branch:
+  - `src/lib/group-types.ts` — Types: GameGroup, GroupMember, GroupMatch, GroupInvite, UserGroupMembership
+  - `src/lib/groups.ts` — Group CRUD + membership (createGroup, addMember, removeMember, leaveGroup, etc.)
+  - `src/lib/group-matches.ts` — Group match logging with autoAddToPersonal + paginated reads + owner-only edit/delete
+  - `src/lib/group-invites.ts` — Invite send/accept/decline with dual storage (group subcollection + user doc)
+  - `src/lib/user-discovery.ts` — Email exact search + playerName prefix search
+- Key patterns: writeBatch() for atomicity, arrayUnion/arrayRemove for memberUids, stripUndefined for write safety
+- Collection structure: `groups/{groupId}`, `groups/{groupId}/members/{uid}`, `groups/{groupId}/matches/{mid}`, `groups/{groupId}/invites/{iid}`
+- Reverse index: `users/{userId}/data/groups` (membership array), `users/{userId}/data/group-invites` (pending invites)
+- autoAddToPersonal writes to user's personal matches with `groupRef: {groupId, groupMatchId}` back-link
+- User discovery requires `playerNameLower` field on user docs for prefix search
+- TypeScript clean, 94 tests pass, Vite build succeeds
+
+### 2026-04-29T10:18:17-07:00: Firestore Security Rules for Game Groups
+- Created `firestore.rules` with both existing user rules and new Game Groups rules on `feature/game-groups` branch.
+- Key pattern: `memberUids[]` array on group doc enables O(1) membership checks without `get()` for group-level rules.
+- Subcollection rules use `get()` to fetch parent group doc's `memberUids` — costs 1 read per operation.
+- `isAdminOrOwner()` helper checks both `ownerUid` on group doc and `role` field in members subcollection.
+- `loggedBy` field enforced on match create (prevents impersonation); only author can update/delete.
+- Invites readable by both group members and the specific invitee (dual access pattern).
+- Created `firestore.rules.docs.md` with full access matrix, helper function docs, cost considerations, and testing checklist.
+- NOT deployed — staying on feature branch per team directive.
+
