@@ -88,7 +88,7 @@ export function MatchCard({ match, onDelete, onEdit, onHeroClick, onMapClick, ex
             )}
           </div>
 
-          <div className="grid gap-y-2 gap-x-1.5 md:gap-x-3 items-center md:mx-auto md:w-fit"
+          <div className="grid gap-y-2 gap-x-1.5 md:gap-x-3 items-center md:w-fit"
             style={{ gridTemplateColumns: 'auto minmax(0, auto) auto minmax(0, auto) auto' }}
           >
             {match.players
