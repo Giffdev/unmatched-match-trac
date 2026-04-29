@@ -88,3 +88,59 @@ Unmatched Tracker: a web app for tracking Unmatched board game matches. Built wi
   - Personal match copy deletion must be atomic with group match deletion
 - **All 183 tests pass (94 existing + 89 new). Build green.**
 
+### 2026-04-29T11:05:18-07:00: Game Groups Feature — Comprehensive QA Audit
+- **Scope:** 13 files reviewed (9 components, 3 hooks, 3 data-layer modules)
+- **Found:** 4 critical, 6 medium, 4 low issues
+- **Critical pattern:** Non-atomic multi-step Firestore writes across `groups.ts` and `group-invites.ts` — partial failures leave inconsistent state (acceptInvite, addMatchToGroups, deleteGroup)
+- **Critical pattern:** Pagination hook (`use-group-matches.ts`) has placeholder "TODO" logic that duplicates data on load-more
+- **Critical pattern:** Batch size limits not respected in `deleteGroup` — groups with 500+ items will hard-fail
+- **Quality gap:** Settings collected in CreateGroupDialog UI but never passed to `createGroup()` function
+- **Quality gap:** `onMemberRemoved` callback is a no-op in GroupView — member count goes stale
+- **Quality gap:** Zero component/integration tests for any Groups UI component or hook
+- **Verdict:** DO NOT SHIP until pagination (#1) and batch limit (#2) are fixed
+- **Full report:** `.squad/decisions/inbox/lambert-groups-qa-audit.md`
+
+### 2026-04-29T18:36:17Z: Scribe session complete — email-invites merged to decisions
+- Inbox files processed: 4 new decision entries merged to canonical `decisions.md`
+- Quality directives captured: User feedback about thorough testing and internal QA requirements
+- Orchestration logs written; session logs created for audit trail
+- Hicks' email-based invite system documented and integrated
+
+### 2026-04-29T11:05:18-07:00: User directive — Quality gate for all feature work
+- **By:** Devin Sinha (via Copilot)
+- **What:** Hicks (and all agents) need to be more thorough. Too many bugs are being found after delivery. From now on, all feature work must include proper state refresh, UI feedback, and edge case handling before being considered done.
+- **Why:** User frustration with repeated bugs in Game Groups feature — state not refreshing after import, stale lists after deletion, etc. Quality gate needed.
+
+### 2026-04-29T11:12:40-07:00: User directive — Internal QA before user delivery
+- **By:** Devin Sinha (via Copilot)
+- **What:** The team must test their own work before presenting to the user. Never ask the user to test — have Lambert verify first. Only report results after internal QA passes.
+- **Why:** User request — the team should own quality, not push testing burden to the user.
+
+
+### 2026-04-29T10:20:00-07:00: Game Groups Feature — Full Local Verification
+- **Tests:** ✅ All 183 tests pass (8 files, 0 failures)
+- **TypeScript:** ✅ Clean (`npx tsc --noEmit` exits 0) — after fixing 8 type errors
+- **Build:** ✅ `npx vite build` succeeds (14.5s)
+- **Fixes applied (4 files):**
+  1. `src/components/groups/GroupMatchList.tsx` — Was passing `Hero` object to `getHeroDisplayName(PlayerAssignment)`. Fixed by using `hero.name` directly and removing unused import.
+  2. `src/lib/__tests__/group-invites.test.ts` — TypeScript narrowed `as const` literals making comparisons appear tautological (TS2367). Fixed by widening types to `string`.
+  3. `src/lib/__tests__/group-matches.test.ts` — `result` typed as `unknown` from mock. Fixed with `as any` cast.
+  4. `src/lib/__tests__/user-discovery.test.ts` — Same `unknown` type issue. Fixed with `as any` cast.
+- **Integration check:** ✅ App.tsx imports and renders GroupsTab correctly, with pending invites badge. All hooks (`use-groups`, `use-group-matches`, `use-group-members`) reference correctly exported functions from data layer.
+- **Regression check:** ✅ Existing test suites (utils, stats, firestore, match-diff) all pass unchanged. No modifications to existing features.
+- **Warning:** ⚠️ Bundle size (1181 kB JS) exceeds Vite's 500 kB chunk warning. Consider code-splitting groups feature with dynamic import. Not blocking.
+
+### 2026-04-29T11:12:40-07:00: Bug Fix Verification — 4 Critical Fixes
+- **Scope:** Verified Hicks' fixes to pagination, deleteGroup batching, acceptInvite atomicity, addMatchToGroups batching
+- **Verification method:** Code review of all 4 modules + TypeScript compile check + full test suite run
+- **Patterns used:** Traced data flow from hook→data layer→Firestore API; checked batch limit arithmetic (450 < 500 limit); verified transaction read-before-write ordering; checked cursor ref lifecycle on component remount
+- **Key findings:**
+  - Pagination: Uses `lastDocRef` + `loadingMoreRef` for cursor + double-click protection. First load correctly passes no startAfter. groupId change triggers useCallback dep rebuild + component remount via `key` prop.
+  - deleteGroup: Batches subcollection deletes at 450 ops. Final batch reserves 1 slot for group doc delete (`BATCH_LIMIT - 1`). Empty subcollections handled via `allDeletions.length === 0` skip + dedicated fallback for 0 members.
+  - acceptInvite: Uses `runTransaction()`. Reads all docs inside transaction. Status update is step 5 (LAST). If group deleted, `groupSnap.exists()` check throws "Group not found" — invite stays pending.
+  - addMatchToGroups: Uses writeBatch. Returns `firstRef` only after all batches commit. Empty array returns null immediately. Single group works (one batch). No per-group existence check = silent write to deleted group (concern).
+- **Gap found:** `addMatchToGroups` does NOT verify target groups exist before writing. If a group was deleted, the match doc is written to a non-existent parent — Firestore allows this but the data is orphaned. Low severity (rare race condition).
+- **TypeScript:** ✅ Clean (exit code 0)
+- **Tests:** ✅ All 183 pass (8 files, 0 failures)
+- **Verdict:** APPROVED with minor concern noted
+

@@ -109,3 +109,20 @@ Full audit written to `.squad/decisions/inbox/ripley-codebase-audit.md`.
 - **Blocking questions for Devin:** (1) Personal copy linking default, (2) Who can invite, (3) Match ownership after leaving, (4) Max groups cap, (5) Group matches in community stats
 - **Design file:** `.squad/decisions/inbox/ripley-game-groups-design.md`
 
+### 2026-04-29T18:36:17Z: Scribe session complete — decisions archive and merging
+- Inbox files processed: 4 new decision entries merged to canonical `decisions.md`
+- Quality directives captured: User feedback about thorough testing and internal QA
+- Decisions.md now at 13,857 bytes (still below 20KB archive threshold)
+- All team decisions consolidated for reference
+
+### 2026-04-29T11:05:18-07:00: User directive — Quality gate for all feature work
+- **By:** Devin Sinha (via Copilot)
+- **What:** All agents need to be more thorough. Too many bugs found after delivery. Feature work must include proper state refresh, UI feedback, and edge case handling before completion.
+- **Why:** Repeated bugs in Game Groups feature — state not refreshing after import, stale lists after deletion
+- **Impact:** Ripley's design proposals must now include quality considerations (state management, error handling, edge cases)
+
+### 2026-04-29T11:12:40-07:00: User directive — Internal QA before delivery
+- **By:** Devin Sinha (via Copilot)
+- **What:** Team must test before user delivery. Have Lambert verify first. Report results only after internal QA passes.
+- **Why:** Team owns quality, not the user
+- **Impact:** Ripley's design reviews must account for Lambert's testing workflow

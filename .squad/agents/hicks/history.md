@@ -1,158 +1,67 @@
 # Hicks — History
 
 ## Project Context
-Unmatched Tracker: a web app for tracking Unmatched board game matches. Built with React 19 + TypeScript, Vite 7.2, Shadcn UI, Tailwind CSS 4.1, Firebase Auth + Cloud Firestore, deployed on Vercel. User: Devin Sinha. Firestore per-user documents with matches as array. Critical constraint: never break the live site or user data.
+Unmatched Tracker: a web app for tracking Unmatched board game matches. Built with React 19 + TypeScript, Vite 7.2, Shadcn UI, Tailwind CSS 4.1, Firebase Auth + Cloud Firestore, deployed on Vercel. User: Devin Sinha. Critical constraint: never break the live site or user data. Testing and safe deployments essential for quality gates.
 
 ## Learnings
 
-### 2026-04-28T16:13:58-07:00: Removed hardcoded password from App.tsx
-- The match import gate in `handleReplaceAllMatches` (line ~59) compared user input against a hardcoded password string `'alpha837Soup*'`.
-- Replaced with `import.meta.env.VITE_IMPORT_PASSWORD` — Vite exposes `VITE_`-prefixed env vars to client code at build time.
-- Added `VITE_IMPORT_PASSWORD=` to `.env.example` so other devs know to configure it.
-- `.env` was already in `.gitignore` — no secret exposure risk.
-- Build verified clean (`tsc -b --noCheck && vite build` exit 0).
-
-### 2026-04-28T16:16:41-07:00: Fixed race condition in useUserMatches hook
-- The persist `useEffect` in `src/hooks/use-user-data.ts` fired on every `matches` state change, spawning concurrent `setUserMatches` Firestore writes that could resolve out of order — a later write with stale data overwriting a valid earlier write.
-- The existing `saveGeneration` ref only suppressed stale error toasts; it didn't prevent the actual out-of-order write.
-- Fix: added 500ms debounce to the persist effect. Rapid state changes now batch into a single Firestore write. On cleanup (unmount or userId change), the pending write flushes immediately to prevent data loss.
-- `loadedFromDb` guard preserved — still prevents re-saving on initial load.
-- Public API unchanged: hook still returns `{ matches, setMatches, loading }`.
-- Build verified clean (`tsc -b --noCheck && vite build` exit 0).
-
-### 2026-04-28T23:31:30Z: Added React Error Boundaries per-tab
-- React error boundaries require class components — functional components can't catch render errors.
-- Pattern: each tab's content wrapped individually so one crash doesn't take down the whole app.
-- Top-level ErrorBoundary wraps the entire `<main>` content as a last-resort fallback.
-- Tab navigation (TabsList + mobile nav) remains OUTSIDE boundaries so users can always navigate away.
-- Fallback UI uses existing Tailwind/Shadcn design tokens for visual consistency.
-
-### 2026-04-28T23:31:30Z: Deduplicated calculateHeroStats / calculateUserHeroStats
-- Both functions were ~80% identical: filter matches by hero, accumulate W/L/D + vsMatchups.
-- Key difference: `calculateHeroStats` identifies opponents by heroId; `calculateUserHeroStats` can scope to a specific playerName.
-- Created `calculateHeroStatsCore(matches, heroId, options)` — a private unified function with `playerName` and `preFilter` options.
-- Old exports preserved as thin wrappers — zero API surface change, callers unaffected.
-- `calculateHeroStats`'s `filterByHeroId` param mapped to a `preFilter` lambda.
-- Build verified clean (`tsc -b --noCheck && vite build` exit 0).
-
-### 2026-04-28T23:31:30Z: Memoized stats calculations in PlayersTab and HeroesTab
-- PlayersTab: `calculatePlayerStats` call + derived arrays (heroesPlayed, mapsPlayed, neverPlayed, vsPlayers) wrapped in `useMemo` with correct dependency arrays.
-- HeroesTab: `calculateUserHeroStats` (personal + all-logged) and `calculateHeroStats` (global) wrapped in `useMemo`. Matchup entries derivation also memoized.
-- No changes to stats functions themselves — only call sites.
-- All 67 tests pass. Build verified clean.
-
-### 2026-04-28T23:31:30Z: Team Decisions Consolidated (Scribe)
-- All work captured and merged into canonical `.squad/decisions.md`
-- Error boundaries, stats dedup, and related team decisions now recorded
-- Team checkpoint logged; orchestration logs written per-agent
-
-
-### 2026-04-28T23:31:30Z: Added runtime type validation on Firestore reads
-- Created `validateMatch()` type guard in `src/lib/firestore.ts` — checks required fields (id, date, mapId, players, isDraw, userId) with type assertions.
-- Created `validateMatches()` — validates array structure, filters out malformed entries with `console.warn` rather than crashing.
-- Applied to both `getUserMatches()` and `getAllUserMatches()` return paths.
-- Protects against data corruption taking down the entire app.
-- All 67 tests pass. Build verified clean.
-
-### 2026-04-28T23:55:03Z: Implemented dual-write layer for Firestore subcollection migration (Phase 1-2)
-- Added subcollection write/delete/read functions in `src/lib/firestore.ts` — writes to `users/{userId}/matches/{matchId}`.
-- Added `MigrationState` type and `getMigrationState`/`setMigrationState`/`enableDualWrite` functions for per-user migration control.
-- Added `dualWriteMatches()` — diff-based function that always writes legacy first, then best-effort syncs changes to subcollection. Subcollection failures are caught and logged, never thrown.
-- Subcollection writes are chunked (400 per batch) to respect Firestore limits.
-- Updated `use-user-data.ts` to load migration state on mount (cached in ref), track previous matches for diffing, and call `dualWriteMatches` when state is 'dual-write'.
-- Default state is 'legacy-only' — no behavior change unless explicitly enabled per-user.
-- Reads are completely unchanged — still from legacy doc only.
-- All 94 tests pass. TypeScript clean. Vite build succeeds.
-
-### 2026-04-28T23:55:03Z: Session Complete — Firestore Migration Phase 1-2 + Team Sync
-- Dallas completed sidebar refactor investigation (determined not needed)
-- Stats memoization + type guards integrated (Hicks-3)
-- Diff utility for migration layer delivered by Lambert (27 tests, all passing)
-- Dual-write foundation now ready for Phase 3 (backfill + read migration)
-- Decisions merged to canonical `.squad/decisions.md`
-- Orchestration logs written; team history updated
-- Build: all 94 tests passing, TypeScript clean, Vite green
-
-### 2026-04-28T19:19:54-07:00: Proposed Firestore Security Rules (test mode → locked down)
-- Firestore currently in TEST MODE — all reads/writes open to anyone.
-- Identified all document paths: `users/{userId}`, `users/{userId}/data/matches`, `users/{userId}/data/owned-sets`, `users/{userId}/data/matches-meta`, `users/{userId}/matches/{matchId}`.
-- Key challenge: `getAllUserMatches()` lists ALL user docs then reads each user's match data — requires authenticated read across user boundaries.
-- Proposed rules follow Arkham Horror pattern: owner-write everywhere, authenticated-read on user profiles + data subcollection.
-- Risk: community stats currently require authentication (no public aggregation doc exists). If non-logged-in users need to see community stats, a Cloud Function + `community-stats` doc with `allow read: if true` would be needed.
-- Full proposal written to `.squad/decisions/inbox/hicks-firestore-security-rules.md`.
-
-### 2026-04-28T19:23:23-07:00: Revised Firestore Security Rules — Public Community Stats
-- Previous proposal (v1) required auth for all reads, which would break the public landing page community stats (GlobalStats, PublicHeroBrowser, PublicHeatmap shown to non-logged-in visitors).
-- Devin confirmed: community stats are a conversion feature that MUST remain visible without login.
-- Revised to Option C (Hybrid): `users/{userId}` public read (for listing), `data/matches` public read (game results), `owned-sets` and `matches-meta` owner-only, all writes owner-only.
-- Key technique: conditional read rule using `docId == 'matches'` to surgically expose only match data.
-- No code changes required — existing `getAllUserMatches()` works as-is.
-- Removed the collection group wildcard rule (not needed when `users/{userId}` allows public list).
-
-### 2026-04-29T02:29:31Z: Firestore Security Rules Merged to Decisions (Scribe)
-- Hicks' v2 rules proposal successfully merged from `.squad/decisions/inbox/` to canonical `decisions.md`
-- Decision entry includes full rules, risk assessment, access matrix, and deployment instructions
-- Inbox file cleaned up; decision ready for Devin to apply in Firebase Console
-- Orchestration log written; awaiting live site verification (Lambert)
-
-### 2026-04-29T10:04:15-07:00: Game Groups — Phase 1 Data Layer Implementation
-- Created 5 new files for the Game Groups feature data layer on `feature/game-groups` branch:
-  - `src/lib/group-types.ts` — Types: GameGroup, GroupMember, GroupMatch, GroupInvite, UserGroupMembership
-  - `src/lib/groups.ts` — Group CRUD + membership (createGroup, addMember, removeMember, leaveGroup, etc.)
-  - `src/lib/group-matches.ts` — Group match logging with autoAddToPersonal + paginated reads + owner-only edit/delete
-  - `src/lib/group-invites.ts` — Invite send/accept/decline with dual storage (group subcollection + user doc)
-  - `src/lib/user-discovery.ts` — Email exact search + playerName prefix search
-- Key patterns: writeBatch() for atomicity, arrayUnion/arrayRemove for memberUids, stripUndefined for write safety
-- Collection structure: `groups/{groupId}`, `groups/{groupId}/members/{uid}`, `groups/{groupId}/matches/{mid}`, `groups/{groupId}/invites/{iid}`
-- Reverse index: `users/{userId}/data/groups` (membership array), `users/{userId}/data/group-invites` (pending invites)
-- autoAddToPersonal writes to user's personal matches with `groupRef: {groupId, groupMatchId}` back-link
-- User discovery requires `playerNameLower` field on user docs for prefix search
-- TypeScript clean, 94 tests pass, Vite build succeeds
-
-### 2026-04-29T10:18:17-07:00: Firestore Security Rules for Game Groups
-- Created `firestore.rules` with both existing user rules and new Game Groups rules on `feature/game-groups` branch.
-- Key pattern: `memberUids[]` array on group doc enables O(1) membership checks without `get()` for group-level rules.
-- Subcollection rules use `get()` to fetch parent group doc's `memberUids` — costs 1 read per operation.
-- `isAdminOrOwner()` helper checks both `ownerUid` on group doc and `role` field in members subcollection.
-- `loggedBy` field enforced on match create (prevents impersonation); only author can update/delete.
-- Invites readable by both group members and the specific invitee (dual access pattern).
-- Created `firestore.rules.docs.md` with full access matrix, helper function docs, cost considerations, and testing checklist.
-- NOT deployed — staying on feature branch per team directive.
-
-### 2026-04-29T10:31:44-07:00: Fixed group creation — batch write vs security rules race
-- Root cause: `createGroup()` uses `writeBatch()` to atomically create the group doc + owner's member subdoc + user groups doc. Firestore security rules evaluate each operation independently against the **pre-batch** database state.
-- The member subcollection write triggered `isAdminOrOwner()` which does `get()` on the group doc — but that doc doesn't exist yet (being created in the same batch). The `get()` returns null, comparison fails, write denied.
-- Fix: Split `allow write` on members subcollection into `allow create` + `allow update, delete`. The create rule adds a fallback: `memberId == request.auth.uid && request.resource.data.role == 'owner'` — allows bootstrapping your own owner membership doc without needing the parent group to exist yet.
-- Key learning: In Firestore batched writes, `get()` in security rules always sees pre-batch state. For atomic bootstrap patterns (parent + child created together), rules must account for the parent not existing yet.
-- The `ownerUid` fix from the previous session was correct and already in place; this was a separate issue in the subcollection rules.
-
-### 2026-04-29T10:38:08-07:00: Fixed redundant @playerName display in MemberList
-- Bug: When `playerName` equals `displayName`, MemberList showed "@Devin Sinha" redundantly under "Devin Sinha".
-- Fix in `MemberList.tsx`: Added case-insensitive comparison (`toLowerCase()`) so the `@playerName` line only renders when it's actually distinct from `displayName`.
-- Fix in `groups.ts`: Added `userData.playerName` as final fallback in `displayName` chain for both `createGroup()` and `addMember()`. Prevents empty `displayName` when only `playerName` is set on the user profile.
-- TypeScript clean (`tsc --noEmit` exit 0).
-
-### 2026-04-29T10:54:53-07:00: Implemented Retroactive Match Import for Game Groups
-- Created `src/components/groups/ImportMatchesDialog.tsx` — full dialog with:
-  - Loads user's personal matches and existing group matches on open
-  - Deduplicates by date+heroes+map key AND by groupRef field
-  - Select All toggle + individual checkboxes
-  - Shows hero names, map, result, date for each match
-  - Batch import with loading state and success toast
-- Added `importMatchesToGroup()` to `src/lib/groups.ts`:
-  - Creates copies in `groups/{groupId}/matches` with `sourceMatchId` back-reference
-  - Adds `groupRef: { groupId, groupMatchId }` to personal match docs
-  - Batches in chunks of 450 to stay under Firestore 500-op limit
-  - Returns count of imported matches
-- Added `sourceMatchId?: string` to `GroupMatch` type in `src/lib/group-types.ts`
-- Modified `src/components/groups/GroupView.tsx`:
-  - Added "Import Matches" button on matches sub-tab (visible to all group members)
-  - Wired up ImportMatchesDialog
-- TypeScript clean (`npx tsc --noEmit` exit 0)
-
+**Note:** Earlier entries (2026-04-28 through 2026-04-29T10:58:21Z) archived to `history-archive.md` for readability. This file maintains recent work log.
 ### 2026-04-29T17:58:21Z: Hicks-15 Complete — Retroactive Match Import (Scribe Log)
 - Session hicks-15 successfully completed: ImportMatchesDialog, importMatchesToGroup, dedup logic fully delivered
 - 4 files created/modified; TypeScript clean build
 - Orchestration log written to `.squad/orchestration-log/2026-04-29T17-58-21Z-hicks.md`
 - Hicks-16 (log-to-group at match time) now in progress — coordinates with Dallas UI + Lambert tests
 - Team decisions consolidated: 6 inbox files merged into `decisions.md` capturing retroactive import + log-to-group directives
+
+### 2026-04-29T11:09:20-07:00: Fixed two critical Game Groups bugs (QA audit)
+- **Bug #1 — Pagination duplicates:** `useGroupMatches` hook's `loadMore()` never passed a `startAfter` cursor, always re-fetching page 1. Fixed by: (1) changing `getGroupMatches` to return `{ matches, lastDoc }` so the cursor is available; (2) tracking `lastDocRef` in the hook and passing it on subsequent calls; (3) added `loadingMoreRef` guard to prevent rapid-fire duplicate fetches; (4) `fetchMatches` (initial load / refetch) resets `lastDocRef` so remounts start fresh.
+- **Bug #2 — deleteGroup batch overflow:** A single `writeBatch` accumulated ALL subcollection deletes + group doc + per-member user-groups cleanup. For large groups this exceeds Firestore's 500-op hard limit. Fixed by: (1) chunking subcollection deletes into batches of 450; (2) doing member cleanup + group doc deletion in separate final batches, also chunked; (3) handling edge case where group has no members (still deletes group doc).
+- Pattern to remember: Any Firestore batch that iterates over user-contributed collections MUST be chunked — use 450 as the safe ceiling (leaves 50-op headroom for metadata ops in the same batch).
+- Pattern to remember: Paginated hooks need THREE things — cursor state (`lastDoc`), a loading guard (ref-based, not state-based to avoid stale closures), and reset logic on dependency change.
+- All 183 tests pass. TypeScript clean (`npx tsc --noEmit` exit 0).
+
+### 2026-04-29T11:12:40-07:00: Fixed two more critical atomicity bugs (QA audit #2)
+- **Bug #3 — acceptInvite non-atomic:** Three sequential writes (updateDoc invite, setDoc user invites, addMemberToGroup batch) meant if step 3 failed, invite showed "accepted" but user was never added. Fix: replaced with `runTransaction()` — all reads and writes happen atomically. Invite status update is LAST in the transaction, so if anything fails the invite stays "pending" and user can retry. Also added guard against double-accept (`status !== 'pending'` check inside transaction).
+- **Bug #4 — addMatchToGroups sequential writes:** For-loop with `await setDoc` per group meant partial failures left match in some groups but not others. Fix: pre-generate all doc refs and data, then write everything in a single `writeBatch`. If batch fails, nothing is written. The caller (LogMatchDialog) already only sets `groupRef` on the personal match AFTER `addMatchToGroups` returns successfully, so the flow is now fully atomic.
+- Pattern to remember: For cross-document atomicity involving reads, use `runTransaction()`. For write-only atomicity (no reads needed inside the op), `writeBatch()` is simpler and sufficient.
+- Pattern to remember: Always put the "point of no return" status change (like marking an invite accepted) as the LAST write in a transaction — makes retry-safe by default.
+- All 183 tests pass. TypeScript clean (`npx tsc --noEmit` exit 0).
+
+### 2026-04-29T11:12:40-07:00: Fixed 4 medium-priority QA issues (#5-#8)
+- **Issue #5 — Weak dedup in ImportMatchesDialog:** Replaced fingerprint-based `matchKey()` dedup with `sourceMatchId` lookup. Now checks if any existing group match has a `sourceMatchId` matching the personal match ID — works reliably even for same-day/same-heroes/same-map scenarios across multiple groups.
+- **Issue #6 — Owner can leave their own group:** Added ownership check in `leaveGroup()` — reads group doc, checks `ownerUid`, throws descriptive error if owner tries to leave. MemberList surfaces the error message via `toast.error(err.message)`.
+- **Issue #7 — CreateGroupDialog ignores settings:** Added optional `settings?: Partial<GroupSettings>` param to `createGroup()` with sensible defaults via `??`. CreateGroupDialog now passes `{ allowMemberInvites, autoAddToPersonal }` through.
+- **Issue #8 — memberCount not updated after removal:** Wired `onMemberRemoved` in GroupView to `refetchGroup` (the `useGroup` hook already exposes a `refetch` callback). Header now shows correct member count after removal.
+- Pattern to remember: For dedup of imported records, use the stable document ID (`sourceMatchId`) rather than computed fingerprints — fingerprints are fragile and collision-prone.
+- Pattern to remember: `useGroup` hook already exposes `refetch` — always check hook return values before adding new state management.
+- All 183 tests pass. TypeScript clean (`npx tsc --noEmit` exit 0).
+
+### 2026-04-29T11:12:40-07:00: Fixed 6 remaining QA issues (#9-#14)
+- **Issue #9 - importMatchesToGroup redundant reads:** Refactored to read personal matches ONCE after all group batches are committed, then do a single setDoc. Eliminates race condition between chunks and reduces Firestore reads from N chunks to 1.
+- **Issue #10 - Pending invites never cleaned up:** On accept/decline, the invite is now REMOVED from the user's group-invites array (via filter) instead of just updating status. Keeps the document bounded; user can be re-invited.
+- **Issue #11 - GroupsTab missing error state:** Added error destructuring from useGroups, shows WarningCircle + error message + Try Again button when set.
+- **Issue #12 - GroupSettingsDialog no editing:** Added editable fields (name, description, allowMemberInvites switch, autoAddToPersonal switch) with Save button. Created updateGroupInfo() in groups.ts for combined name+description+settings update. Props expanded: groupDescription, settings, onUpdated.
+- **Issue #13 - Duplicate invites:** Before sending, handleInvite now calls getGroupInvites(groupId) and checks for existing pending invite to same user. Shows toast error if duplicate.
+- **Issue #14 - GroupMatchList error state:** Added error state to useGroupMatches hook (exposed in return). GroupMatchList shows WarningCircle + error message + Try Again button on error.
+- Pattern to remember: When a dialog's props expand (new required fields), always update the parent component's usage in the same PR.
+- Pattern to remember: For invite cleanup, removing from the array (filter) is better than status update -- keeps docs bounded and simplifies getPendingInvites filtering.
+- All 183 tests pass. TypeScript clean. Vite build succeeds.
+
+### 2026-04-29T18:36:17Z: Email-based invites for non-registered users (Background Agent)
+- **Status:** SUCCESS
+- **Task:** Email invite system fully implemented and integrated
+- **Outcome:** Modified 5 core files (group-types.ts, group-invites.ts, InviteMemberDialog.tsx, AuthProvider.tsx, PendingInvites.tsx)
+- **Key Decision:** Email invites stored at `pending-email-invites/{email}` in Firestore; migrated to UID-based on login via AuthProvider check
+- **Verification:** TypeScript compiles clean, build succeeds
+
+### 2026-04-29T11:05:18-07:00: User directive — Quality gate for all feature work
+- **By:** Devin Sinha (via Copilot)
+- **What:** Hicks (and all agents) need to be more thorough. Too many bugs are being found after delivery. From now on, all feature work must include proper state refresh, UI feedback, and edge case handling before being considered done.
+- **Why:** User frustration with repeated bugs in Game Groups feature — state not refreshing after import, stale lists after deletion, etc. Quality gate needed.
+- **Action:** Will apply this stricter review bar to all future work.
+
+### 2026-04-29T11:12:40-07:00: User directive — Internal QA before user delivery
+- **By:** Devin Sinha (via Copilot)
+- **What:** The team must test their own work before presenting to the user. Never ask the user to test — have Lambert verify first. Only report results after internal QA passes.
+- **Why:** User request — the team should own quality, not push testing burden to the user.
+- **Action:** Integrate Lambert's testing workflow into delivery checklist.

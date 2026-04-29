@@ -195,6 +195,52 @@
 
 ---
 
+### 2026-04-29T11:05:18-07:00: User directive
+**By:** Devin Sinha (via Copilot)
+**What:** Hicks (and all agents) need to be more thorough. Too many bugs are being found after delivery. From now on, all feature work must include proper state refresh, UI feedback, and edge case handling before being considered done.
+**Why:** User frustration with repeated bugs in Game Groups feature — state not refreshing after import, stale lists after deletion, etc. Quality gate needed.
+
+---
+
+### 2026-04-29T11:12:40-07:00: User directive
+**By:** Devin Sinha (via Copilot)
+**What:** The team must test their own work before presenting to the user. Never ask the user to test — have Lambert verify first. Only report results after internal QA passes.
+**Why:** User request — the team should own quality, not push testing burden to the user.
+
+---
+
+### 2026-04-29T10:58:21-07:00: Match logging always saves personal + optional group assignment
+**By:** Hicks (Full-Stack Dev)
+**Status:** Implemented
+**What:** Previously, LogMatchDialog had an exclusive "Log to" single-select: you logged either to Personal OR to a single group. Now the flow is:
+1. Match is **always** saved to Personal (via `onSave`)
+2. User can **optionally** check one or more groups to also write the match into
+3. If groups are selected, the personal match gets a `groupRef` field (dedup signal)
+4. Group copies get `sourceMatchId` pointing back to the personal match
+**Why:** Simpler mental model: "your personal log is your source of truth". No double-counting risk. Multi-group support. Users without groups see zero UI change.
+**Files modified:** `src/lib/types.ts` (added `groupRef` to Match), `src/lib/groups.ts` (added `addMatchToGroups()`), `src/components/matches/LogMatchDialog.tsx` (replaced single-select with checkbox list), `src/lib/__tests__/group-matches.test.ts` (updated test types).
+**Dedup contract:** Personal match with `groupRef` present → skip in community stats. Group match with `sourceMatchId` present → links back to personal match.
+
+---
+
+### 2026-04-29T11:05:18-07:00: Game Groups QA Audit — Lambert (HOLD — Critical issues found)
+**By:** Lambert (Tester)
+**Status:** ⚠️ HOLD — Multiple issues found, several critical
+**What:** Comprehensive code review of the Game Groups feature across 13 files. Found **4 critical bugs**, **6 medium issues**, **4 low-priority improvements**. Test coverage: ZERO component/integration tests for Groups UI.
+**🔴 CRITICAL — Will break for users:**
+1. `loadMore` pagination broken — duplicates all matches (use-group-matches.ts line 34-45)
+2. `deleteGroup` can exceed Firestore 500-operation batch limit (groups.ts line 113-143)
+3. `acceptInvite` non-atomic — partial failures leave inconsistent state (group-invites.ts line 67-95)
+4. `addMatchToGroups` writes sequentially with no rollback (groups.ts line 228-256)
+
+**🟡 MEDIUM issues:** Duplicate import protection missing, owner can leave own group, dialog ignores settings, memberCount not updated, import reads full doc per batch, pending invites never cleaned up.
+
+**🟢 LOW issues:** No error state display, settings dialog non-functional, duplicate invite check missing, GroupMatchList error handling missing.
+
+**Recommendation:** DO NOT SHIP until #1 and #2 are fixed. #3 and #4 represent data integrity risks that violate team's "never break user data" constraint. Add integration tests before shipping.
+
+---
+
 ## Governance
 
 - All meaningful changes require team consensus
