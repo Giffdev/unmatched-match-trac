@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
 import { deleteGroup, updateGroupInfo } from '@/lib/groups'
 import { toast } from 'sonner'
+import { Trash2 } from 'lucide-react'
 import type { GroupSettings } from '@/lib/group-types'
 
 type GroupSettingsDialogProps = {
@@ -37,7 +38,6 @@ export function GroupSettingsDialog({
   const [confirmName, setConfirmName] = useState('')
   const [deleting, setDeleting] = useState(false)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
-  const [showDangerZone, setShowDangerZone] = useState(false)
 
   // Sync form state when props change (e.g. dialog re-opened after update)
   useEffect(() => {
@@ -96,7 +96,6 @@ export function GroupSettingsDialog({
   const handleOpenChange = (nextOpen: boolean) => {
     if (!nextOpen) {
       setShowDeleteConfirm(false)
-      setShowDangerZone(false)
       setConfirmName('')
     }
     onOpenChange(nextOpen)
@@ -170,66 +169,54 @@ export function GroupSettingsDialog({
             </Button>
           </div>
 
-          {/* Danger Zone — collapsed by default */}
-          {!showDangerZone ? (
-            <button
-              type="button"
-              onClick={() => setShowDangerZone(true)}
-              className="text-xs text-muted-foreground hover:text-destructive transition-colors cursor-pointer"
-            >
-              Show danger zone…
-            </button>
+          {/* Delete group */}
+          {!showDeleteConfirm ? (
+            <div className="flex justify-center pt-2">
+              <button
+                type="button"
+                onClick={() => setShowDeleteConfirm(true)}
+                className="text-muted-foreground hover:text-destructive transition-colors p-2 rounded-md"
+                aria-label="Delete group"
+              >
+                <Trash2 className="h-4 w-4" />
+              </button>
+            </div>
           ) : (
-            <div className="border border-destructive/30 rounded-lg p-4 space-y-3">
-              <h3 className="text-sm font-semibold text-destructive">Danger Zone</h3>
-
-              {!showDeleteConfirm ? (
+            <div className="space-y-3 pt-2">
+              <p className="text-sm text-muted-foreground">
+                This will delete the group and all its matches. <strong>Your personal matches will NOT be affected.</strong>
+              </p>
+              <p className="text-sm text-muted-foreground">
+                Type <strong>{groupName}</strong> to confirm:
+              </p>
+              <Input
+                value={confirmName}
+                onChange={(e) => setConfirmName(e.target.value)}
+                placeholder="Type group name to confirm"
+                autoFocus
+              />
+              <div className="flex gap-2">
                 <Button
                   type="button"
                   variant="destructive"
                   size="sm"
-                  onClick={() => setShowDeleteConfirm(true)}
+                  disabled={!canDelete || deleting}
+                  onClick={handleDelete}
                 >
-                  Delete Group
+                  {deleting ? 'Deleting...' : 'Confirm Delete'}
                 </Button>
-              ) : (
-                <div className="space-y-3">
-                  <p className="text-sm text-muted-foreground">
-                    This will delete the group and all its matches. <strong>Your personal matches will NOT be affected.</strong>
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    Type <strong>{groupName}</strong> to confirm:
-                  </p>
-                  <Input
-                    value={confirmName}
-                    onChange={(e) => setConfirmName(e.target.value)}
-                    placeholder="Type group name to confirm"
-                    autoFocus
-                  />
-                  <div className="flex gap-2">
-                    <Button
-                      type="button"
-                      variant="destructive"
-                      size="sm"
-                      disabled={!canDelete || deleting}
-                      onClick={handleDelete}
-                    >
-                      {deleting ? 'Deleting...' : 'Confirm Delete'}
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => {
-                        setShowDeleteConfirm(false)
-                        setConfirmName('')
-                      }}
-                    >
-                      Cancel
-                    </Button>
-                  </div>
-                </div>
-              )}
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    setShowDeleteConfirm(false)
+                    setConfirmName('')
+                  }}
+                >
+                  Cancel
+                </Button>
+              </div>
             </div>
           )}
         </form>
