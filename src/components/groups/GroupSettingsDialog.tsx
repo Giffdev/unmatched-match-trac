@@ -104,121 +104,117 @@ export function GroupSettingsDialog({
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle>Group Settings</DialogTitle>
-          <DialogDescription>Manage settings for {groupName}</DialogDescription>
+        <DialogHeader className="flex flex-row items-start justify-between space-y-0">
+          <div>
+            <DialogTitle>Group Settings</DialogTitle>
+            <DialogDescription>Manage settings for {groupName}</DialogDescription>
+          </div>
+          <button
+            type="button"
+            onClick={() => setShowDeleteConfirm(true)}
+            className="text-muted-foreground hover:text-destructive transition-colors p-2 rounded-md -mt-1 -mr-2"
+            aria-label="Delete group"
+          >
+            <Trash2 className="h-4 w-4" />
+          </button>
         </DialogHeader>
+
+        {/* Delete confirmation — outside the form so Enter doesn't trigger save */}
+        {showDeleteConfirm && (
+          <div className="space-y-3 border border-destructive/30 rounded-md p-3 bg-destructive/5">
+            <p className="text-sm text-muted-foreground">
+              This will delete the group and all its matches. <strong>Your personal matches will NOT be affected.</strong>
+            </p>
+            <p className="text-sm text-muted-foreground">
+              Type <strong>{groupName}</strong> to confirm:
+            </p>
+            <Input
+              value={confirmName}
+              onChange={(e) => setConfirmName(e.target.value)}
+              placeholder="Type group name to confirm"
+              autoFocus
+            />
+            <div className="flex gap-2">
+              <Button
+                type="button"
+                variant="destructive"
+                size="sm"
+                disabled={!canDelete || deleting}
+                onClick={handleDelete}
+              >
+                {deleting ? 'Deleting...' : 'Confirm Delete'}
+              </Button>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  setShowDeleteConfirm(false)
+                  setConfirmName('')
+                }}
+              >
+                Cancel
+              </Button>
+            </div>
+          </div>
+        )}
 
         <form
           onSubmit={(e) => {
             e.preventDefault()
             handleSave()
           }}
-          className="space-y-6 pt-2"
+          className="space-y-4 pt-2"
         >
-          {/* Editable fields */}
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="group-name">Group Name</Label>
-              <Input
-                id="group-name"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="Group name"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="group-description">Description</Label>
-              <Input
-                id="group-description"
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                placeholder="Optional description"
-              />
-            </div>
-
-            <div className="flex items-center justify-between">
-              <Label htmlFor="allow-member-invites" className="text-sm">
-                Allow members to invite others
-              </Label>
-              <Switch
-                id="allow-member-invites"
-                checked={allowMemberInvites}
-                onCheckedChange={setAllowMemberInvites}
-              />
-            </div>
-
-            <div className="flex items-center justify-between">
-              <Label htmlFor="auto-add-personal" className="text-sm">
-                Auto-add group matches to personal log
-              </Label>
-              <Switch
-                id="auto-add-personal"
-                checked={autoAddToPersonal}
-                onCheckedChange={setAutoAddToPersonal}
-              />
-            </div>
-
-            <Button
-              type="submit"
-              disabled={!canSave || saving}
-              className="w-full"
-            >
-              {saving ? 'Saving...' : 'Save Changes'}
-            </Button>
+          <div className="space-y-2">
+            <Label htmlFor="group-name">Group Name</Label>
+            <Input
+              id="group-name"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="Group name"
+            />
           </div>
 
-          {/* Delete group */}
-          {!showDeleteConfirm ? (
-            <div className="flex justify-center pt-2">
-              <button
-                type="button"
-                onClick={() => setShowDeleteConfirm(true)}
-                className="text-muted-foreground hover:text-destructive transition-colors p-2 rounded-md"
-                aria-label="Delete group"
-              >
-                <Trash2 className="h-4 w-4" />
-              </button>
-            </div>
-          ) : (
-            <div className="space-y-3 pt-2">
-              <p className="text-sm text-muted-foreground">
-                This will delete the group and all its matches. <strong>Your personal matches will NOT be affected.</strong>
-              </p>
-              <p className="text-sm text-muted-foreground">
-                Type <strong>{groupName}</strong> to confirm:
-              </p>
-              <Input
-                value={confirmName}
-                onChange={(e) => setConfirmName(e.target.value)}
-                placeholder="Type group name to confirm"
-                autoFocus
-              />
-              <div className="flex gap-2">
-                <Button
-                  type="button"
-                  variant="destructive"
-                  size="sm"
-                  disabled={!canDelete || deleting}
-                  onClick={handleDelete}
-                >
-                  {deleting ? 'Deleting...' : 'Confirm Delete'}
-                </Button>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => {
-                    setShowDeleteConfirm(false)
-                    setConfirmName('')
-                  }}
-                >
-                  Cancel
-                </Button>
-              </div>
-            </div>
-          )}
+          <div className="space-y-2">
+            <Label htmlFor="group-description">Description</Label>
+            <Input
+              id="group-description"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder="Optional description"
+            />
+          </div>
+
+          <div className="flex items-center justify-between">
+            <Label htmlFor="allow-member-invites" className="text-sm">
+              Allow members to invite others
+            </Label>
+            <Switch
+              id="allow-member-invites"
+              checked={allowMemberInvites}
+              onCheckedChange={setAllowMemberInvites}
+            />
+          </div>
+
+          <div className="flex items-center justify-between">
+            <Label htmlFor="auto-add-personal" className="text-sm">
+              Auto-add group matches to personal log
+            </Label>
+            <Switch
+              id="auto-add-personal"
+              checked={autoAddToPersonal}
+              onCheckedChange={setAutoAddToPersonal}
+            />
+          </div>
+
+          <Button
+            type="submit"
+            disabled={!canSave || saving}
+            className="w-full"
+          >
+            {saving ? 'Saving...' : 'Save Changes'}
+          </Button>
         </form>
       </DialogContent>
     </Dialog>
