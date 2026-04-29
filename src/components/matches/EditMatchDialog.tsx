@@ -228,7 +228,7 @@ export function EditMatchDialog({ open, onOpenChange, onSave, match, existingMat
             </div>
             {players.map((player, index) => (
               <PlayerCard
-                key={index}
+                key={`player-${player.heroId || index}-${player.turnOrder}`}
                 player={player}
                 index={index}
                 isCooperative={isCooperative}

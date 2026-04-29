@@ -289,7 +289,7 @@ export function LogMatchDialog({ open, onOpenChange, onSave, prefilled, existing
             </div>
             {players.map((player, index) => (
               <PlayerCard
-                key={index}
+                key={`player-${player.heroId || index}-${player.turnOrder}`}
                 player={player}
                 index={index}
                 isCooperative={isCooperative}

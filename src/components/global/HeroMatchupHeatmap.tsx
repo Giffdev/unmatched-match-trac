@@ -45,9 +45,7 @@ export function HeroMatchupHeatmap({ matches, onHeroClick, isLoading }: HeroMatc
       matrix[hero2Id][hero1Id].total++
       
       if (!match.isDraw && match.winnerId) {
-        const winnerPlayer = match.players.find(p => 
-          p.heroId === match.winnerId || p.heroId === match.winnerId
-        )
+        const winnerPlayer = match.players.find(p => p.heroId === match.winnerId)
         
         if (winnerPlayer) {
           const winnerHeroId = winnerPlayer.heroId

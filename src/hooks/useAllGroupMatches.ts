@@ -23,7 +23,7 @@ function isCacheValid(groupId: string): boolean {
  * Caches results in memory so switching between Players/Heroes tabs doesn't re-fetch.
  * For paginated list display, use the existing `useGroupMatches` from use-group-matches.ts.
  */
-export function useGroupMatches(groupId: string | null) {
+export function useAllGroupMatches(groupId: string | null) {
   const [matches, setMatches] = useState<GroupMatch[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<Error | null>(null)

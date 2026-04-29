@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import type { Match, Map } from '@/lib/types'
 import { Card } from '@/components/ui/card'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
@@ -34,6 +34,13 @@ export function PlayersTab({ matches, ownedSets = [], onHeroClick, dataSource, g
   const playerNames = getAllPlayerNames(effectiveMatches)
   const [selectedPlayer, setSelectedPlayer] = useState(playerNames[0] || '')
   const [showOnlyOwnedHeroes, setShowOnlyOwnedHeroes] = useState(false)
+
+  // Reset selectedPlayer when available players change (e.g. group context switch)
+  useEffect(() => {
+    if (playerNames.length > 0 && !playerNames.includes(selectedPlayer)) {
+      setSelectedPlayer(playerNames[0])
+    }
+  }, [playerNames, selectedPlayer])
   const [showOnlyOwnedMaps, setShowOnlyOwnedMaps] = useState(false)
   const [selectedMap, setSelectedMap] = useState<Map | null>(null)
   const [isMapDialogOpen, setIsMapDialogOpen] = useState(false)

@@ -17,7 +17,7 @@ import { ErrorBoundary } from '@/components/ErrorBoundary'
 import { Toaster } from '@/components/ui/sonner'
 import { ListChecks, Users, User, Shuffle, MapTrifold, UsersThree } from '@phosphor-icons/react'
 import { usePendingInvites, useGroups } from '@/hooks/use-groups'
-import { useGroupMatches } from '@/hooks/useGroupMatches'
+import { useAllGroupMatches } from '@/hooks/useAllGroupMatches'
 import type { Match } from '@/lib/types'
 import { normalizeMatchPlayerNames } from '@/lib/utils'
 import { useIsMobile } from '@/hooks/use-mobile'
@@ -43,8 +43,8 @@ function App() {
   const [heroesContext, setHeroesContext] = useState<string>('personal')
 
   // Fetch group matches when a group is selected
-  const { matches: playersGroupMatches } = useGroupMatches(playersContext !== 'personal' ? playersContext : null)
-  const { matches: heroesGroupMatches } = useGroupMatches(heroesContext !== 'personal' ? heroesContext : null)
+  const { matches: playersGroupMatches } = useAllGroupMatches(playersContext !== 'personal' ? playersContext : null)
+  const { matches: heroesGroupMatches } = useAllGroupMatches(heroesContext !== 'personal' ? heroesContext : null)
 
   // Build group list for selector
   const groupOptions = useMemo(() => userGroups.map(g => ({ id: g.groupId, name: g.groupName })), [userGroups])
@@ -104,9 +104,11 @@ function App() {
   // On iOS Safari, window.scrollTo alone may not work — the actual scroll element
   // can be document.documentElement or document.body depending on the browser.
   useEffect(() => {
-    window.scrollTo({ top: 0, left: 0, behavior: 'instant' })
-    document.documentElement.scrollTop = 0
-    document.body.scrollTop = 0
+    requestAnimationFrame(() => {
+      window.scrollTo({ top: 0, left: 0, behavior: 'instant' })
+      document.documentElement.scrollTop = 0
+      document.body.scrollTop = 0
+    })
   }, [currentTab])
 
   useEffect(() => {

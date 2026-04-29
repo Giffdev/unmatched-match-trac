@@ -79,7 +79,7 @@ export function MatchResultSection({
                 : hero?.name || 'No hero selected'
               
               return (
-                <div key={index} className="flex items-center gap-2">
+                <div key={`winner-${player.heroId || index}`} className="flex items-center gap-2">
                   <RadioGroupItem value={player.heroId} id={`winner-${index}`} />
                   <Label htmlFor={`winner-${index}`} className="cursor-pointer font-normal">
                     {player.playerName || `Player ${index + 1}`} - {displayName}

@@ -70,14 +70,22 @@ export function HeroesTab({ matches, currentUserId, initialSelectedHero, onHeroC
   }, [initialSelectedHero, onHeroChange])
 
   useEffect(() => {
+    let cancelled = false
+
     const updateCommunityMatches = async () => {
       if (!currentUserId) return
       
       const allMatchesData = await getAllUserMatches()
-      setAllMatches(allMatchesData)
+      if (!cancelled) {
+        setAllMatches(allMatchesData)
+      }
     }
     
     updateCommunityMatches()
+
+    return () => {
+      cancelled = true
+    }
   }, [matches.length, currentUserId])
 
   const selectableHeroes = getSelectableHeroes()
