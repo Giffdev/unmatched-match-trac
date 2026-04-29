@@ -139,6 +139,62 @@
 
 ---
 
+### 2026-04-29T09:51:49-07:00: User directive
+**By:** Devin Sinha (via Copilot)
+**What:** Game Groups feature is substantial — do NOT push to production until fully designed and tested locally.
+**Why:** User request — captured for team memory
+
+---
+
+### 2026-04-29T09:51:49Z: Copilot Directive — Game Groups Scoping
+**By:** Copilot (team tool)
+**What:** Game Groups feature is substantial — do NOT push to production until fully designed and tested locally.
+**Why:** User directive reinforcement from Copilot
+
+---
+
+### 2026-04-29T09:51:49Z: Share Match Log Feature — Design Brainstorm
+**By:** Ripley (Lead)
+**Status:** Brainstorm — Not for implementation yet
+**Requested by:** Devin Sinha
+**What:** Explored 3 approaches for sharing match logs with small groups:
+- **Approach A (Share Code):** ❌ Not recommended — requires backend function (violates serverless constraint) or is insecure.
+- **Approach B (Viewer List — RECOMMENDED ✅):** Owner maintains UIDs of viewers. Firestore rules enforce. Real security, no backend, owner controls access.
+- **Approach C (Public Toggle):** Simple all-or-nothing toggle. No granularity, privacy concern, doesn't match "friends only" UX.
+**Recommendation:** Implement Approach B first (Viewer List). Can add Approach C later as optional enhancement.
+**Dependency:** Implement after subcollection migration completes.
+**Email-to-UID Resolution:** Query \`users\` collection by email (already have profiles). Minor security rule adjustment needed to allow authed users to query user list.
+
+---
+
+### 2026-04-29T09:51:49Z: Game Groups — Architecture Design Document
+**By:** Ripley (Lead)
+**Status:** Design Proposal — Awaiting Devin's Review
+**What:** Comprehensive architecture for collaborative match-logging feature where multiple authenticated users write to shared group collections. Supersedes read-only share brainstorm.
+
+**Data Model:**
+- Top-level \`groups/{groupId}\` collection (not nested under user, because multiple owners)
+- \`memberUids[]\` array in group doc for security rule enforcement (no get() calls)
+- \`groups/{groupId}/members/{userId}\` subcollection for rich membership data (roles, join dates, denormalized names)
+- \`groups/{groupId}/matches/{matchId}\` subcollection for group matches (includes \`loggedBy\`, back-reference to group)
+
+**Security Rules:** All writes require uid in \`memberUids\` (checked in rule, zero cost). Reads limited to members.
+
+**User Discovery:** Email search (query \`users\` by email → resolve to UID) + phone-a-friend workflows.
+
+**Migration Path:** Phase 1 (data model + rules) → Phase 2 (UI: create/invite) → Phase 3 (personal log linking) → Phase 4 (community stats for groups).
+
+**Safety Constraints:** 
+- Legacy user matches continue as-is (groups are opt-in feature)
+- Atomic writes via \`writeBatch()\` to keep \`memberUids[]\` and \`members/\` subcollection in sync
+- No shipping until fully designed, locally tested, and Devin approves
+
+**Estimated Cost:** $0.02–0.10/month for typical usage (group match writes + member queries).
+
+**Status:** Design complete. Awaiting team review before implementation.
+
+---
+
 ## Governance
 
 - All meaningful changes require team consensus
