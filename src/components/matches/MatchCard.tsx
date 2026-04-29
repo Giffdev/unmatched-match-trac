@@ -81,7 +81,9 @@ export function MatchCard({ match, onDelete, onEdit, onHeroClick, onMapClick, ex
             </span>
           </div>
 
-          <div className="space-y-2">
+          <div className="grid gap-y-2 gap-x-1.5 md:gap-x-2 items-center"
+            style={{ gridTemplateColumns: 'auto minmax(0, auto) auto minmax(0, 1fr) auto' }}
+          >
             {match.players
               .sort((a, b) => a.turnOrder - b.turnOrder)
               .map((player) => {
@@ -91,38 +93,34 @@ export function MatchCard({ match, onDelete, onEdit, onHeroClick, onMapClick, ex
                 return (
                   <div 
                     key={`${player.heroId}-${player.turnOrder}`}
-                    className={`flex items-center gap-2 md:gap-3 ${isWinner ? 'font-medium' : ''}`}
+                    className={`grid grid-cols-subgrid col-span-5 items-center ${isWinner ? 'font-medium' : ''}`}
                   >
                     <Badge variant="outline" className="w-6 h-6 md:w-8 md:h-8 rounded-full flex items-center justify-center p-0 text-xs shrink-0">
                       {player.turnOrder}
                     </Badge>
-                    <div className="grid items-center gap-1.5 md:gap-2 flex-1 min-w-0"
-                      style={{ gridTemplateColumns: `auto auto 1fr auto` }}
+                    <span className="flex items-center gap-1 text-xs md:text-sm min-w-0">
+                      <span className="truncate">{player.playerName}</span>
+                      {isWinner && (
+                        <Trophy className="text-accent shrink-0" size={14} weight="fill" />
+                      )}
+                    </span>
+                    <span className="text-xs text-muted-foreground">as</span>
+                    <button
+                      onClick={() => onHeroClick(player.heroId)}
+                      className="text-xs md:text-sm text-primary hover:underline cursor-pointer transition-colors truncate text-left min-w-0"
                     >
-                      <span className="flex items-center gap-1 text-xs md:text-sm">
-                        <span className="truncate">{player.playerName}</span>
-                        {isWinner && (
-                          <Trophy className="text-accent shrink-0" size={14} weight="fill" />
-                        )}
-                      </span>
-                      <span className="text-xs text-muted-foreground">as</span>
-                      <button
-                        onClick={() => onHeroClick(player.heroId)}
-                        className="text-xs md:text-sm text-primary hover:underline cursor-pointer transition-colors truncate text-left"
-                      >
-                        {getHeroDisplayName(player)}
-                      </button>
-                      <div className="flex items-center">
-                        {match.isDraw && (
-                          <span className="text-[10px] md:text-xs text-muted-foreground shrink-0">(Draw)</span>
-                        )}
-                      </div>
+                      {getHeroDisplayName(player)}
+                    </button>
+                    <div className="flex items-center">
+                      {match.isDraw && (
+                        <span className="text-[10px] md:text-xs text-muted-foreground shrink-0">(Draw)</span>
+                      )}
                     </div>
                   </div>
                 )
               })}
             {match.mode === 'cooperative' && match.cooperativeResult && (
-              <div className="mt-3 pt-3 border-t border-border">
+              <div className="col-span-5 mt-3 pt-3 border-t border-border">
                 <Badge 
                   variant={match.cooperativeResult === 'win' ? 'default' : 'destructive'}
                   className="font-medium text-xs md:text-sm"
