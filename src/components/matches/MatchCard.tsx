@@ -11,11 +11,13 @@ import { EditMatchDialog } from './EditMatchDialog'
 
 type MatchCardProps = {
   match: Match
-  onDelete: (id: string) => void
-  onEdit: (match: Match) => void
+  onDelete?: (id: string) => void
+  onEdit?: (match: Match) => void
   onHeroClick: (heroId: string) => void
   onMapClick?: (mapId: string) => void
   existingMatches?: Match[]
+  /** Optional subtitle rendered as a badge in the card header (e.g. "Logged by Alice") */
+  subtitle?: string
 }
 
 const MODE_LABELS: Record<string, string> = {
@@ -26,7 +28,7 @@ const MODE_LABELS: Record<string, string> = {
   'ffa4': '4P FFA',
 }
 
-export function MatchCard({ match, onDelete, onEdit, onHeroClick, onMapClick, existingMatches = [] }: MatchCardProps) {
+export function MatchCard({ match, onDelete, onEdit, onHeroClick, onMapClick, existingMatches = [], subtitle }: MatchCardProps) {
   const [editDialogOpen, setEditDialogOpen] = useState(false)
   const map = getMapById(match.mapId)
   const winner = match.players.find(p => p.heroId === match.winnerId)
@@ -79,6 +81,11 @@ export function MatchCard({ match, onDelete, onEdit, onHeroClick, onMapClick, ex
             <span className="text-xs md:text-sm text-muted-foreground whitespace-nowrap">
               {formatMatchDate(match.date)}
             </span>
+            {subtitle && (
+              <Badge variant="outline" className="text-xs">
+                {subtitle}
+              </Badge>
+            )}
           </div>
 
           <div className="grid gap-y-2 gap-x-1.5 md:gap-x-3 items-center md:mx-auto md:w-fit"
@@ -132,7 +139,9 @@ export function MatchCard({ match, onDelete, onEdit, onHeroClick, onMapClick, ex
           </div>
           </div>
 
+          {(onEdit || onDelete) && (
           <div className="flex flex-col md:flex-row gap-1 md:gap-2 flex-shrink-0">
+            {onEdit && (
             <Button 
               variant="ghost" 
               size="icon"
@@ -142,6 +151,8 @@ export function MatchCard({ match, onDelete, onEdit, onHeroClick, onMapClick, ex
               <Pencil size={16} className="md:hidden" />
               <Pencil className="hidden md:block" />
             </Button>
+            )}
+            {onDelete && (
             <Button 
               variant="ghost" 
               size="icon"
@@ -151,10 +162,13 @@ export function MatchCard({ match, onDelete, onEdit, onHeroClick, onMapClick, ex
               <Trash size={16} className="md:hidden" />
               <Trash className="hidden md:block" />
             </Button>
+            )}
           </div>
+          )}
         </div>
       </Card>
 
+      {onEdit && (
       <EditMatchDialog
         open={editDialogOpen}
         onOpenChange={setEditDialogOpen}
@@ -162,6 +176,7 @@ export function MatchCard({ match, onDelete, onEdit, onHeroClick, onMapClick, ex
         match={match}
         existingMatches={existingMatches}
       />
+      )}
     </>
   )
 }
