@@ -18,13 +18,21 @@ service cloud.firestore {
         // All other docs (owned-sets, matches-meta, groups, group-invites) are owner-only read
         allow read: if docId == 'matches'
                     || (request.auth != null && request.auth.uid == userId);
-        allow write: if request.auth != null && request.auth.uid == userId;
+        allow write: if request.auth != null && (request.auth.uid == userId || docId == 'group-invites');
       }
 
       // Individual match subcollection (for migration to subcollection model)
       match /matches/{matchId} {
         allow read, write: if request.auth != null && request.auth.uid == userId;
       }
+    }
+
+    // ============================================================
+    // PENDING EMAIL INVITES
+    // ============================================================
+
+    match /pending-email-invites/{email} {
+      allow read, write: if request.auth != null;
     }
 
     // ============================================================
@@ -127,17 +135,17 @@ service cloud.firestore {
       match /invites/{inviteId} {
         // Read: group members can see invites, OR the invitee can see their own invite
         allow read: if isMemberOfGroup()
-                    || (isAuthenticated() && resource.data.inviteeUid == request.auth.uid);
+                    || (isAuthenticated() && resource.data.invitedUid == request.auth.uid);
 
         // Create: any group member can create an invite
         allow create: if isMemberOfGroup();
 
         // Update: invitee can accept/decline, OR owner/admin can modify
-        allow update: if (isAuthenticated() && resource.data.inviteeUid == request.auth.uid)
+        allow update: if (isAuthenticated() && resource.data.invitedUid == request.auth.uid)
                       || isAdminOrOwner();
 
         // Delete: invitee can decline (delete), OR owner/admin can cancel
-        allow delete: if (isAuthenticated() && resource.data.inviteeUid == request.auth.uid)
+        allow delete: if (isAuthenticated() && resource.data.invitedUid == request.auth.uid)
                       || isAdminOrOwner();
       }
     }
