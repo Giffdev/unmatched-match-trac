@@ -43,10 +43,12 @@ function App() {
   // Per-tab data context: 'personal' or a groupId
   const [playersContext, setPlayersContext] = useState<string>('personal')
   const [heroesContext, setHeroesContext] = useState<string>('personal')
+  const [matchesContext, setMatchesContext] = useState<string>('personal')
 
   // Fetch group matches when a group is selected
   const { matches: playersGroupMatches } = useAllGroupMatches(playersContext !== 'personal' ? playersContext : null)
   const { matches: heroesGroupMatches } = useAllGroupMatches(heroesContext !== 'personal' ? heroesContext : null)
+  const { matches: matchesGroupMatches } = useAllGroupMatches(matchesContext !== 'personal' ? matchesContext : null)
 
   // Build group list for selector
   const groupOptions = useMemo(() => userGroups.map(g => ({ id: g.groupId, name: g.groupName })), [userGroups])
@@ -63,6 +65,12 @@ function App() {
     const group = userGroups.find(g => g.groupId === heroesContext)
     return { label: group?.groupName || 'Group', matches: heroesGroupMatches as Match[] }
   }, [heroesContext, heroesGroupMatches, userGroups])
+
+  const matchesDataSource = useMemo(() => {
+    if (matchesContext === 'personal') return undefined
+    const group = userGroups.find(g => g.groupId === matchesContext)
+    return { label: group?.groupName || 'Group', matches: matchesGroupMatches as Match[] }
+  }, [matchesContext, matchesGroupMatches, userGroups])
 
 
   const matchesData = matches || []
@@ -241,6 +249,10 @@ function App() {
                   matches={matchesData} 
                   setMatches={setMatches}
                   onHeroClick={handleHeroClick}
+                  dataSource={matchesDataSource}
+                  groups={groupOptions}
+                  dataContext={matchesContext}
+                  onDataContextChange={setMatchesContext}
                 />
               </ErrorBoundary>
             </TabsContent>
