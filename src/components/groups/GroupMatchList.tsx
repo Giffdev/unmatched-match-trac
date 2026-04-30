@@ -5,9 +5,10 @@ import { MatchCard } from '@/components/matches/MatchCard'
 
 type GroupMatchListProps = {
   groupId: string
+  onHeroClick?: (heroId: string) => void
 }
 
-export function GroupMatchList({ groupId }: GroupMatchListProps) {
+export function GroupMatchList({ groupId, onHeroClick }: GroupMatchListProps) {
   const { matches, loading, error, loadMore, hasMore, refetch } = useGroupMatches(groupId)
 
   if (loading) {
@@ -41,7 +42,7 @@ export function GroupMatchList({ groupId }: GroupMatchListProps) {
         <MatchCard
           key={match.id}
           match={match}
-          onHeroClick={() => {}}
+          onHeroClick={onHeroClick ?? (() => {})}
           subtitle={`Logged by ${match.loggedByName}`}
         />
       ))}

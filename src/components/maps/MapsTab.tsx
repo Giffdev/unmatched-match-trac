@@ -123,7 +123,7 @@ export function MapsTab({ matches }: MapsTabProps) {
       }
     }
     loadGlobalMatches()
-  }, [matches.length])
+  }, [matches])
 
   const sortedMaps = useMemo(() => {
     return [...MAPS].sort((a, b) => a.name.localeCompare(b.name))

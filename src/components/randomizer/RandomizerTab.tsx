@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, useId } from 'react'
 import type { Match, GameMode, PlayerAssignment, HeroStats, Map, BalancedResult, CommunityData } from '@/lib/types'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -29,6 +29,7 @@ type RandomizerResult = {
 }
 
 export function RandomizerTab({ ownedSets, matches, setMatches }: RandomizerTabProps) {
+  const radioId = useId()
   const [mode, setMode] = useState<GameMode>('1v1')
   const [randomizationType, setRandomizationType] = useState<'true' | 'balanced'>('true')
   const [result, setResult] = useState<RandomizerResult | null>(null)
@@ -257,15 +258,15 @@ export function RandomizerTab({ ownedSets, matches, setMatches }: RandomizerTabP
                 <Label>Randomization Type</Label>
                 <RadioGroup value={randomizationType} onValueChange={(v) => setRandomizationType(v as 'true' | 'balanced')}>
                   <div className="flex items-center gap-2">
-                    <RadioGroupItem value="true" id="true-random" />
-                    <Label htmlFor="true-random" className="cursor-pointer font-normal flex items-center gap-2">
+                    <RadioGroupItem value="true" id={`${radioId}-true-random`} />
+                    <Label htmlFor={`${radioId}-true-random`} className="cursor-pointer font-normal flex items-center gap-2">
                       <DiceSix className="text-primary" />
                       True Random - Any heroes from collection
                     </Label>
                   </div>
                   <div className="flex items-center gap-2">
-                    <RadioGroupItem value="balanced" id="balanced" />
-                    <Label htmlFor="balanced" className="cursor-pointer font-normal flex items-center gap-2">
+                    <RadioGroupItem value="balanced" id={`${radioId}-balanced`} />
+                    <Label htmlFor={`${radioId}-balanced`} className="cursor-pointer font-normal flex items-center gap-2">
                       <Sparkle className="text-accent" />
                       Balanced - Pick opponents with close matchup data (1v1 only)
                     </Label>

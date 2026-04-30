@@ -1,3 +1,4 @@
+import { useId } from 'react'
 import { Label } from '@/components/ui/label'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { HEROES } from '@/lib/data'
@@ -24,21 +25,25 @@ export function MatchResultSection({
   cooperativeResult,
   setCooperativeResult,
 }: MatchResultSectionProps) {
+  const baseId = useId()
+
   if (isCooperative) {
+    const winId = `${baseId}-coop-win`
+    const lossId = `${baseId}-coop-loss`
     return (
       <div className="space-y-3">
         <Label>Result</Label>
         <RadioGroup value={cooperativeResult} onValueChange={(v) => setCooperativeResult(v as 'win' | 'loss')}>
           <div className="space-y-2">
             <div className="flex items-center gap-2">
-              <RadioGroupItem value="win" id="coop-win" />
-              <Label htmlFor="coop-win" className="cursor-pointer font-normal">
+              <RadioGroupItem value="win" id={winId} />
+              <Label htmlFor={winId} className="cursor-pointer font-normal">
                 Win
               </Label>
             </div>
             <div className="flex items-center gap-2">
-              <RadioGroupItem value="loss" id="coop-loss" />
-              <Label htmlFor="coop-loss" className="cursor-pointer font-normal">
+              <RadioGroupItem value="loss" id={lossId} />
+              <Label htmlFor={lossId} className="cursor-pointer font-normal">
                 Loss
               </Label>
             </div>
@@ -80,8 +85,8 @@ export function MatchResultSection({
               
               return (
                 <div key={`winner-${player.heroId || index}`} className="flex items-center gap-2">
-                  <RadioGroupItem value={player.heroId} id={`winner-${index}`} />
-                  <Label htmlFor={`winner-${index}`} className="cursor-pointer font-normal">
+                  <RadioGroupItem value={player.heroId} id={`${baseId}-winner-${index}`} />
+                  <Label htmlFor={`${baseId}-winner-${index}`} className="cursor-pointer font-normal">
                     {player.playerName || `Player ${index + 1}`} - {displayName}
                   </Label>
                 </div>
