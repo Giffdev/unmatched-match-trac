@@ -112,7 +112,32 @@ users/{userId}/data/owned-sets → Array of set name strings
 - Changes persist to Firestore immediately
 - Only affects randomizer (match logging is unrestricted)
 
-### 9. Data Management (Authenticated)
+### 9. Game Groups (Authenticated)
+- **Create Groups**: New groups with optional description
+- **Manage Groups**: Edit group settings, invite members
+- **Invite System**:
+  - Generate shareable invite links with unique codes
+  - "Save invite" for email addresses (stored in Firestore for sign-up lookup — no email sending service)
+  - Accept invite via URL link
+  - Invite status tracking (pending, accepted, etc.)
+- **Group Match Logging**: Log matches within groups with group context
+- **Member Management**: View group members, pending invites, invitation history
+- **Data Isolation**: Firestore rules enforce group access control per member
+
+### 10. Hero Image System
+- Local `.webp` and `.avif` assets for all 76+ heroes
+- Fallback UI for missing/unavailable images
+- Optimized image loading for mobile performance
+- Images displayed in hero browser, match logging, and statistics sections
+
+### 11. Mobile Responsiveness
+- Tab navigation with scroll-to-top on tab switch
+- Bottom navigation bar optimized for touch
+- Responsive card and list layouts
+- Full-screen stepped dialogs for match logging on mobile
+- Minimum 44px touch targets throughout
+
+### 12. Data Management (Authenticated)
 - **CSV Export**: Download all matches as CSV
 - **CSV Import**: Bulk import matches from CSV file
 - **Data Diagnostics**: Inspect Firestore document health
@@ -130,6 +155,8 @@ users/{userId}/data/owned-sets → Array of set name strings
 - **Statistical insignificance**: Sample sizes noted; minimum thresholds for meaningful win rate display
 - **Draw/tie**: Supported as match outcome
 - **Mobile**: Bottom nav bar, responsive card layouts, touch-friendly targets
+- **Group Invites**: Email addresses stored for pending signup lookup; graceful handling of expired/invalid invite links
+- **Hero Images**: Fallback UI for missing images; optimized `.webp`/`.avif` formats
 
 ---
 
@@ -170,3 +197,53 @@ Triadic scheme inspired by Unmatched's vibrant character art:
 4. **Community stats via full scan** — `getAllUserMatches()` reads all users' data. Works at small scale but will need indexing/aggregation at scale.
 5. **No offline support** — Requires internet for all operations.
 6. **stripUndefined()** — Critical helper that recursively removes `undefined` values before Firestore writes (Firestore throws on undefined by default).
+
+---
+
+## Infrastructure & DevOps
+
+### Testing
+- **Unit Tests**: Vitest + React Testing Library for component testing
+- **Firestore Rules Testing**: @firebase/rules-unit-testing for security rules validation
+- **Test Coverage**: Components, hooks, utilities, and Firestore security rules
+
+### CI/CD
+- **GitHub Actions**: Automated test runs on push and pull requests
+- **Deployment**: Vercel auto-deployment on push to `main` branch
+- **Build Process**: Vite 7.2 with TypeScript strict mode
+
+### Security
+- **Firestore Security Rules**: Comprehensive rule set enforcing:
+  - User document access control
+  - Group membership verification before data access
+  - Member-only access to group matches
+  - Invite validation and expiration handling
+  - Pending email invite storage without email service
+
+### Database (Firestore)
+- **Collections**: `users`, `groups`, `group-members`, `group-invites`, `pending-email-invites`
+- **Indexing**: Configured for common queries (user matches, group data, community stats)
+- **Backup Strategy**: Regular exports for disaster recovery
+
+---
+
+## Known Limitations & Future Opportunities
+
+### Current Limitations
+1. **No Email Sending**: Invite system stores pending emails in Firestore for signup lookup only. Cloud Functions + email service (SendGrid, etc.) not deployed.
+2. **No Cloud Functions**: All backend logic runs on client or within Firestore rules. Aggregation jobs for large datasets not implemented.
+3. **Bundle Size**: ~1.2MB JavaScript (minified). Could benefit from code splitting and lazy loading of hero data.
+4. **Community Stats Scalability**: `getAllUserMatches()` scans all users' documents. At scale (10k+ users), will need:
+   - Aggregation pipeline with Cloud Functions
+   - Real-time aggregation via Firestore counters
+   - Or read-only replica collection updated via triggers
+5. **No Offline Mode**: Requires active internet connection for all operations.
+6. **Storage Limits**: Each user document limited to ~1MB. Very high match counts (10k+) may exceed limits.
+
+### High-Priority Future Enhancements
+1. **Email Integration**: Deploy Cloud Function to send group invite emails
+2. **Performance**: Code splitting, hero data lazy loading, community stats aggregation
+3. **Cloud Functions**: Automated data cleanup, match aggregation, notifications
+4. **Notifications**: Real-time updates for group invites, match logging in shared groups
+5. **Analytics**: Tracking usage patterns, hero popularity trends over time
+6. **Export Formats**: Additional export options (JSON, Excel with charts, etc.)
