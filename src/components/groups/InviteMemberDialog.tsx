@@ -149,7 +149,7 @@ export function InviteMemberDialog({
 
       const inviterName = user.displayName || user.email || 'Someone'
       await sendEmailInvite(groupId, groupName, email, user.uid, inviterName)
-      toast.success(`Invite sent to ${email}`)
+      toast.success(`Invite saved for ${email} — they'll see it when they sign up. Share the invite link above to notify them!`)
       setSearchQuery('')
       setSearchDone(false)
     } catch (err) {
@@ -224,14 +224,19 @@ export function InviteMemberDialog({
             <div className="text-center py-2 space-y-2">
               <p className="text-sm text-muted-foreground">No users found</p>
               {searchQuery.includes('@') && isValidEmail(searchQuery.trim()) && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleEmailInvite}
-                  disabled={invitingEmail}
-                >
-                  {invitingEmail ? 'Sending...' : `Invite ${searchQuery.trim()} by email`}
-                </Button>
+                <>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleEmailInvite}
+                    disabled={invitingEmail}
+                  >
+                    {invitingEmail ? 'Saving...' : `Save invite for ${searchQuery.trim()}`}
+                  </Button>
+                  <p className="text-xs text-muted-foreground">
+                    They'll see the invite when they sign up. Share the link above to notify them!
+                  </p>
+                </>
               )}
             </div>
           )}

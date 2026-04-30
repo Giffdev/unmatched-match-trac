@@ -77,8 +77,9 @@ service cloud.firestore {
 
       // --- Group document rules ---
 
-      // Read: only members can read group details
-      allow read: if isMember();
+      // Read: any authenticated user can read group details
+      // (needed for invite code lookup queries — the code itself is the secret)
+      allow read: if isAuthenticated();
 
       // Create: any authenticated user can create a group
       // The creator must set themselves as owner and include themselves in memberUids
@@ -86,9 +87,12 @@ service cloud.firestore {
                     && request.resource.data.ownerUid == request.auth.uid
                     && request.auth.uid in request.resource.data.memberUids;
 
-      // Update: only owner can update group settings
-      // (memberUids changes also require owner — enforced by ownerUid check)
-      allow update: if isOwner();
+      // Update: owner can update anything, OR an authenticated user can join
+      // (join = add themselves to memberUids when not already a member)
+      allow update: if isOwner()
+                    || (isAuthenticated()
+                        && request.auth.uid in request.resource.data.memberUids
+                        && !(request.auth.uid in resource.data.memberUids));
 
       // Delete: only owner can delete the group
       allow delete: if isOwner();
@@ -119,12 +123,11 @@ service cloud.firestore {
         allow read: if isMemberOfGroup();
 
         // Create: owner/admin can add members, OR a user can bootstrap their own
-        // owner membership doc during group creation (batch creates group + member atomically,
-        // but get() in isAdminOrOwner sees pre-batch state where group doesn't exist yet)
+        // membership doc (owner role during creation, or member role when joining)
         allow create: if isAdminOrOwner()
                       || (isAuthenticated()
                           && memberId == request.auth.uid
-                          && request.resource.data.role == 'owner');
+                          && request.resource.data.role in ['owner', 'member']);
 
         // Update/Delete: only owner or admin can manage members
         allow update, delete: if isAdminOrOwner();
