@@ -41,6 +41,7 @@ export function HeroesTab({ matches, currentUserId, initialSelectedHero, onHeroC
   const [open, setOpen] = useState(false)
   const [search, setSearch] = useState('')
   const [allMatches, setAllMatches] = useState<Match[]>([])
+  const [allMatchesLoaded, setAllMatchesLoaded] = useState(false)
   const { user } = useAuth()
   const [selectedPlayerName, setSelectedPlayerName] = useState<string>('')
   const effectiveMatches = dataSource ? dataSource.matches : matches
@@ -73,11 +74,15 @@ export function HeroesTab({ matches, currentUserId, initialSelectedHero, onHeroC
     let cancelled = false
 
     const updateCommunityMatches = async () => {
-      if (!currentUserId) return
+      if (!currentUserId) {
+        setAllMatchesLoaded(true)
+        return
+      }
       
       const allMatchesData = await getAllUserMatches()
       if (!cancelled) {
         setAllMatches(allMatchesData)
+        setAllMatchesLoaded(true)
       }
     }
     
@@ -102,6 +107,21 @@ export function HeroesTab({ matches, currentUserId, initialSelectedHero, onHeroC
     
     return [...filtered].sort((a, b) => a.name.localeCompare(b.name))
   }, [search, selectableHeroes])
+
+  // These hooks must always run (React rules of hooks — no hooks after conditional returns)
+  const userPersonalStats = useMemo(() => selectedHero ? calculateUserHeroStats(effectiveMatches, selectedHero, selectedPlayerName || undefined) : { totalGames: 0, wins: 0, losses: 0, winRate: 0, vsMatchups: {} }, [effectiveMatches, selectedHero, selectedPlayerName])
+  const userLoggedMatchesStats = useMemo(() => selectedHero ? calculateUserHeroStats(effectiveMatches, selectedHero) : { totalGames: 0, wins: 0, losses: 0, winRate: 0, vsMatchups: {} }, [effectiveMatches, selectedHero])
+  const globalStats = useMemo(() => selectedHero ? calculateHeroStats(allMatches || [], selectedHero) : { totalGames: 0, wins: 0, losses: 0, winRate: 0, vsMatchups: {} }, [allMatches, selectedHero])
+
+  const matchupEntries = useMemo(() => Object.entries(userLoggedMatchesStats.vsMatchups)
+    .map(([opponentId, data]) => ({
+      hero: getHeroById(opponentId),
+      wins: data.wins,
+      total: data.total,
+      winRate: data.total > 0 ? (data.wins / data.total) * 100 : 0,
+    }))
+    .filter(m => m.hero)
+    .sort((a, b) => b.total - a.total), [userLoggedMatchesStats])
 
    if (!selectedHero) {
     return (
@@ -190,7 +210,7 @@ export function HeroesTab({ matches, currentUserId, initialSelectedHero, onHeroC
                 setSearch('')
                 onHeroClick?.(heroId)
               }}
-              isLoading={allMatches.length === 0}
+              isLoading={!allMatchesLoaded}
             />
           </Card>
         )}
@@ -198,20 +218,7 @@ export function HeroesTab({ matches, currentUserId, initialSelectedHero, onHeroC
     )
   }
 
-  const userPersonalStats = useMemo(() => calculateUserHeroStats(effectiveMatches, selectedHero, selectedPlayerName || undefined), [effectiveMatches, selectedHero, selectedPlayerName])
-  const userLoggedMatchesStats = useMemo(() => calculateUserHeroStats(effectiveMatches, selectedHero), [effectiveMatches, selectedHero])
-  const globalStats = useMemo(() => calculateHeroStats(allMatches || [], selectedHero), [allMatches, selectedHero])
   const hero = getHeroById(selectedHero)
-
-  const matchupEntries = useMemo(() => Object.entries(userLoggedMatchesStats.vsMatchups)
-    .map(([opponentId, data]) => ({
-      hero: getHeroById(opponentId),
-      wins: data.wins,
-      total: data.total,
-      winRate: data.total > 0 ? (data.wins / data.total) * 100 : 0,
-    }))
-    .filter(m => m.hero)
-    .sort((a, b) => b.total - a.total), [userLoggedMatchesStats])
 
   const selectedHeroData = getHeroById(selectedHero)
 
@@ -531,7 +538,7 @@ export function HeroesTab({ matches, currentUserId, initialSelectedHero, onHeroC
               setSearch('')
               onHeroClick?.(heroId)
             }}
-            isLoading={allMatches.length === 0}
+            isLoading={!allMatchesLoaded}
           />
         </Card>
       )}
