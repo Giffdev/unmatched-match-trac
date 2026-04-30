@@ -10,6 +10,8 @@ import {
   arrayUnion,
   arrayRemove,
   increment,
+  query,
+  where,
 } from 'firebase/firestore'
 import { db } from './firebase'
 import type { GameGroup, GroupMember, GroupSettings, GroupRole, UserGroupMembership } from './group-types'
@@ -46,6 +48,7 @@ export async function createGroup(
     updatedAt: now,
     memberUids: [userId],
     memberCount: 1,
+    inviteCode: generateInviteCode(),
     settings: {
       allowMemberInvites: settings?.allowMemberInvites ?? false,
       autoAddToPersonal: settings?.autoAddToPersonal ?? true,
@@ -311,6 +314,61 @@ export async function removeMemberFromGroup(groupId: string, userId: string): Pr
 export async function getGroupMembers(groupId: string): Promise<GroupMember[]> {
   const snap = await getDocs(collection(db, 'groups', groupId, 'members'))
   return snap.docs.map(d => d.data() as GroupMember)
+}
+
+/**
+ * Generate a short random invite code (8 chars, alphanumeric).
+ */
+function generateInviteCode(): string {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789'
+  let code = ''
+  for (let i = 0; i < 8; i++) {
+    code += chars.charAt(Math.floor(Math.random() * chars.length))
+  }
+  return code
+}
+
+/**
+ * Get or create an invite code for a group.
+ * If the group already has an invite code, returns it. Otherwise generates one.
+ */
+export async function getOrCreateInviteCode(groupId: string): Promise<string> {
+  const groupRef = doc(db, 'groups', groupId)
+  const groupSnap = await getDoc(groupRef)
+  if (!groupSnap.exists()) throw new Error('Group not found')
+
+  const group = groupSnap.data() as GameGroup
+  if (group.inviteCode) return group.inviteCode
+
+  const code = generateInviteCode()
+  await updateDoc(groupRef, { inviteCode: code })
+  return code
+}
+
+/**
+ * Look up a group by its invite code.
+ */
+export async function getGroupByInviteCode(inviteCode: string): Promise<GameGroup | null> {
+  const groupsRef = collection(db, 'groups')
+  const q = query(groupsRef, where('inviteCode', '==', inviteCode))
+  const snap = await getDocs(q)
+  if (snap.empty) return null
+  return snap.docs[0].data() as GameGroup
+}
+
+/**
+ * Join a group using an invite code. Returns the group name on success.
+ */
+export async function joinGroupByInviteCode(inviteCode: string, userId: string): Promise<string> {
+  const group = await getGroupByInviteCode(inviteCode)
+  if (!group) throw new Error('Invalid invite code')
+
+  if (group.memberUids.includes(userId)) {
+    throw new Error('You are already a member of this group')
+  }
+
+  await addMemberToGroup(group.id, userId, group.ownerUid, 'member')
+  return group.name
 }
 
 export async function leaveGroup(groupId: string, userId: string): Promise<void> {

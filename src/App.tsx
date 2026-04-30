@@ -15,9 +15,11 @@ import { SignInPrompt } from '@/components/auth/SignInPrompt'
 import { DataCleanup } from '@/components/auth/DataCleanup'
 import { ErrorBoundary } from '@/components/ErrorBoundary'
 import { Toaster } from '@/components/ui/sonner'
+import { toast } from 'sonner'
 import { ListChecks, Users, User, Shuffle, MapTrifold, UsersThree } from '@phosphor-icons/react'
 import { usePendingInvites, useGroups } from '@/hooks/use-groups'
 import { useAllGroupMatches } from '@/hooks/useAllGroupMatches'
+import { joinGroupByInviteCode } from '@/lib/groups'
 import type { Match } from '@/lib/types'
 import { normalizeMatchPlayerNames } from '@/lib/utils'
 import { useIsMobile } from '@/hooks/use-mobile'
@@ -130,6 +132,33 @@ function App() {
     
     normalizeExistingMatches()
   }, [currentUserId, matchesData.length, matchesLoading])
+
+  // Handle ?join=<inviteCode> URL parameter for invite links
+  useEffect(() => {
+    if (!currentUserId) return
+    const params = new URLSearchParams(window.location.search)
+    const joinCode = params.get('join')
+    if (!joinCode) return
+
+    // Clear the URL param immediately to prevent re-joining on refresh
+    const url = new URL(window.location.href)
+    url.searchParams.delete('join')
+    window.history.replaceState({}, '', url.toString())
+
+    joinGroupByInviteCode(joinCode, currentUserId)
+      .then((groupName) => {
+        toast.success(`Joined "${groupName}"!`)
+        setCurrentTab('groups')
+      })
+      .catch((err: Error) => {
+        if (err.message.includes('already a member')) {
+          toast.info(err.message)
+          setCurrentTab('groups')
+        } else {
+          toast.error(err.message || 'Failed to join group')
+        }
+      })
+  }, [currentUserId])
 
   if (loading) {
     return (

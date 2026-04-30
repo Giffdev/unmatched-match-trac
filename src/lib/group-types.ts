@@ -18,6 +18,7 @@ export type GameGroup = {
   memberUids: string[]
   memberCount: number
   settings: GroupSettings
+  inviteCode?: string
 }
 
 export type GroupMember = {

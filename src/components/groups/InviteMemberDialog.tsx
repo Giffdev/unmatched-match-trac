@@ -1,11 +1,12 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
-import { MagnifyingGlass } from '@phosphor-icons/react'
+import { MagnifyingGlass, Check, Copy } from '@phosphor-icons/react'
 import { searchUserByEmail, searchUserByPlayerName } from '@/lib/user-discovery'
 import { sendInvite, sendEmailInvite, getGroupInvites } from '@/lib/group-invites'
+import { getOrCreateInviteCode } from '@/lib/groups'
 import { useAuth } from '@/hooks/use-auth'
 import { toast } from 'sonner'
 import type { DiscoveredUser } from '@/lib/user-discovery'
@@ -36,8 +37,42 @@ export function InviteMemberDialog({
   const [invitingUid, setInvitingUid] = useState<string | null>(null)
   const [invitingEmail, setInvitingEmail] = useState(false)
   const [searchDone, setSearchDone] = useState(false)
+  const [inviteLink, setInviteLink] = useState<string | null>(null)
+  const [linkLoading, setLinkLoading] = useState(false)
+  const [linkCopied, setLinkCopied] = useState(false)
 
   const canInvite = isOwner || allowMemberInvites
+
+  // Generate invite link when dialog opens
+  useEffect(() => {
+    if (open && canInvite) {
+      setLinkLoading(true)
+      getOrCreateInviteCode(groupId)
+        .then((code) => {
+          const baseUrl = window.location.origin + window.location.pathname
+          setInviteLink(`${baseUrl}?join=${code}`)
+        })
+        .catch(() => {
+          setInviteLink(null)
+        })
+        .finally(() => setLinkLoading(false))
+    }
+    if (!open) {
+      setLinkCopied(false)
+    }
+  }, [open, groupId, canInvite])
+
+  const handleCopyLink = async () => {
+    if (!inviteLink) return
+    try {
+      await navigator.clipboard.writeText(inviteLink)
+      setLinkCopied(true)
+      toast.success('Invite link copied!')
+      setTimeout(() => setLinkCopied(false), 2000)
+    } catch {
+      toast.error('Failed to copy link')
+    }
+  }
 
   const handleSearch = async () => {
     if (!searchQuery.trim()) return
@@ -135,6 +170,34 @@ export function InviteMemberDialog({
         </DialogHeader>
 
         <div className="space-y-4 py-2">
+          {/* Invite Link Section */}
+          <div className="space-y-2">
+            <p className="text-sm font-medium">Share invite link</p>
+            <div className="flex gap-2">
+              <Input
+                readOnly
+                value={linkLoading ? 'Generating...' : (inviteLink || 'Error generating link')}
+                className="text-xs font-mono bg-muted"
+              />
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={handleCopyLink}
+                disabled={linkLoading || !inviteLink}
+                className="flex-shrink-0"
+              >
+                {linkCopied ? <Check size={18} className="text-green-600" /> : <Copy size={18} />}
+              </Button>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Anyone with this link can join the group when logged in.
+            </p>
+          </div>
+
+          <div className="border-t border-border" />
+
+          {/* Search Section */}
+          <p className="text-sm font-medium">Or search for a user</p>
           <div className="flex gap-2">
             <Input
               placeholder="Search by email or player name"
