@@ -42,6 +42,7 @@ import HamletImg from '@/assets/images/Hamlet.webp'
 import HoudiniImg from '@/assets/images/Houdini.webp'
 import InvisibleManImg from '@/assets/images/Invisible_Man.png'
 import KingArthurImg from '@/assets/images/King_Arthur.png'
+import LeonardoImg from '@/assets/images/Leonardo.avif'
 import LokiImg from '@/assets/images/Loki.webp'
 import LukeCageImg from '@/assets/images/Luke_Cage.webp'
 import MedusaImg from '@/assets/images/Medusa.png'
@@ -113,6 +114,7 @@ const localHeroImages: Record<string, string> = {
   'invisible-man': InvisibleManImg,
   'jekyll-hyde': DrJekyllImg,
   'king-arthur': KingArthurImg,
+  'leonardo': LeonardoImg,
 
   'little-red': RedRidingHoodImg,
   'loki': LokiImg,

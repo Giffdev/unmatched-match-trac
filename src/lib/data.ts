@@ -36,6 +36,7 @@ import InvisibleManImg from '@/assets/images/Invisible_Man.png'
 import KingArthurImg from '@/assets/images/King_Arthur.png'
 import KrangImg from '@/assets/images/Krang.webp'
 
+import LeonardoImg from '@/assets/images/Leonardo.avif'
 import LokiImg from '@/assets/images/Loki.webp'
 import LukeCageImg from '@/assets/images/Luke_Cage.webp'
 import MedusaImg from '@/assets/images/Medusa.png'
@@ -206,7 +207,7 @@ export const HEROES: Hero[] = [
   { id: 'geralt', name: 'Geralt of Rivia', hp: 16, move: 2, attack: 'MELEE', set: 'The Witcher – Steel & Silver', sidekicks: [{ name: 'Dandelion', count: 1, hp: 5, attack: 'RANGED' }], imageUrl: GeraltImg, abilityTitle: "ALWAYS PREPARED", abilityDescription: "At the start of the game, choose your gear. Select a POTION, ARMOR, and SWORD, and shuffle 2 copies of each into your deck." },
   { id: 'muhammad-ali', name: 'Muhammad Ali', hp: 16, move: 3, attack: 'MELEE', set: 'Muhammad Ali vs. Bruce Lee', imageUrl: BruceLeeImg, abilityTitle: "A BEAUTIFUL SWING", abilityDescription: "Begin the game with your stance on Float Like a Butterfly. After you attack, if you won the combat, change stances. Float Like a Butterfly: You can attack from 2 spaces away. Sting Like a Bee: Add +2 to your attacks." },
   { id: 'bruce-lee-ali', name: 'Bruce Lee', hp: 14, move: 3, attack: 'MELEE', set: 'Muhammad Ali vs. Bruce Lee', imageUrl: BruceLeeImg, abilityTitle: "FLEET OF FOOT", abilityDescription: "At the end of your turn, you may move Bruce Lee 1 space." },
-  { id: 'leonardo', name: 'Leonardo', hp: 14, move: 2, attack: 'MELEE', set: 'Unmatched Adventures: Teenage Mutant Ninja Turtles', imageUrl: '', abilityTitle: "TEAM TACTICS", abilityDescription: "At the start of your turn, move any fighter up to 1 space." },
+  { id: 'leonardo', name: 'Leonardo', hp: 14, move: 2, attack: 'MELEE', set: 'Unmatched Adventures: Teenage Mutant Ninja Turtles', imageUrl: LeonardoImg, abilityTitle: "TEAM TACTICS", abilityDescription: "At the start of your turn, move any fighter up to 1 space." },
   { id: 'raphael', name: 'Raphael', hp: 16, move: 2, attack: 'MELEE', set: 'Unmatched Adventures: Teenage Mutant Ninja Turtles', sidekicks: [{ name: 'Casey', count: 1, hp: 7, attack: 'MELEE' }], imageUrl: RaphaelImg, abilityTitle: "ANGER ISSUES", abilityDescription: "On each of your turns, the first time you lose combat, gain 1 action." },
   { id: 'donatello', name: 'Donatello', hp: 12, move: 2, attack: 'RANGED', set: 'Unmatched Adventures: Teenage Mutant Ninja Turtles', sidekicks: [{ name: 'Metalhead', count: 1, hp: 8, attack: 'MELEE' }], imageUrl: DonatelloImg, abilityTitle: "INVENTIVE", abilityDescription: "When you maneuver, you may draw 2 cards instead of 1. If you do, put a card in your hand on the bottom of your deck. After you play an invention, tuck it under this card." },
   { id: 'michelangelo', name: 'Michelangelo', hp: 13, move: 3, attack: 'MELEE', set: 'Unmatched Adventures: Teenage Mutant Ninja Turtles', sidekicks: [{ name: 'April', count: 1, hp: 5, attack: 'MELEE' }], imageUrl: MichaelangeloImg, abilityTitle: "PIZZA PARTY", abilityDescription: "After you attack or scheme, draw 1 card. Your starting and maximum hand size is 3." },
