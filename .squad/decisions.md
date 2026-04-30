@@ -4,6 +4,70 @@
 
 ## Active Decisions
 
+### 2026-04-30T10:40:38-07:00: User directive
+**By:** Devin Sinha (via Copilot)
+**What:** Matches tab should still say "Match History" when viewing group matches — don't change the title. Use the DataContextSelector dropdown (or similar indicator) to show which group's matches are being viewed.
+**Why:** User request — captured for team memory
+
+---
+
+### 2026-04-30T10:35:50-07:00: Group Match Visibility on Matches Tab + Players Tab Enhancement
+**By:** Ripley (Lead)
+**Status:** Proposed — Awaiting Devin's approval
+**Priority:** Feature
+**Requested by:** Devin Sinha
+**What:** Users added to a group can only see group matches via the Groups tab. They want to browse group matches from the Matches tab (their primary match-browsing surface) and analyze per-group player stats from the Players tab.
+**Current Architecture:** Matches tab has no DataContextSelector; Players and Heroes tabs have full group data support via `useAllGroupMatches()` hook and dataSource prop.
+**Recommendation: Option A — Mirror Pattern.** Exactly mirror how PlayersTab works: add DataContextSelector to MatchesTab, follow the same pattern as Players/Heroes. When group selected: hide "Log Match", show group matches via paginated `useGroupMatches`, render MatchCard with `subtitle={loggedByName}` and no edit/delete handlers. When personal: current behavior unchanged.
+**Implementation:** ~45 lines of straightforward wiring: add `matchesContext` state in App.tsx, call `useAllGroupMatches`, build `matchesDataSource` memo, pass props to MatchesTab (following PlayersTab pattern exactly).
+**Safety gates:** TypeScript must compile clean, build must pass, manual verification that personal matches still editable/deletable.
+**Key Decision: NO edit/delete for group matches.** Data ownership: group matches may be logged by other users. Consistency: GroupMatchList renders MatchCard without onDelete/onEdit — intentional, not oversight.
+
+---
+
+### 2026-04-30T10:41:08-07:00: Concern — MatchCard edit/delete buttons lack accessible names
+**By:** Lambert (Tester)
+**Date:** 2026-04-30T10:41:08-07:00
+**Status:** Informational
+**Priority:** Low
+**Found during:** MatchesTab group context test writing
+**What:** `src/components/matches/MatchCard.tsx` lines 145-164: The edit (Pencil) and delete (Trash) buttons use `size="icon"` with only SVG children — no `aria-label`, no visually-hidden text. Screen readers announce them as unlabeled buttons. Tests cannot find them via `getByRole('button', { name: /edit/ })` — must use fragile container queries.
+**Recommendation:** Add `aria-label="Edit match"` and `aria-label="Delete match"` to the respective Button elements. Zero visual impact, improves accessibility and testability.
+**Impact:** Accessibility low severity (sighted users see icons, SR users get no context). Testing forces workarounds in component tests. Not blocking — current tests work around this; fix at convenience.
+
+---
+
+### 2026-04-30T09:42:36-07:00: PRD.md Comprehensive Update — Current Application State
+**Date:** 2026-04-30T09:42:36-07:00
+**By:** Ripley (Lead)
+**Status:** ✅ IMPLEMENTED
+**Impact:** Documentation only (no code changes)
+**What:** Updated PRD.md to accurately reflect the current state of the application through comprehensive codebase audit. PRD is now the definitive reference for what the app IS right now.
+**Tech Stack Updated:** Firebase 11.9.0, React 19.0.0, Vite 7.2.7, Tailwind 4.1.11, Vitest 4.1.5, happy-dom 20.9.0, @firebase/rules-unit-testing 4.0.1.
+**Architecture Section:** Clarified 6 primary tabs (Matches, Players, Heroes, Maps, Randomizer, Groups) + optional Collection + Admin. Detailed React Context (AuthContext, UserDataContext, GroupsContext). Documented dual-read support for legacy array docs AND new subcollection model. Documented 500ms debounce on writes, per-tab error boundaries, memoization.
+**Infrastructure & DevOps:** Testing Framework detailed: 8 test files, specific test names. CI/CD Pipeline: Java 21 setup for Firebase Emulator, documented in .github/workflows/tests.yml. Build Process: Vite 7.2.7, TypeScript strict mode, SWC transpilation.
+**Security Section (new):** Comprehensive Firestore Rules enforcement of group membership via memberUids[] array. Listed all collections with subcollection structure. Clarified ~1MB per user document (~1000 matches); subcollection model enables infinite scale.
+**Known Limitations (refined):** Legacy Array Document Model — clearly marked as limitation; migration to subcollection planned but NOT YET DEPLOYED. Email Service — group invites store pending emails in Firestore. Community Stats Scalability — collectionGroup queries work at small-medium scale; requires aggregation at 1000+ users.
+**Key Technical Decisions (expanded to 11):** Added decisions about debounce (500ms), React Context over Redux, group data isolation, Firestore rules for access control.
+**Critical Clarifications:** (1) Tests EXIST — 8 files with 67 tests covering critical logic. (2) Java 21 in CI — for Firebase Emulator. (3) @firebase/rules-unit-testing v4 — compatible with firebase@11. (4) Firestore Rules Tested — CI includes comprehensive security rules validation. (5) Subcollection Migration — planned but NOT deployed; app still uses legacy array model + dual-read support.
+
+---
+
+### 2026-04-30T10:35:50-07:00: UI Proposal — Group Matches on Matches Tab
+**Author:** Dallas (Frontend Dev)
+**Date:** 2026-04-30
+**Status:** Proposed
+**Requested by:** Devin Sinha
+**Problem:** Users added to groups can only view group matches via Groups tab → selecting a group → Matches sub-tab. This feels buried. Users want group matches accessible from main Matches and Players tabs.
+**Recommendation: Option A — DataContextSelector on Matches Tab.** Consistency wins — selector pattern already proven on Players and Heroes tabs. Adding it to Matches creates unified mental model: "I can always switch context from any tab."
+**Layout Changes:** Selector sits above title row (full-width mobile, auto-width desktop). Personal context: Title "Match History", Subtitle "{n} matches logged", Button "Log Match", Cards: personal matches with edit/delete enabled. Group context: Title "Group: {name}", Subtitle "{n} matches logged", Button "Log Match", Cards: group matches read-only with "Logged by {name}" subtitle badges.
+**Implementation Plan (45 lines):** App.tsx: add matchesContext state, useAllGroupMatches call, matchesDataSource memo, pass to MatchesTab. MatchesTab.tsx: add props (groups, dataContext, onDataContextChange, dataSource), render DataContextSelector, compute effectiveMatches, conditional rendering for group vs personal context.
+**Edge Cases Handled:** User leaves group while viewing its matches (fallback to "personal"), group has 0 matches (show empty state), loading state (spinner icon), non-group users (selector returns null, zero UI change).
+**Open Questions:** Should LogMatchDialog pre-select group when user clicks "Log Match" in group context? Should context sync across tabs or stay independent per-tab?
+**Summary:** Add existing DataContextSelector to MatchesTab, following exact same pattern used in PlayersTab and HeroesTab. Minimal code, maximum consistency, zero regression risk for non-group users.
+
+---
+
 ### 2026-04-28T15:30:28Z: Critical constraint — protect live site
 **By:** Devin Sinha (user directive)
 **What:** Never break the live site or existing user data. All changes must be reviewed before shipping.

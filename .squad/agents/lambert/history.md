@@ -53,6 +53,14 @@ Unmatched Tracker: a web app for tracking Unmatched board game matches. Built wi
 - Build: 94 tests passing, TypeScript clean, Vite build succeeds
 - Phase 1-2 milestone complete; ready for Phase 3 (backfill + read migration)
 
+### 2026-04-30T10:41:08-07:00: MatchesTab Group Context Tests (Pre-Implementation)
+- **Created:** `src/components/matches/__tests__/MatchesTab.test.tsx` — 14 tests for group match context feature
+- **Coverage:** DataContextSelector visibility, personal vs group edit/delete permissions, dataSource override, Log Match button hiding, empty group state, match count display
+- **Status:** 13 pass now (validating existing behavior + contract), 1 expected failure (hides Log Match in group context — awaiting Dallas's implementation)
+- **Pattern notes:** MatchCard uses icon-only buttons (no aria-label) for edit/delete — tests detect via container queries not role-based selectors. Future improvement: add `aria-label` to MatchCard buttons.
+- **Mocking:** LogMatchDialog, EditMatchDialog, MapImageDialog mocked to null; AuthContext provided directly via Provider wrapper
+- **All 191 existing tests unaffected (still green)**
+
 ### 2026-04-29T02:29:31Z: Firestore Rules Ready for Verification (Scribe)
 - Hicks' revised v2 security rules (Option C Hybrid) merged to canonical decisions.md
 - Rules enable public community stats access while protecting sensitive data
@@ -152,3 +160,11 @@ Unmatched Tracker: a web app for tracking Unmatched board game matches. Built wi
 - Lambert's QA methodology and test coverage expectations now recorded as team wisdom
 
 
+
+### 2026-04-30T17:41:08Z: Group Match Context Tests + Accessibility Audit (Scribe Session)
+- **Wrote 14 tests** for group match context feature in src/components/matches/__tests__/MatchesTab.test.tsx. Initial test had wrong assumption (expected Log Match hidden in group context), fixed by Coordinator per user requirements (Devin directive: keep title as "Match History", selector is indicator).
+- **Test coverage:** Group context selection, read-only match display, "Logged by" subtitles, edge cases (empty group, user leaving group).
+- **All 205 tests pass** — full test suite green.
+- **MatchCard accessibility audit:** Identified missing aria-labels on edit/delete buttons. Recommendation: add aria-label="Edit match" and aria-label="Delete match". Low priority but improves a11y and testability. Documented in lambert-matchcard-accessibility.md.
+- **Session output:** Consolidated 5 team decisions into canonical decisions.md, created 4 orchestration logs, session log written
+- **Status:** Feature testing complete, ready for production

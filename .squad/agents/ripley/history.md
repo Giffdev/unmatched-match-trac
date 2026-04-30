@@ -171,3 +171,11 @@ Full audit written to `.squad/decisions/inbox/ripley-codebase-audit.md`.
 - All agent history files updated with session context
 - Canonical `.squad/decisions.md` consolidated with all team decisions from this session
 - Documentation ready for next session instantiation
+
+### 2026-04-30T17:41:08Z: Group Match Feature — Design Finalized (Scribe Session)
+- Consolidated 5 team decisions into canonical .squad/decisions.md
+- **ripley-group-match-filtering.md:** Architecture decision documented. Recommendation: Mirror Pattern (reuse DataContextSelector). Implementation: ~45 lines wiring (Option A vs B/C analysis complete). Safety gates: TypeScript clean, build passes, manual verification of group context read-only behavior.
+- **ripley-prd-update.md:** PRD.md comprehensively updated to reflect current app state. Tech stack with exact versions documented. Infrastructure & DevOps (CI/CD pipeline, Java 21 for Firebase Emulator, Vitest + happy-dom). Security section detailed. Known limitations (legacy array model, email service, community stats scalability) clarified. Key technical decisions expanded to 11 items.
+- **Dallas:** UI implementation complete (DataContextSelector wired to MatchesTab + App.tsx, read-only group matches with "Logged by" subtitles, title stays "Match History"). **Lambert:** 14 tests for group context feature written and passing (all 205 tests pass). **Coordinator:** User directive captured (title stays "Match History", selector is the indicator).
+- **Status:** Ready for production deployment once Devin approves feature design
+- **Session output:** Decisions merged, 4 orchestration logs created, session log written
