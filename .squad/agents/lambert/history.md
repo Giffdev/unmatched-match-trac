@@ -144,3 +144,11 @@ Unmatched Tracker: a web app for tracking Unmatched board game matches. Built wi
 - **Tests:** ✅ All 183 pass (8 files, 0 failures)
 - **Verdict:** APPROVED with minor concern noted
 
+### 2026-04-30T09:43:44-07:00: Session continuity documentation complete
+- Created `.squad/identity/now.md` documenting current project state, test infrastructure (183 tests), verification results
+- Created `.squad/identity/wisdom.md` with hard-won testing knowledge: test location conventions, test data factory patterns, test framework setup (Vitest, React Testing Library, happy-dom), rules testing with Firebase Emulator, quality gate directives, test coverage expectations
+- All decisions consolidated to canonical `.squad/decisions.md`
+- Documentation ready for next session instantiation
+- Lambert's QA methodology and test coverage expectations now recorded as team wisdom
+
+

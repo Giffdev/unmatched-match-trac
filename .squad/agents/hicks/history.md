@@ -86,3 +86,9 @@ Unmatched Tracker: a web app for tracking Unmatched board game matches. Built wi
 - **Design decision:** @tanstack/react-query is installed but has no QueryClientProvider — wiring that up would require touching app shell (out of scope). Used module-level Map cache instead. When react-query gets wired up, this hook can be trivially migrated to `useQuery`.
 - **Naming:** camelCase `useGroupMatches.ts` coexists with kebab-case `use-group-matches.ts` (paginated version for list view). Different files, different use cases.
 - All 183 tests pass. TypeScript clean.
+
+### 2026-04-30T09:43:44-07:00: Session continuity documentation complete
+- Created `.squad/identity/now.md` documenting current project state, debounced writes, security fixes, group feature completion
+- Created `.squad/identity/wisdom.md` with hard-won knowledge: debounced write patterns (500ms), Firebase batch limits (450 safe ceiling), atomicity patterns (runTransaction for reads, writeBatch for writes), email-based invite patterns, pagination cursor management, group member cleanup patterns, invite dedup strategies, settings collection management
+- All decisions consolidated to canonical `.squad/decisions.md`
+- Documentation ready for next session instantiation

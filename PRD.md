@@ -6,18 +6,28 @@ A web application for tracking Unmatched board game matches, analyzing player an
 
 ## Tech Stack
 
-| Layer | Technology |
-|-------|-----------|
-| Framework | React 19 + TypeScript |
-| Build | Vite 7.2 |
-| UI Components | Shadcn UI (Radix primitives) + Tailwind CSS 4.1 |
-| Icons | Phosphor Icons, Lucide React, Heroicons |
-| Charts | Recharts + D3.js |
-| Animation | Framer Motion |
-| Auth | Firebase Auth (email/password + Google OAuth) |
-| Database | Cloud Firestore |
-| Hosting | Vercel (serverless) |
-| Notifications | Sonner (toasts) |
+| Layer | Technology | Version |
+|-------|-----------|---------|
+| Framework | React | 19.0.0 |
+| Language | TypeScript | ~5.7.2 |
+| Build | Vite | 7.2.7 |
+| UI Components | Shadcn UI (Radix primitives) | v1.x |
+| CSS | Tailwind CSS | 4.1.11 |
+| CSS Plugins | @tailwindcss/container-queries | 0.1.1 |
+| Icons | Phosphor Icons, Lucide React, Heroicons | 2.1.7, 0.484.0, 2.2.0 |
+| Charts | Recharts + D3.js | 2.15.1, 7.9.0 |
+| Animation | Framer Motion | 12.6.2 |
+| Auth | Firebase Auth | 11.9.0 |
+| Database | Cloud Firestore | 11.9.0 |
+| Hosting | Vercel (serverless) | - |
+| Notifications | Sonner (toasts) | 2.0.1 |
+| Data Fetching | @tanstack/react-query | 5.83.1 |
+| Form Handling | React Hook Form | 7.54.2 |
+| Validation | Zod | 3.25.76 |
+| Utilities | date-fns, uuid, clsx, tailwind-merge | 3.6.0, 11.1.0, 2.1.1, 3.0.2 |
+| Testing | Vitest, @testing-library/react, happy-dom | 4.1.5, 16.3.2, 20.9.0 |
+| Firestore Rules Testing | @firebase/rules-unit-testing | 4.0.1 |
+| Linting | ESLint | 9.28.0 |
 
 ## Game Data
 
@@ -28,17 +38,32 @@ A web application for tracking Unmatched board game matches, analyzing player an
 
 ## Architecture
 
-**Navigation**: Tab-based SPA (no router). 5 primary tabs + Collection view.
+**Navigation**: Tab-based SPA (no router). 6 primary tabs:
+1. **Matches** — Log, edit, delete personal matches
+2. **Players** — Player stats and head-to-head records
+3. **Heroes** — Hero browser, matchup heatmap, community stats
+4. **Maps** — Map performance breakdown, user vs. community comparison
+5. **Randomizer** — True random or balanced matchup suggestions
+6. **Groups** — Game group management, collaborative match logging, invites
 
-**State Management**: React hooks + Context API. No external state library.
+Optional **Collection** tab and **Admin** tab (password-protected, diagnostics/data management).
 
-**Data Persistence**: Firestore documents per user:
-```
-users/{userId}/data/matches    → Array of Match objects
-users/{userId}/data/owned-sets → Array of set name strings
-```
+**State Management**: React hooks + Context API (AuthContext, UserDataContext, GroupsContext). No external state library.
 
-**Community Data**: `getAllUserMatches()` aggregates across all users for global stats (read-only, anonymized).
+**Data Persistence**:
+- **Personal matches**: `users/{userId}/data/matches` (legacy array, pre-subcollection model) OR `users/{userId}/matches/{matchId}` (new subcollection model)
+- **Owned sets**: `users/{userId}/data/owned-sets`
+- **Group matches**: `groups/{groupId}/matches/{matchId}`
+- **Data loading**: `use-user-data.ts` hook with 500ms debounce on writes, `useAllGroupMatches.ts` for group data
+- **Community data**: `getAllUserMatches()` aggregates across all users via `collectionGroup` queries (read-only, anonymized)
+
+**Performance Optimizations**:
+- Debounced Firestore writes (500ms accumulation window) to prevent race conditions and write storms
+- Stats functions memoized to avoid recalculation on component re-renders
+- Vitest coverage on critical functions (stats, utils, firestore, groups)
+- Asset organization: Heroes and maps organized into `/src/assets/images/heroes/` and `/src/assets/images/maps/` subdirectories
+
+**Error Handling**: Top-level error boundary + per-tab error boundaries isolate failures
 
 ---
 
@@ -191,59 +216,115 @@ Triadic scheme inspired by Unmatched's vibrant character art:
 
 ## Key Technical Decisions
 
-1. **No router** — Single-page tab navigation via React state. Simple for current scope.
-2. **All heroes in one data file** (`data.ts`, ~3500 lines) — Static game content, no API calls needed.
-3. **Firestore per-user documents** — Each user's matches stored as a single array document. Simple reads/writes, but limits scale to ~1MB per user.
-4. **Community stats via full scan** — `getAllUserMatches()` reads all users' data. Works at small scale but will need indexing/aggregation at scale.
-5. **No offline support** — Requires internet for all operations.
-6. **stripUndefined()** — Critical helper that recursively removes `undefined` values before Firestore writes (Firestore throws on undefined by default).
+1. **No router** — Single-page tab navigation via React state. Simple for current scope; no URL-based routing needed.
+2. **Centralized game data** — `src/lib/data.ts` (~3500 lines) contains all hero/map definitions as static exports. No API calls needed; data ships with bundle.
+3. **Firestore per-user documents** — Each user's matches stored as a single array document (`users/{userId}/data/matches`). Simple reads/writes; limits scale to ~1MB/user. Migration to subcollection model planned.
+4. **Community stats via full scan** — `getAllUserMatches()` reads all users' documents via `collectionGroup` queries. Works at small scale but will require indexing/aggregation at scale (1000+ users).
+5. **No offline support** — Requires internet for all operations. No ServiceWorker or IndexedDB.
+6. **stripUndefined() guard** — Critical helper that recursively removes `undefined` values before Firestore writes (Firestore throws on undefined by default). Prevents silent data loss.
+7. **Debounced writes** — 500ms accumulation window on Firestore writes prevents race conditions and write storms from rapid state changes.
+8. **React Context over Redux** — Light state management via AuthContext and UserDataContext. Sufficient for current complexity; no Redux/MobX needed.
+9. **Group data isolated** — Groups stored in top-level `groups/{groupId}` collection (not nested under users). Multi-user ownership model requires separation from personal matches.
+10. **Firestore rules for access control** — Group membership enforced via `memberUids[]` array check in rules; no app-level role validation needed (keeps rules simple).
+11. **Test coverage on critical logic** — Vitest for stats, utils, firestore, and group operations. Firestore rules tested with emulator + @firebase/rules-unit-testing.
 
 ---
 
 ## Infrastructure & DevOps
 
 ### Testing
-- **Unit Tests**: Vitest + React Testing Library for component testing
-- **Firestore Rules Testing**: @firebase/rules-unit-testing for security rules validation
-- **Test Coverage**: Components, hooks, utilities, and Firestore security rules
+- **Unit & Component Tests**: Vitest + React Testing Library + happy-dom
+  - 8 test files with comprehensive coverage:
+    - `utils.test.ts` — String normalization, array manipulation
+    - `stats.test.ts` — Win rate calculations, hero/player breakdowns
+    - `firestore.test.ts` — Data validation, stripUndefined behavior
+    - `groups.test.ts`, `group-matches.test.ts`, `group-invites.test.ts` — Group data operations
+    - `user-discovery.test.ts` — User search and lookup
+    - `match-diff.test.ts` — Match delta calculation
+  - **Test Scripts**:
+    - `npm test` — CI/CD test run (single pass)
+    - `npm run test:watch` — Watch mode for development
+    - `npm run test:coverage` — Coverage report generation
+- **Firestore Security Rules Tests**: @firebase/rules-unit-testing v4 + Firebase Emulator
+  - `tests/rules/firestore.rules.test.ts` — Comprehensive rule validation
+  - Validates user access control, group membership, invite flows
+  - Java 21 required for Firebase Emulator (set up in GitHub Actions)
 
 ### CI/CD
-- **GitHub Actions**: Automated test runs on push and pull requests
+- **GitHub Actions**: Two parallel workflows in `tests.yml`
+  1. **Unit & Component Tests Job** (ubuntu-latest):
+     - Node.js 20 with npm cache
+     - Runs Vitest suite
+     - Verifies build succeeds with Vite
+  2. **Firestore Rules Tests Job** (ubuntu-latest):
+     - **Java 21** setup (Temurin distribution) for Firebase Emulator
+     - Node.js 20 with npm cache
+     - Firebase CLI installation
+     - Firestore Emulator startup + Vitest rule validation
 - **Deployment**: Vercel auto-deployment on push to `main` branch
-- **Build Process**: Vite 7.2 with TypeScript strict mode
+  - Configured via `vercel.json` with SPA rewrite rules
+  - No manual deployment steps required
+
+### Build Process
+- **Vite 7.2.7** — Fast ES module builds
+- **TypeScript strict mode** enabled (tsconfig.json)
+- **SWC transpilation** via @vitejs/plugin-react-swc
+- **Output**: Minified ES modules to `/dist/`
+- **Build command**: `tsc -b --noCheck && vite build`
+- **Preview**: `vite preview` for local production build testing
 
 ### Security
 - **Firestore Security Rules**: Comprehensive rule set enforcing:
-  - User document access control
-  - Group membership verification before data access
-  - Member-only access to group matches
-  - Invite validation and expiration handling
-  - Pending email invite storage without email service
+  - User document access control (read/write by owner only)
+  - Group membership verification via `memberUids[]` array in group documents
+  - Per-group subcollection access control for matches (`groups/{groupId}/matches`)
+  - Member-only access to group data via helper functions (isMember, isOwner, isAdminOrOwner)
+  - Invite validation and expiration handling in `group-invites` subcollection
+  - Pending email invite storage in `pending-email-invites` collection (for signup lookup, no email service)
+  - Community stats queries enabled via public read access to `users/{userId}/data/matches`
+- **Authentication**: Firebase Auth with email/password + Google OAuth
+- **Environment Variables**: Import password stored in `VITE_IMPORT_PASSWORD` (not hardcoded)
+- **Data Validation**: `stripUndefined()` helper prevents Firestore write errors on optional fields
 
 ### Database (Firestore)
-- **Collections**: `users`, `groups`, `group-members`, `group-invites`, `pending-email-invites`
-- **Indexing**: Configured for common queries (user matches, group data, community stats)
-- **Backup Strategy**: Regular exports for disaster recovery
+- **Collections**:
+  - `users/{userId}` — User profiles (public read, owner write)
+  - `users/{userId}/data/` — Legacy user data (matches array, owned sets, metadata)
+  - `users/{userId}/matches/{matchId}` — Individual match subcollection (for migration from legacy array model)
+  - `groups/{groupId}` — Group metadata (memberUids array, owner, settings)
+  - `groups/{groupId}/members/{memberId}` — Member details (role, display name, joinedAt)
+  - `groups/{groupId}/matches/{matchId}` — Group match logs (separate from personal matches)
+  - `groups/{groupId}/invites/{inviteId}` — Group invite metadata
+  - `pending-email-invites/{email}` — Invite codes awaiting signup (no email service, email lookup only)
+- **Limits & Scaling**: 
+  - Single user document ~1MB ceiling (~1000 matches at 1KB each)
+  - Subcollection model enables infinite individual matches per user (atomic writes, no race conditions)
+  - Community stats via `collectionGroup` queries on all matches (works at small-medium scale)
+- **Indexing**: Configured for common queries (user matches, group data, community stats aggregation)
+- **Backup Strategy**: Regular Firestore exports for disaster recovery; data recovery tools available in Admin tab
 
 ---
 
 ## Known Limitations & Future Opportunities
 
 ### Current Limitations
-1. **No Email Sending**: Invite system stores pending emails in Firestore for signup lookup only. Cloud Functions + email service (SendGrid, etc.) not deployed.
-2. **No Cloud Functions**: All backend logic runs on client or within Firestore rules. Aggregation jobs for large datasets not implemented.
-3. **Bundle Size**: ~1.2MB JavaScript (minified). Could benefit from code splitting and lazy loading of hero data.
-4. **Community Stats Scalability**: `getAllUserMatches()` scans all users' documents. At scale (10k+ users), will need:
+1. **Legacy Array Document Model**: Matches stored as single array in `users/{userId}/data/matches` doc limits scale to ~1MB (~1000 matches). Migration to subcollection model (`users/{userId}/matches/{matchId}`) planned but not yet deployed.
+2. **No Email Service Integration**: Group invite system stores pending emails in Firestore for lookup only. Cloud Functions + SendGrid (or similar) not deployed; emails are not automatically sent on invite.
+3. **No Cloud Functions**: All backend logic runs on client or within Firestore rules. Aggregation jobs for large datasets not implemented; community stats rely on client-side computation.
+4. **Bundle Size**: ~1.2MB JavaScript (minified). Three icon libraries (Phosphor, Heroicons, Lucide), Three.js, D3, Recharts all shipped eagerly. Opportunity for code splitting and lazy loading.
+5. **Community Stats Scalability**: `getAllUserMatches()` scans all users' documents via `collectionGroup` queries. At scale (1000+ users with 1000+ matches each), may face read quota and performance issues. Requires:
    - Aggregation pipeline with Cloud Functions
-   - Real-time aggregation via Firestore counters
-   - Or read-only replica collection updated via triggers
-5. **No Offline Mode**: Requires active internet connection for all operations.
-6. **Storage Limits**: Each user document limited to ~1MB. Very high match counts (10k+) may exceed limits.
+   - Real-time counters via Firestore counters pattern
+   - Or periodic pre-computation of community stats
+6. **No Offline Mode**: Requires active internet connection for all operations. ServiceWorker not implemented.
+7. **Data Validation**: No runtime type checking on Firestore reads. Legacy or corrupted data could silently fail stats calculations.
 
 ### High-Priority Future Enhancements
-1. **Email Integration**: Deploy Cloud Function to send group invite emails
-2. **Performance**: Code splitting, hero data lazy loading, community stats aggregation
-3. **Cloud Functions**: Automated data cleanup, match aggregation, notifications
-4. **Notifications**: Real-time updates for group invites, match logging in shared groups
-5. **Analytics**: Tracking usage patterns, hero popularity trends over time
-6. **Export Formats**: Additional export options (JSON, Excel with charts, etc.)
+1. **Firestore Subcollection Migration**: Move matches to `users/{userId}/matches/{matchId}` to enable scale beyond 1MB per user, eliminate write race conditions, improve stats query performance.
+2. **Sharing Feature**: Read-only match log sharing with explicit viewer UID lists (depends on subcollection migration).
+3. **Email Integration**: Deploy Cloud Function to send group invites; integrate SendGrid or similar service.
+4. **Performance**: Code splitting, hero data lazy loading, community stats pre-computation or aggregation service.
+5. **Notifications**: Real-time updates for group invites, match logging in shared groups (Firebase Realtime or Cloud Messaging).
+6. **Analytics**: Usage tracking, hero popularity trends, win rate evolution over time.
+7. **Data Export**: Additional export formats (JSON, Excel with charts, PDF reports).
+8. **Offline Support**: ServiceWorker + IndexedDB for offline match logging (sync on reconnect).

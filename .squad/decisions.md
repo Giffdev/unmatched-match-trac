@@ -402,6 +402,76 @@ The key architectural insight: **all stats functions already operate on `Match[]
 
 ---
 
+### 2026-04-30T09:43:44-07:00: Session Continuity Documentation Complete
+**By:** Scribe (Documentation Specialist)
+**Status:** ✅ Complete — Ready for Next Session Instantiation
+
+**What:**
+Created comprehensive documentation to enable the Squad to pick up where it left off in a fresh session:
+
+1. **`.squad/identity/now.md`** — Current project state snapshot:
+   - Live features and deployment status (7 tabs, Game Groups, authentication)
+   - Recent work completed in this session (14 major items)
+   - What's working and what's not (known issues documented)
+   - Pending items (subcollection migration Phase 3, share feature, performance, email integration)
+   - Build & deploy readiness verification
+
+2. **`.squad/identity/wisdom.md`** — Hard-won team knowledge library:
+   - Core commands: `npm run build`, `npm run test`, `npm run test:rules`, `npx vercel --prod --yes`
+   - Firebase essentials: Rules deployment is manual (not CLI), @firebase/rules-unit-testing v4 only, Java 21 for Emulator
+   - No email infrastructure exists (group invites stored in Firestore for lookup only)
+   - Architecture patterns: Tab-based SPA, local hero/map images with fallbacks, Firestore self-join for groups
+   - Data persistence patterns: 500ms debounced writes, dual-write foundation ready, batch size limits (450 safe ceiling)
+   - Atomicity patterns: `runTransaction()` for reads+writes, `writeBatch()` for write-only, never use `arrayRemove` on complex objects
+   - Testing conventions: Test locations, factory patterns, coverage expectations, quality gates
+   - React/TypeScript gotchas: Hook ordering, undefined in Firestore, community stats aggregation
+   - Group feature gotchas: Pagination cursors, invite dedup, settings collection management
+   - Live URL, deployment flow, bundle optimization opportunities
+
+3. **Agent history files updated** — Each agent's history.md now includes:
+   - Current project context (Live URL, Architecture, Critical Constraint)
+   - Session summary with what documentation was created
+   - All relevant learnings consolidated
+
+4. **Canonical `.squad/decisions.md` verified and consolidated** — All team decisions from this session recorded:
+   - User directives (critical constraint, quality gates, internal QA)
+   - Technical decisions (password security, debounced writes, Game Groups architecture, atomicity patterns)
+   - UX decisions (per-tab context pill, component reuse policy)
+   - Implementation records (14 features completed, 14 QA fixes)
+
+**Why:**
+Team needs to resume work efficiently in a new session. Documentation captures:
+- What's currently in production (prevents rework)
+- What was learned (patterns, gotchas, quality standards)
+- What's next (pending items, open questions)
+- How to build/test/deploy (working commands verified)
+
+**Impact:**
+- Next session coordinator + agents can read `.squad/identity/now.md` and `.squad/identity/wisdom.md` to understand full context in ~5 minutes
+- No context loss from session restart
+- Quality standards (testing, QA, atomicity) are recorded as team knowledge
+- Build/deploy commands are verified and documented
+- Known issues and pending work are transparent
+
+**Files Changed:**
+- Created `.squad/identity/now.md` (600+ lines)
+- Created `.squad/identity/wisdom.md` (400+ lines)
+- Updated `.squad/agents/scribe/history.md`
+- Updated `.squad/agents/ripley/history.md`
+- Updated `.squad/agents/dallas/history.md`
+- Updated `.squad/agents/hicks/history.md`
+- Updated `.squad/agents/lambert/history.md`
+- Appended to `.squad/decisions.md` (this entry)
+
+**Verification:**
+- ✅ All agent history files reviewed and updated
+- ✅ `.squad/decisions.md` verified as canonical record
+- ✅ Documentation reflects actual project state (verified against package.json, PRD.md, TESTING.md)
+- ✅ Commands tested and verified (build, test, deploy)
+- ✅ Quality standards and patterns accurately captured
+
+---
+
 ## Governance
 
 - All meaningful changes require team consensus

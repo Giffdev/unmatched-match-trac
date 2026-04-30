@@ -141,3 +141,33 @@ Full audit written to `.squad/decisions/inbox/ripley-codebase-audit.md`.
 - **Component reuse:** Add optional `dataSource?: { label, matches }` prop to PlayersTab/HeroesTab/MapsTab. One new ~30-line `DataContextSelector` shared component.
 - **Phasing:** Phase 1 (Players+Heroes with group context) → Phase 2 (Maps, polish) → Phase 3 (React Query caching, pre-computed stats if needed)
 - **Design file:** `.squad/decisions/inbox/ripley-group-ux-design.md`
+
+### 2026-04-30T09:42:36-07:00: PRD Comprehensive Audit & Update (Ripley)
+- **Status:** ✅ COMPLETE — PRD.md updated with current application state
+- **Key findings from codebase audit:**
+  - **Tech Stack Verified:** React 19.0.0, Vite 7.2.7, Firebase 11.9.0, Tailwind 4.1.11 all accurate
+  - **Testing Infrastructure:** 8 test files (67 tests total) covering utils, stats, firestore, groups, group-matches, group-invites, user-discovery, match-diff
+  - **CI/CD Pipeline:** GitHub Actions with Java 21 setup for Firebase Emulator (both unit tests + Firestore rules tests)
+  - **Testing Tool:** @firebase/rules-unit-testing v4 (compatible with firebase@11)
+  - **Tests Run:** `npm test` (Vitest), `npm run test:rules` (Firebase Emulator)
+  - **Tabs Accurate:** 6 primary tabs (Matches, Players, Heroes, Maps, Randomizer, Groups) + Collection + Admin
+  - **Data Model:** Dual-read support for legacy array docs + new subcollection model; migration planned but not deployed
+  - **Firestore Rules:** Comprehensive security with group membership enforcement via memberUids array
+  - **Security:** Hardcoded password removed (now VITE_IMPORT_PASSWORD env var)
+  - **Performance:** 500ms debounce on writes, error boundaries per-tab, stats memoization
+- **PRD.md Updates Made:**
+  - Added precise tech stack versions to table
+  - Expanded Architecture section with 6 tabs, context management, performance details
+  - Detailed Infrastructure & DevOps with testing framework breakdown, Java 21 CI setup
+  - Updated Security section with comprehensive Firestore rules, collections, limits, scaling info
+  - Revised Known Limitations to reflect subcollection migration planned but not deployed
+  - Enhanced Key Technical Decisions with 11 architectural choices including debounce, context vs Redux, group isolation, test coverage
+- **Critical Clarity:** PRD now accurately reflects the working state: test infrastructure exists (8 test files, 67 tests), CI includes Java 21 for emulator, @firebase/rules-unit-testing is v4 (not earlier), Firestore rules tested in CI pipeline
+- **File:** PRD.md updated in root
+
+### 2026-04-30T09:43:44-07:00: Session continuity documentation complete
+- Created `.squad/identity/now.md` with current project state, live features, recent work, known issues
+- Created `.squad/identity/wisdom.md` with hard-won team knowledge
+- All agent history files updated with session context
+- Canonical `.squad/decisions.md` consolidated with all team decisions from this session
+- Documentation ready for next session instantiation
