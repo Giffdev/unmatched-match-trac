@@ -474,28 +474,31 @@ export function PublicHeroBrowser({ selectedHeroId: initialSelectedHeroId }: Pub
                   )}
                 >
                   <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 rounded overflow-hidden flex-shrink-0 bg-muted flex items-center justify-center">
+                    <div className="w-12 h-12 rounded overflow-hidden flex-shrink-0 bg-muted relative">
+                      {/* Fallback always rendered behind, visible when no image or image fails */}
+                      <div className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-muted to-muted/50">
+                        <Sword className="w-5 h-5 text-muted-foreground" />
+                        <span className="text-[10px] text-muted-foreground mt-0.5 font-medium">{hero.name.charAt(0)}</span>
+                      </div>
                       {hasLocalImage ? (
                         <img 
                           src={heroImage} 
                           alt={hero.name}
-                          className="w-full h-full object-cover"
+                          className="absolute inset-0 w-full h-full object-cover"
                           onError={(e) => {
-                            e.currentTarget.style.display = 'none'
+                            e.currentTarget.remove()
                           }}
                         />
                       ) : hasRemoteImage ? (
                         <img 
                           src={hero.imageUrl} 
                           alt={hero.name}
-                          className="w-full h-full object-cover"
+                          className="absolute inset-0 w-full h-full object-cover"
                           onError={(e) => {
-                            e.currentTarget.style.display = 'none'
+                            e.currentTarget.remove()
                           }}
                         />
-                      ) : (
-                        <span className="text-xs text-muted-foreground text-center px-1">No img</span>
-                      )}
+                      ) : null}
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="font-semibold text-foreground">{hero.name}</div>
