@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -116,6 +116,15 @@ export function SignInPrompt() {
     setShowConfirmPassword(false)
     setError(null)
   }
+
+  // Scroll to top when switching tabs (matches behavior in authenticated App)
+  useEffect(() => {
+    requestAnimationFrame(() => {
+      window.scrollTo({ top: 0, left: 0, behavior: 'instant' })
+      document.documentElement.scrollTop = 0
+      document.body.scrollTop = 0
+    })
+  }, [currentTab])
 
   const handleHeroClick = (heroId: string) => {
     setSelectedHeroId(heroId)
