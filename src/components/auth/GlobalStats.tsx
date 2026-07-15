@@ -5,6 +5,7 @@ import { Progress } from '@/components/ui/progress'
 import { Trophy, Target, MapPin, TrendUp } from '@phosphor-icons/react'
 import { getHeroById, getMapById } from '@/lib/data'
 import { getAllUserMatches } from '@/lib/firestore'
+import { countCommunityMembers } from '@/lib/stats'
 import type { Match } from '@/lib/types'
 
 type HeroStat = {
@@ -23,6 +24,7 @@ type MapStat = {
 
 export function GlobalStats() {
   const [totalMatches, setTotalMatches] = useState(0)
+  const [totalMembers, setTotalMembers] = useState(0)
   const [topHeroes, setTopHeroes] = useState<HeroStat[]>([])
   const [topWinRates, setTopWinRates] = useState<HeroStat[]>([])
   const [topMaps, setTopMaps] = useState<MapStat[]>([])
@@ -34,6 +36,7 @@ export function GlobalStats() {
         const allMatches = await getAllUserMatches()
 
         setTotalMatches(allMatches.length)
+        setTotalMembers(countCommunityMembers(allMatches))
 
         const heroStats = new Map<string, { games: number; wins: number }>()
         const mapStats = new Map<string, number>()
@@ -136,7 +139,7 @@ export function GlobalStats() {
           Community Statistics
         </h2>
         <p className="text-muted-foreground">
-          Insights from <span className="font-semibold text-accent">{totalMatches.toLocaleString()}</span> matches played by the community
+          Insights from <span className="font-semibold text-accent">{totalMatches.toLocaleString()}</span> matches played by <span className="font-semibold text-accent">{totalMembers.toLocaleString()}</span> community {totalMembers === 1 ? 'member' : 'members'}
         </p>
       </div>
 

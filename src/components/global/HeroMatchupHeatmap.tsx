@@ -7,6 +7,9 @@ type HeroMatchupHeatmapProps = {
   matches: Match[]
   onHeroClick: (heroId: string) => void
   isLoading: boolean
+  /** When set, only the specified hero's row is rendered (hero vs all opponents).
+   *  Omit or leave undefined for the full NxN matrix (default behaviour). */
+  focusHeroId?: string
 }
 
 type MatchupData = {
@@ -15,7 +18,7 @@ type MatchupData = {
   winRate: number
 }
 
-export function HeroMatchupHeatmap({ matches, onHeroClick, isLoading }: HeroMatchupHeatmapProps) {
+export function HeroMatchupHeatmap({ matches, onHeroClick, isLoading, focusHeroId }: HeroMatchupHeatmapProps) {
   const selectableHeroes = getSelectableHeroes()
   
   const matchupMatrix = useMemo(() => {
@@ -76,6 +79,13 @@ export function HeroMatchupHeatmap({ matches, onHeroClick, isLoading }: HeroMatc
       return hasData
     }).sort((a, b) => a.name.localeCompare(b.name))
   }, [matchupMatrix, selectableHeroes])
+
+  // When focusHeroId is provided, only render that hero's row; columns are always the full set.
+  const rowHeroes = useMemo(() => {
+    if (!focusHeroId) return heroesWithData
+    const focused = heroesWithData.find(h => h.id === focusHeroId)
+    return focused ? [focused] : heroesWithData
+  }, [heroesWithData, focusHeroId])
 
   const getWinRateColor = (winRate: number, total: number) => {
     if (total === 0) {
@@ -139,7 +149,7 @@ export function HeroMatchupHeatmap({ matches, onHeroClick, isLoading }: HeroMatc
               </tr>
             </thead>
             <tbody>
-              {heroesWithData.map(rowHero => (
+              {rowHeroes.map(rowHero => (
                 <tr key={rowHero.id}>
                   <td 
                     className="sticky left-0 z-10 bg-background border border-border p-1 md:p-2 font-medium text-left cursor-pointer hover:bg-accent/10 transition-colors text-[10px] md:text-xs"

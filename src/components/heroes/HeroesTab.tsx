@@ -2,7 +2,7 @@ import { useState, useMemo, useEffect } from 'react'
 import type { Match, User } from '@/lib/types'
 import { Card } from '@/components/ui/card'
 import { getSelectableHeroes, getHeroById } from '@/lib/data'
-import { calculateHeroStats, calculateUserHeroStats } from '@/lib/stats'
+import { calculateHeroStats, calculateUserHeroStats, mergeMatchupRows } from '@/lib/stats'
 import { Sword, CaretUpDown, Check, Globe, User as UserIcon } from '@phosphor-icons/react'
 import { Progress } from '@/components/ui/progress'
 import { Badge } from '@/components/ui/badge'
@@ -113,15 +113,21 @@ export function HeroesTab({ matches, currentUserId, initialSelectedHero, onHeroC
   const userLoggedMatchesStats = useMemo(() => selectedHero ? calculateUserHeroStats(effectiveMatches, selectedHero) : { totalGames: 0, wins: 0, losses: 0, winRate: 0, vsMatchups: {} }, [effectiveMatches, selectedHero])
   const globalStats = useMemo(() => selectedHero ? calculateHeroStats(allMatches || [], selectedHero) : { totalGames: 0, wins: 0, losses: 0, winRate: 0, vsMatchups: {} }, [allMatches, selectedHero])
 
-  const matchupEntries = useMemo(() => Object.entries(userLoggedMatchesStats.vsMatchups)
-    .map(([opponentId, data]) => ({
-      hero: getHeroById(opponentId),
-      wins: data.wins,
-      total: data.total,
-      winRate: data.total > 0 ? (data.wins / data.total) * 100 : 0,
-    }))
-    .filter(m => m.hero)
-    .sort((a, b) => b.total - a.total), [userLoggedMatchesStats])
+  const matchupEntries = useMemo(() => {
+    const rows = mergeMatchupRows(
+      userLoggedMatchesStats.vsMatchups ?? {},
+      globalStats.vsMatchups ?? {}
+    )
+    return rows
+      .map(row => ({ ...row, hero: getHeroById(row.opponentId) }))
+      .filter(row => row.hero)
+      .sort((a, b) => {
+        // Sort descending by whichever side has more total games
+        const aTotal = Math.max(a.user?.total ?? 0, a.global?.total ?? 0)
+        const bTotal = Math.max(b.user?.total ?? 0, b.global?.total ?? 0)
+        return bTotal - aTotal
+      })
+  }, [userLoggedMatchesStats, globalStats])
 
    if (!selectedHero) {
     return (
@@ -467,9 +473,9 @@ export function HeroesTab({ matches, currentUserId, initialSelectedHero, onHeroC
       </div>
 
       <Card className="p-4 md:p-6">
-        <h3 className="text-base md:text-lg font-semibold mb-3 md:mb-4">Matchup Statistics</h3>
+        <h3 className="text-base md:text-lg font-semibold mb-1 md:mb-2">Matchup Statistics</h3>
         <p className="text-xs md:text-sm text-muted-foreground mb-3 md:mb-4">
-          Performance against other heroes
+          Your record vs. community record for each opponent
         </p>
         
         {matchupEntries.length === 0 ? (
@@ -487,32 +493,42 @@ export function HeroesTab({ matches, currentUserId, initialSelectedHero, onHeroC
                 <TableHeader>
                   <TableRow>
                     <TableHead className="text-xs md:text-sm">Opponent</TableHead>
-                    <TableHead className="text-center text-xs md:text-sm">Games</TableHead>
-                    <TableHead className="text-center text-xs md:text-sm">W</TableHead>
-                    <TableHead className="text-center text-xs md:text-sm">L</TableHead>
-                    <TableHead className="text-xs md:text-sm hidden sm:table-cell">Win Rate</TableHead>
-                    <TableHead className="sm:hidden text-xs">WR</TableHead>
+                    <TableHead className="text-center text-xs md:text-sm" colSpan={2}>You</TableHead>
+                    <TableHead className="text-center text-xs md:text-sm" colSpan={2}>Community</TableHead>
+                  </TableRow>
+                  <TableRow className="bg-muted/30">
+                    <TableHead className="text-xs text-muted-foreground" />
+                    <TableHead className="text-center text-[10px] text-muted-foreground font-normal">W-L</TableHead>
+                    <TableHead className="text-center text-[10px] text-muted-foreground font-normal">WR%</TableHead>
+                    <TableHead className="text-center text-[10px] text-muted-foreground font-normal">W-L</TableHead>
+                    <TableHead className="text-center text-[10px] text-muted-foreground font-normal">WR%</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {matchupEntries.map((matchup) => (
                     <TableRow key={matchup.hero!.id}>
-                      <TableCell className="font-medium text-xs md:text-sm">{matchup.hero!.name}</TableCell>
-                      <TableCell className="text-center text-xs md:text-sm">{matchup.total}</TableCell>
-                      <TableCell className="text-center text-xs md:text-sm text-accent">{matchup.wins}</TableCell>
-                      <TableCell className="text-center text-xs md:text-sm text-destructive">
-                        {matchup.total - matchup.wins}
+                      <TableCell className="font-medium text-xs md:text-sm py-2">{matchup.hero!.name}</TableCell>
+                      {/* You column */}
+                      <TableCell className="text-center text-xs md:text-sm py-2">
+                        {matchup.user
+                          ? <span className="tabular-nums">{matchup.user.wins}-{matchup.user.losses}</span>
+                          : <span className="text-muted-foreground/60">—</span>}
                       </TableCell>
-                      <TableCell className="hidden sm:table-cell">
-                        <div className="flex items-center gap-3">
-                          <Progress value={matchup.winRate} className="flex-1" />
-                          <span className="text-sm font-medium min-w-[48px] text-right">
-                            {matchup.winRate.toFixed(0)}%
-                          </span>
-                        </div>
+                      <TableCell className="text-center text-xs md:text-sm py-2">
+                        {matchup.user
+                          ? <span className={matchup.user.winRate >= 50 ? 'text-accent font-semibold' : 'text-destructive font-semibold'}>{matchup.user.winRate.toFixed(0)}%</span>
+                          : <span className="text-muted-foreground/60">—</span>}
                       </TableCell>
-                      <TableCell className="sm:hidden text-center text-xs font-medium">
-                        {matchup.winRate.toFixed(0)}%
+                      {/* Community column */}
+                      <TableCell className="text-center text-xs md:text-sm py-2">
+                        {matchup.global
+                          ? <span className="tabular-nums">{matchup.global.wins}-{matchup.global.losses}</span>
+                          : <span className="text-muted-foreground/60">—</span>}
+                      </TableCell>
+                      <TableCell className="text-center text-xs md:text-sm py-2">
+                        {matchup.global
+                          ? <span className={matchup.global.winRate >= 50 ? 'text-accent font-semibold' : 'text-destructive font-semibold'}>{matchup.global.winRate.toFixed(0)}%</span>
+                          : <span className="text-muted-foreground/60">—</span>}
                       </TableCell>
                     </TableRow>
                   ))}
@@ -523,12 +539,12 @@ export function HeroesTab({ matches, currentUserId, initialSelectedHero, onHeroC
         )}
       </Card>
 
-      {/* Global Matchup Heatmap - hidden in group context */}
+      {/* Hero Matchup Heatmap - hidden in group context */}
       {!isGroupContext && (
         <Card className="p-6">
-          <h3 className="text-lg font-semibold mb-1">Global Matchup Heatmap</h3>
+          <h3 className="text-lg font-semibold mb-1">{hero?.name ?? 'Hero'} Matchup Heatmap</h3>
           <p className="text-sm text-muted-foreground mb-4">
-            Win rates across all users — click any hero to switch to their stats
+            Global win rates for {hero?.name ?? 'this hero'} vs all opponents — click any hero to switch to their stats
           </p>
           <HeroMatchupHeatmap 
             matches={allMatches} 
@@ -539,6 +555,7 @@ export function HeroesTab({ matches, currentUserId, initialSelectedHero, onHeroC
               onHeroClick?.(heroId)
             }}
             isLoading={!allMatchesLoaded}
+            focusHeroId={selectedHero}
           />
         </Card>
       )}

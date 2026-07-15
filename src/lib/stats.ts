@@ -190,6 +190,46 @@ function calculateHeroStatsCore(matches: Match[], heroId: string, options: HeroS
   }
 }
 
+/** A single row in the merged yours-vs-global matchup table. */
+export type MatchupRow = {
+  opponentId: string
+  /** User's record vs this opponent — null when the user has zero games against them. */
+  user: { wins: number; losses: number; total: number; winRate: number } | null
+  /** Global record vs this opponent — null when the community has zero games. */
+  global: { wins: number; losses: number; total: number; winRate: number } | null
+}
+
+/**
+ * Merge two vsMatchups dictionaries (user and global) into a unified row list.
+ * The union of opponent keys is used — an absent side is represented as null
+ * so callers can render "—" instead of a misleading 0%.
+ * Pure function: no side effects.
+ */
+export function mergeMatchupRows(
+  userVsMatchups: Record<string, { wins: number; total: number }>,
+  globalVsMatchups: Record<string, { wins: number; total: number }>
+): MatchupRow[] {
+  const opponentIds = new Set([
+    ...Object.keys(userVsMatchups),
+    ...Object.keys(globalVsMatchups),
+  ])
+
+  return Array.from(opponentIds).map(opponentId => {
+    const u = userVsMatchups[opponentId]
+    const g = globalVsMatchups[opponentId]
+
+    return {
+      opponentId,
+      user: u && u.total > 0
+        ? { wins: u.wins, losses: u.total - u.wins, total: u.total, winRate: (u.wins / u.total) * 100 }
+        : null,
+      global: g && g.total > 0
+        ? { wins: g.wins, losses: g.total - g.wins, total: g.total, winRate: (g.wins / g.total) * 100 }
+        : null,
+    }
+  })
+}
+
 export function getAllPlayerNames(matches: Match[]): string[] {
   const names = new Set<string>()
   for (const match of matches) {
@@ -436,4 +476,34 @@ export function getBalancedMatchupHero(
   }
   
   return candidates[Math.floor(Math.random() * candidates.length)]
+}
+
+/**
+ * Counts how many matches were played on each map and returns a ranked list
+ * sorted by count descending. Ties are broken alphabetically by mapId (ascending)
+ * for a stable, testable order. Empty input returns [].
+ */
+export function calculateMapPopularity(matches: Match[]): { mapId: string; count: number }[] {
+  const counts: Record<string, number> = {}
+  for (const match of matches) {
+    if (match.mapId) {
+      counts[match.mapId] = (counts[match.mapId] || 0) + 1
+    }
+  }
+  return Object.entries(counts)
+    .map(([mapId, count]) => ({ mapId, count }))
+    .sort((a, b) => b.count - a.count || a.mapId.localeCompare(b.mapId))
+}
+
+/**
+ * Returns the count of distinct userId values across all matches.
+ * Falsy/empty userId values are ignored, so matches without a userId
+ * do not inflate the count. Empty input returns 0.
+ */
+export function countCommunityMembers(matches: Match[]): number {
+  const seen = new Set<string>()
+  for (const m of matches) {
+    if (m.userId) seen.add(m.userId)
+  }
+  return seen.size
 }

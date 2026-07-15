@@ -13,6 +13,7 @@ import { cn } from '@/lib/utils'
 import { normalizeHeroId } from '@/lib/utils'
 import { getAllUserMatches } from '@/lib/firestore'
 import { useAuth } from '@/hooks/use-auth'
+import { calculateMapPopularity } from '@/lib/stats'
 
 type MapsTabProps = {
   matches: Match[]
@@ -149,6 +150,24 @@ export function MapsTab({ matches }: MapsTabProps) {
     return counts
   }, [matches])
 
+  const TOP_MAP_N = 5
+
+  const userMapRankings = useMemo(
+    () =>
+      calculateMapPopularity(matches)
+        .slice(0, TOP_MAP_N)
+        .map(({ mapId, count }) => ({ mapId, count, map: getMapById(mapId) })),
+    [matches]
+  )
+
+  const globalMapRankings = useMemo(
+    () =>
+      calculateMapPopularity(allMatches)
+        .slice(0, TOP_MAP_N)
+        .map(({ mapId, count }) => ({ mapId, count, map: getMapById(mapId) })),
+    [allMatches]
+  )
+
   const mapData = selectedMap ? getMapById(selectedMap) : null
   const stats = useMemo(
     () => (selectedMap ? calculateMapStats(matches, allMatches, selectedMap) : null),
@@ -219,6 +238,95 @@ export function MapsTab({ matches }: MapsTabProps) {
             </PopoverContent>
           </Popover>
         </div>
+        {/* Most Popular Maps */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* Your Most Played Maps */}
+          <Card className="p-5">
+            <div className="flex items-center gap-2 mb-4">
+              <UserIcon className="w-4 h-4 text-primary" weight="fill" />
+              <h3 className="text-base font-semibold">Your Most Played Maps</h3>
+            </div>
+            {userMapRankings.length === 0 ? (
+              <div className="py-6 text-center text-muted-foreground text-sm">
+                <MapTrifold className="w-8 h-8 mx-auto mb-2 opacity-40" />
+                <p>No matches yet — log your first game!</p>
+              </div>
+            ) : (
+              <ol className="space-y-2">
+                {userMapRankings.map(({ mapId, count, map }, i) => (
+                  <li key={mapId} className="flex items-center gap-3">
+                    <span className="text-xs font-bold text-muted-foreground w-5 text-right">{i + 1}.</span>
+                    {map?.imageUrl ? (
+                      <img src={map.imageUrl} alt={map.name} className="w-8 h-8 rounded object-cover flex-shrink-0 border border-border" />
+                    ) : (
+                      <div className="w-8 h-8 rounded flex-shrink-0 bg-muted flex items-center justify-center border border-dashed border-border">
+                        <MapTrifold className="w-4 h-4 text-muted-foreground opacity-50" />
+                      </div>
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium truncate">{map?.name ?? mapId}</p>
+                      <p className="text-xs text-muted-foreground">{map?.set ?? ''}</p>
+                    </div>
+                    <Badge variant="secondary" className="text-xs flex-shrink-0">
+                      {count} {count === 1 ? 'match' : 'matches'}
+                    </Badge>
+                  </li>
+                ))}
+              </ol>
+            )}
+          </Card>
+
+          {/* Most Popular Globally */}
+          <Card className="p-5">
+            <div className="flex items-center gap-2 mb-4">
+              <Globe className="w-4 h-4 text-accent" />
+              <h3 className="text-base font-semibold">Most Popular Globally</h3>
+            </div>
+            {isLoadingGlobal ? (
+              <div className="space-y-2">
+                {[...Array(5)].map((_, i) => (
+                  <div key={i} className="flex items-center gap-3 animate-pulse">
+                    <div className="w-5 h-3 bg-muted rounded" />
+                    <div className="w-8 h-8 rounded bg-muted flex-shrink-0" />
+                    <div className="flex-1 space-y-1">
+                      <div className="h-3 bg-muted rounded w-3/4" />
+                      <div className="h-2 bg-muted rounded w-1/2" />
+                    </div>
+                    <div className="w-16 h-5 bg-muted rounded-full" />
+                  </div>
+                ))}
+              </div>
+            ) : globalMapRankings.length === 0 ? (
+              <div className="py-6 text-center text-muted-foreground text-sm">
+                <Globe className="w-8 h-8 mx-auto mb-2 opacity-40" />
+                <p>No global match data yet.</p>
+              </div>
+            ) : (
+              <ol className="space-y-2">
+                {globalMapRankings.map(({ mapId, count, map }, i) => (
+                  <li key={mapId} className="flex items-center gap-3">
+                    <span className="text-xs font-bold text-muted-foreground w-5 text-right">{i + 1}.</span>
+                    {map?.imageUrl ? (
+                      <img src={map.imageUrl} alt={map.name} className="w-8 h-8 rounded object-cover flex-shrink-0 border border-border" />
+                    ) : (
+                      <div className="w-8 h-8 rounded flex-shrink-0 bg-muted flex items-center justify-center border border-dashed border-border">
+                        <MapTrifold className="w-4 h-4 text-muted-foreground opacity-50" />
+                      </div>
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium truncate">{map?.name ?? mapId}</p>
+                      <p className="text-xs text-muted-foreground">{map?.set ?? ''}</p>
+                    </div>
+                    <Badge variant="secondary" className="text-xs flex-shrink-0">
+                      {count} {count === 1 ? 'match' : 'matches'}
+                    </Badge>
+                  </li>
+                ))}
+              </ol>
+            )}
+          </Card>
+        </div>
+
         <Card className="p-12 text-center">
           <div className="flex flex-col items-center gap-4">
             <div className="rounded-full bg-muted p-6">
