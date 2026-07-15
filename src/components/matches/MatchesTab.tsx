@@ -6,6 +6,7 @@ import { Plus, Trophy } from '@phosphor-icons/react'
 import { LogMatchDialog } from './LogMatchDialog'
 import { MatchCard } from './MatchCard'
 import { useAuth } from '@/hooks/use-auth'
+import { compareMatchesByRecency } from '@/lib/sort'
 import { getMapById } from '@/lib/data'
 import { MapImageDialog } from '@/components/players/MapImageDialog'
 import { DataContextSelector } from '@/components/shared/DataContextSelector'
@@ -38,21 +39,7 @@ export function MatchesTab({ matches, setMatches, onHeroClick, dataSource, group
     }
   }
 
-  const sortedMatches = [...effectiveMatches].sort((a, b) => {
-    const parseDate = (dateString: string) => {
-      const [year, month, day] = dateString.split('-').map(Number)
-      return new Date(year, month - 1, day).getTime()
-    }
-    
-    const dateA = parseDate(a.date)
-    const dateB = parseDate(b.date)
-    
-    if (isNaN(dateA) && isNaN(dateB)) return 0
-    if (isNaN(dateA)) return 1
-    if (isNaN(dateB)) return -1
-    
-    return dateB - dateA
-  })
+  const sortedMatches = [...effectiveMatches].sort(compareMatchesByRecency)
 
   if (!currentUserId) {
     return null

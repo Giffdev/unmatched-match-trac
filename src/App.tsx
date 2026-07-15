@@ -10,13 +10,14 @@ import { CollectionTab } from '@/components/collection/CollectionTab'
 import { RandomizerTab } from '@/components/randomizer/RandomizerTab'
 import { MapsTab } from '@/components/maps/MapsTab'
 import { GroupsTab } from '@/components/groups/GroupsTab'
+import { CommunityTab } from '@/components/community/CommunityTab'
 import { UserProfile } from '@/components/auth/UserProfile'
 import { SignInPrompt } from '@/components/auth/SignInPrompt'
 import { DataCleanup } from '@/components/auth/DataCleanup'
 import { ErrorBoundary } from '@/components/ErrorBoundary'
 import { Toaster } from '@/components/ui/sonner'
 import { toast } from 'sonner'
-import { ListChecks, Users, User, Shuffle, MapTrifold, UsersThree } from '@phosphor-icons/react'
+import { ListChecks, Users, User, Shuffle, MapTrifold, UsersThree, Globe } from '@phosphor-icons/react'
 import { usePendingInvites, useGroups } from '@/hooks/use-groups'
 import { useAllGroupMatches } from '@/hooks/useAllGroupMatches'
 import { joinGroupByInviteCode } from '@/lib/groups'
@@ -226,7 +227,7 @@ function App() {
         ) : (
           <Tabs value={currentTab} onValueChange={setCurrentTab} className="w-full">
             {!isMobile && (
-              <TabsList className="grid w-full grid-cols-6 mb-6">
+              <TabsList className="grid w-full grid-cols-7 mb-6">
                 <TabsTrigger value="matches">Matches</TabsTrigger>
                 <TabsTrigger value="players">Players</TabsTrigger>
                 <TabsTrigger value="heroes">Heroes</TabsTrigger>
@@ -239,6 +240,7 @@ function App() {
                     </span>
                   )}
                 </TabsTrigger>
+                <TabsTrigger value="community">Community</TabsTrigger>
                 <TabsTrigger value="randomizer">Randomizer</TabsTrigger>
               </TabsList>
             )}
@@ -298,6 +300,12 @@ function App() {
               </ErrorBoundary>
             </TabsContent>
 
+            <TabsContent value="community">
+              <ErrorBoundary fallbackTitle="Something went wrong in Community">
+                <CommunityTab />
+              </ErrorBoundary>
+            </TabsContent>
+
             <TabsContent value="randomizer">
               <ErrorBoundary fallbackTitle="Something went wrong in Randomizer">
                 <RandomizerTab ownedSets={ownedSetsData} matches={matchesData} setMatches={setMatches} />
@@ -310,7 +318,7 @@ function App() {
 
       {isMobile && currentUserId && currentView === 'main' && (
         <nav className="fixed bottom-0 left-0 right-0 bg-card border-t border-border z-20">
-          <div className="grid grid-cols-6 h-14">
+          <div className="grid grid-cols-7 h-14">
             <button
               onClick={() => setCurrentTab('matches')}
               className={`flex flex-col items-center justify-center gap-0.5 transition-colors ${
@@ -372,6 +380,18 @@ function App() {
               {pendingInviteCount > 0 && (
                 <span className="absolute top-1 right-1/4 w-2 h-2 bg-destructive rounded-full" />
               )}
+            </button>
+
+            <button
+              onClick={() => setCurrentTab('community')}
+              className={`flex flex-col items-center justify-center gap-0.5 transition-colors ${
+                currentTab === 'community' 
+                  ? 'text-primary' 
+                  : 'text-muted-foreground'
+              }`}
+            >
+              <Globe size={20} weight={currentTab === 'community' ? 'fill' : 'regular'} />
+              <span className="text-[10px] leading-tight">Global</span>
             </button>
             
             <button

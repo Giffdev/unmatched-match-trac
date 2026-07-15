@@ -58,6 +58,8 @@ export type PlayerAssignment = {
 export type Match = {
   id: string
   date: string
+  /** ISO-8601 datetime string set at log time. Optional for backward compat with existing records. */
+  loggedAt?: string
   mode: GameMode
   mapId: string
   players: PlayerAssignment[]

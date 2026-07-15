@@ -150,6 +150,7 @@ export function LogMatchDialog({ open, onOpenChange, onSave, prefilled, existing
     const match: Match = {
       id: crypto.randomUUID(),
       date: dateString,
+      loggedAt: new Date().toISOString(),
       mode,
       mapId,
       players: normalizedPlayers,
