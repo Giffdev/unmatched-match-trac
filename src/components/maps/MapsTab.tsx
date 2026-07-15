@@ -13,23 +13,11 @@ import { cn } from '@/lib/utils'
 import { normalizeHeroId } from '@/lib/utils'
 import { getAllUserMatches } from '@/lib/firestore'
 import { useAuth } from '@/hooks/use-auth'
-import { calculateMapPopularity } from '@/lib/stats'
+import { calculateMapPopularity, compareHeroMapPerformance } from '@/lib/stats'
+import type { HeroMapPerformance } from '@/lib/stats'
 
 type MapsTabProps = {
   matches: Match[]
-}
-
-type HeroMapPerformance = {
-  heroId: string
-  heroName: string
-  userWins: number
-  userLosses: number
-  userTotal: number
-  userWinRate: number
-  globalWins: number
-  globalLosses: number
-  globalTotal: number
-  globalWinRate: number
 }
 
 type MapStats = {
@@ -91,7 +79,7 @@ function calculateMapStats(userMatches: Match[], globalMatches: Match[], mapId: 
         globalWinRate: g.total > 0 ? (g.wins / g.total) * 100 : 0,
       }
     })
-    .sort((a, b) => b.globalTotal - a.globalTotal || b.userTotal - a.userTotal)
+    .sort(compareHeroMapPerformance)
 
   const recentMatches = [...userMapMatches].sort((a, b) => b.date.localeCompare(a.date)).slice(0, 10)
 

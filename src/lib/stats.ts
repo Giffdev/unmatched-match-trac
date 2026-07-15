@@ -507,3 +507,32 @@ export function countCommunityMembers(matches: Match[]): number {
   }
   return seen.size
 }
+
+/** Per-hero performance stats on a specific map, combining user and global data. */
+export type HeroMapPerformance = {
+  heroId: string
+  heroName: string
+  userWins: number
+  userLosses: number
+  userTotal: number
+  userWinRate: number
+  globalWins: number
+  globalLosses: number
+  globalTotal: number
+  globalWinRate: number
+}
+
+/**
+ * Deterministic sort comparator for the "Hero Performance on This Map" panel.
+ * Ranking (all ties broken by the next criterion):
+ *   1. globalWinRate DESCENDING
+ *   2. globalTotal DESCENDING
+ *   3. userTotal DESCENDING
+ *   4. heroName ASCENDING (A–Z)
+ */
+export function compareHeroMapPerformance(a: HeroMapPerformance, b: HeroMapPerformance): number {
+  if (b.globalWinRate !== a.globalWinRate) return b.globalWinRate - a.globalWinRate
+  if (b.globalTotal !== a.globalTotal) return b.globalTotal - a.globalTotal
+  if (b.userTotal !== a.userTotal) return b.userTotal - a.userTotal
+  return a.heroName.localeCompare(b.heroName)
+}
