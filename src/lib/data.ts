@@ -103,6 +103,7 @@ import TheBronze from '@/assets/images/The_Bronze.webp'
 import TheRaft from '@/assets/images/The_Raft.webp'
 import TRexPaddock from '@/assets/images/T_Rex_Paddock.webp'
 import Yukon from '@/assets/images/Yukon.webp'
+import Yukon1900 from '@/assets/images/Yukon_1900.webp'
 import SantasWorkshop from '@/assets/images/Santas_Workshop.avif'
 import VeniceMap from '@/assets/images/Venice.avif'
 
@@ -244,7 +245,7 @@ export const MAPS: Map[] = [
   { id: 'yukon', name: 'Yukon', set: 'Robin Hood vs Bigfoot', minPlayers: 2, maxPlayers: 2, zones: 7, spaces: 31, imageUrl: Yukon },
   // Separate accessory variant; keep the original ID and ownership link for saved matches.
   // Sources and intentionally omitted Hellboy records: docs/catalog-sources.md.
-  { id: 'yukon-1900', name: 'Yukon 1900', set: 'Neoprene Battlefields: Sherwood Forest / Yukon 1900', minPlayers: 2, maxPlayers: 2, zones: 7, spaces: 31 },
+  { id: 'yukon-1900', name: 'Yukon 1900', set: 'Neoprene Battlefields: Sherwood Forest / Yukon 1900', minPlayers: 2, maxPlayers: 2, zones: 7, spaces: 31, imageUrl: Yukon1900 },
   { id: 'globe-theatre', name: 'Globe Theatre', set: 'Slings & Arrows', minPlayers: 2, maxPlayers: 4, zones: 10, spaces: 32, imageUrl: GlobeTheater },
   { id: 'azuchi-castle', name: 'Azuchi Castle', set: 'Sun\'s Origin', minPlayers: 2, maxPlayers: 2, zones: 8, spaces: 31, imageUrl: AzuchiCastle },
   { id: 'navy-pier', name: 'Navy Pier', set: 'Teen Spirit', minPlayers: 2, maxPlayers: 4, zones: 6, spaces: 30, imageUrl: NavyPier },
