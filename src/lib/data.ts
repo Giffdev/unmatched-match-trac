@@ -133,6 +133,7 @@ export const UNMATCHED_SETS: SetInfo[] = [
   { name: 'Unmatched Adventures: Teenage Mutant Ninja Turtles', franchise: 'TMNT' },
   { name: 'TMNT: Shredder and Krang', franchise: 'TMNT' },
   { name: 'Stars and Stripes', franchise: 'Unmatched' },
+  { name: 'Neoprene Battlefields: Sherwood Forest / Yukon 1900', franchise: 'Unmatched' },
 ]
 
 export const FRANCHISES = Array.from(new Set(UNMATCHED_SETS.map(s => s.franchise))).sort()
@@ -241,6 +242,9 @@ export const MAPS: Map[] = [
   { id: 'the-raft', name: 'The Raft', set: 'Redemption Row', minPlayers: 2, maxPlayers: 4, zones: 8, spaces: 31, imageUrl: TheRaft },
   { id: 'sherwood-forest', name: 'Sherwood Forest', set: 'Robin Hood vs Bigfoot', minPlayers: 2, maxPlayers: 2, zones: 7, spaces: 30, imageUrl: SherwoodForest },
   { id: 'yukon', name: 'Yukon', set: 'Robin Hood vs Bigfoot', minPlayers: 2, maxPlayers: 2, zones: 7, spaces: 31, imageUrl: Yukon },
+  // Separate accessory variant; keep the original ID and ownership link for saved matches.
+  // Sources and intentionally omitted Hellboy records: docs/catalog-sources.md.
+  { id: 'yukon-1900', name: 'Yukon 1900', set: 'Neoprene Battlefields: Sherwood Forest / Yukon 1900', minPlayers: 2, maxPlayers: 2, zones: 7, spaces: 31 },
   { id: 'globe-theatre', name: 'Globe Theatre', set: 'Slings & Arrows', minPlayers: 2, maxPlayers: 4, zones: 10, spaces: 32, imageUrl: GlobeTheater },
   { id: 'azuchi-castle', name: 'Azuchi Castle', set: 'Sun\'s Origin', minPlayers: 2, maxPlayers: 2, zones: 8, spaces: 31, imageUrl: AzuchiCastle },
   { id: 'navy-pier', name: 'Navy Pier', set: 'Teen Spirit', minPlayers: 2, maxPlayers: 4, zones: 6, spaces: 30, imageUrl: NavyPier },

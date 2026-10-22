@@ -1,7 +1,7 @@
 import { Card } from '@/components/ui/card'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Button } from '@/components/ui/button'
-import { UNMATCHED_SETS, getHeroesBySet, FRANCHISES, getSetsByFranchise } from '@/lib/data'
+import { UNMATCHED_SETS, getHeroesBySet, getMapsBySet, FRANCHISES, getSetsByFranchise } from '@/lib/data'
 import { Badge } from '@/components/ui/badge'
 import { Package, CheckSquare, Square, Funnel, ArrowLeft } from '@phosphor-icons/react'
 import { useState } from 'react'
@@ -61,7 +61,7 @@ export function CollectionTab({ ownedSets, setOwnedSets, onBack }: CollectionTab
         <div>
           <h2 className="text-2xl font-semibold">My Collection</h2>
           <p className="text-sm text-muted-foreground mt-1">
-            Select the sets you own to filter available heroes in the randomizer
+            Select the sets and battlefield accessories you own to filter available heroes and maps in the randomizer
           </p>
         </div>
         <div className="flex items-center gap-3">
@@ -117,6 +117,7 @@ export function CollectionTab({ ownedSets, setOwnedSets, onBack }: CollectionTab
         {filteredSets.map((setInfo) => {
           const isOwned = ownedSets.includes(setInfo.name)
           const heroes = getHeroesBySet(setInfo.name)
+          const maps = heroes.length === 0 ? getMapsBySet(setInfo.name) : []
 
           return (
             <Card 
@@ -148,9 +149,16 @@ export function CollectionTab({ ownedSets, setOwnedSets, onBack }: CollectionTab
                         {hero.name}
                       </Badge>
                     ))}
+                    {maps.map((map) => (
+                      <Badge key={map.id} variant="secondary" className="text-xs">
+                        {map.name}
+                      </Badge>
+                    ))}
                   </div>
                   <p className="text-xs text-muted-foreground mt-2">
-                    {heroes.length} {heroes.length === 1 ? 'hero' : 'heroes'}
+                    {heroes.length === 0 && maps.length > 0
+                      ? `${maps.length} ${maps.length === 1 ? 'map' : 'maps'} · No heroes`
+                      : `${heroes.length} ${heroes.length === 1 ? 'hero' : 'heroes'}`}
                   </p>
                 </div>
               </div>
