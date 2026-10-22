@@ -25,17 +25,30 @@ available for two-player match selection and unrestricted randomization; the
 accessory's own collection checkbox controls collection-only randomization.
 There are no saved-match or owned-set migrations.
 
-### Image research
+### Image provenance
 
-No new artwork was downloaded or committed, and the original Yukon's image is
-not reused for the variant. The Club page has a variant image, but no reuse
-permission was established. The [publisher's current battlefield mat listing](https://restorationgames.com/shop/unmatched-battlefield-mat/)
-did not expose a Yukon 1900 image; the retailer above shows a combined
-multi-battlefield product image rather than a suitable standalone map.
-The [publisher's BackerKit accessory campaign](https://www.backerkit.com/c/projects/restoration-games/unmatched-storage-and-accessories)
-was access-blocked during verification. Consequently `imageUrl` is omitted
-rather than substituting unrelated, unlicensed, or original-Yukon artwork.
-The existing map-image dialog supports this with “No image available.”
+The image-only follow-up on **2026-10-22** adds
+`src/assets/images/Yukon_1900.webp`, bundled using the existing map-image import
+pattern. Source: [The Unmatched Club's published Yukon 1900 image](https://img.unmatched.club/maps/y2s7RNI0dMCdxd47wSHBZ.webp),
+linked by the map page's public image metadata. It is **1337 × 742 pixels**
+(423,724 bytes). The downloaded bytes are unchanged: no crop, retouching,
+inpainting, upscaling, or edits to map spaces, connections, labels, or credits.
+The image has no white arrow. Visual comparison against the user's reference
+confirms the railroad artwork, zone layout, numbered starts, and Yukon label
+of the correct variant, not the original Yukon.
+
+The user supplied [this Reddit preview](https://preview.redd.it/yukon-1900-v0-su9bup2qo0lf1.jpeg?width=1080&crop=smart&auto=webp&s=b95c7e9b365ae8ae2f7dec0434b1d4292d6f13db)
+and authorized it as a fallback. Its [original upload](https://i.redd.it/su9bup2qo0lf1.jpeg)
+is 4052 × 2388 pixels but has the same white arrow overlapping the lower map
+edge. The published clean Club image was chosen instead; the Reddit image
+is not bundled. A bounded search did not identify a suitable clean standalone
+manufacturer/retailer alternative (the retailer above uses a combined product
+image). The selected source is publicly accessible, **not a claim of an open
+license or explicit permission from the artwork's rights holder**; rights remain
+with their respective owners.
+
+Only `yukon-1900` references the new asset. The original `yukon` continues to
+use its unchanged `Yukon.webp` asset.
 
 ## Unmatched: Hellboy — deliberately not added
 

@@ -6,6 +6,8 @@ import {
 } from '../data'
 import { calculateMapPopularity } from '../stats'
 import type { Match } from '../types'
+import Yukon from '@/assets/images/Yukon.webp'
+import Yukon1900 from '@/assets/images/Yukon_1900.webp'
 
 const accessory = 'Neoprene Battlefields: Sherwood Forest / Yukon 1900'
 
@@ -14,17 +16,19 @@ describe('Yukon 1900 catalog addition', () => {
     expect(getMapById('yukon')).toEqual({
       id: 'yukon', name: 'Yukon', set: 'Robin Hood vs Bigfoot',
       minPlayers: 2, maxPlayers: 2, zones: 7, spaces: 31,
-      imageUrl: expect.any(String),
+      imageUrl: Yukon,
     })
     expect(getMapsBySet('Robin Hood vs Bigfoot').map(map => map.id))
       .toEqual(['sherwood-forest', 'yukon'])
   })
 
-  it('adds only the evidenced variant fields without borrowing artwork', () => {
+  it('uses the correct bundled variant artwork without changing the original Yukon image', () => {
     expect(getMapById('yukon-1900')).toEqual({
       id: 'yukon-1900', name: 'Yukon 1900', set: accessory,
       minPlayers: 2, maxPlayers: 2, zones: 7, spaces: 31,
+      imageUrl: Yukon1900,
     })
+    expect(Yukon1900).not.toBe(Yukon)
     expect(getMapById('yukon-1910')).toBeUndefined()
   })
 
