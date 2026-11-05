@@ -8,6 +8,12 @@ import { calculateMapPopularity } from '../stats'
 import type { Match } from '../types'
 import Yukon from '@/assets/images/Yukon.webp'
 import Yukon1900 from '@/assets/images/Yukon_1900.webp'
+import Hellboy from '@/assets/images/Hellboy.webp'
+import AbeSapien from '@/assets/images/Abe_Sapien.webp'
+import LizSherman from '@/assets/images/Liz_Sherman.webp'
+import BabaYaga from '@/assets/images/Baba_Yaga.webp'
+import BPRDHQ from '@/assets/images/BPRD_HQ.webp'
+import Pandemonium from '@/assets/images/Pandemonium.webp'
 
 const accessory = 'Neoprene Battlefields: Sherwood Forest / Yukon 1900'
 
@@ -84,11 +90,11 @@ describe('Hellboy catalog addition', () => {
   const mapIds = ['bprd-hq', 'pandemonium']
 
   it.each([
-    { id: 'hellboy', name: 'Hellboy', hp: 18, move: 2, attack: 'MELEE', sidekicks: [{ name: 'Lobster Johnson', count: 1, hp: 6, attack: 'RANGED' }] },
-    { id: 'abe-sapien', name: 'Abe Sapien', hp: 13, move: 2, attack: 'RANGED', sidekicks: [{ name: 'B.P.R.D. Agents', count: 3, hp: 1, attack: 'RANGED' }] },
-    { id: 'liz-sherman', name: 'Liz Sherman', hp: 16, move: 3, attack: 'RANGED', sidekicks: [] },
-    { id: 'baba-yaga', name: 'Baba Yaga', hp: 13, move: 2, attack: 'RANGED', sidekicks: [{ name: 'Koschei', count: 1, hp: 3, attack: 'MELEE' }] },
-  ])('resolves verified hero and sidekick metadata for $name', (hero) => {
+    { id: 'hellboy', name: 'Hellboy', hp: 18, move: 2, attack: 'MELEE', sidekicks: [{ name: 'Lobster Johnson', count: 1, hp: 6, attack: 'RANGED' }], imageUrl: Hellboy },
+    { id: 'abe-sapien', name: 'Abe Sapien', hp: 13, move: 2, attack: 'RANGED', sidekicks: [{ name: 'B.P.R.D. Agents', count: 3, hp: 1, attack: 'RANGED' }], imageUrl: AbeSapien },
+    { id: 'liz-sherman', name: 'Liz Sherman', hp: 16, move: 3, attack: 'RANGED', sidekicks: [], imageUrl: LizSherman },
+    { id: 'baba-yaga', name: 'Baba Yaga', hp: 13, move: 2, attack: 'RANGED', sidekicks: [{ name: 'Koschei', count: 1, hp: 3, attack: 'MELEE' }], imageUrl: BabaYaga },
+  ])('resolves verified metadata and the matching bundled artwork for $name', (hero) => {
     expect(getHeroById(hero.id)).toEqual({ ...hero, set: 'Hellboy' })
   })
 
@@ -113,10 +119,10 @@ describe('Hellboy catalog addition', () => {
   })
 
   it.each([
-    ['bprd-hq', 'B.P.R.D. HQ'],
-    ['pandemonium', 'Pandemonium'],
-  ])('makes %s eligible for 2–4 players without speculative board metadata', (id, name) => {
-    expect(getMapById(id)).toEqual({ id, name, set: 'Hellboy', minPlayers: 2, maxPlayers: 4 })
+    { id: 'bprd-hq', name: 'B.P.R.D. HQ', zones: 9, imageUrl: BPRDHQ },
+    { id: 'pandemonium', name: 'Pandemonium', zones: 8, imageUrl: Pandemonium },
+  ])('makes $id eligible for 2–4 players with inspected board metadata and artwork', ({ id, name, zones, imageUrl }) => {
+    expect(getMapById(id)).toEqual({ id, name, set: 'Hellboy', minPlayers: 2, maxPlayers: 4, zones, spaces: 32, imageUrl })
     for (const count of [2, 3, 4]) {
       expect(getMapsByPlayerCount(count).map(map => map.id)).toContain(id)
     }

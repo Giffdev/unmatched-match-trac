@@ -50,7 +50,12 @@ with their respective owners.
 Only `yukon-1900` references the new asset. The original `yukon` continues to
 use its unchanged `Yukon.webp` asset.
 
-## Unmatched: Hellboy — deliberately not added
+## Unmatched: Hellboy — historical 2026-10-22 evidence gap
+
+The following describes the initial omission, not the current catalog. The
+separately reviewed metadata release subsequently added all four heroes and
+both competitive maps. The artwork follow-up below leaves those verified
+hero stats, sidekicks, IDs, ownership links, and classification unchanged.
 
 The [publisher's official product page](https://restorationgames.com/shop/unmatched-hellboy/)
 confirms the official set and these four heroes:
@@ -83,3 +88,57 @@ This is a source-evidence limitation, not a claim that the set is unreleased.
 Add heroes only after official character cards/rules or a trustworthy complete
 transcription establishes their gameplay details; do not insert zeros,
 invent abilities, or infer that missing sidekick data means no sidekicks.
+
+### Hellboy artwork and board inspection — 2026-11-05
+
+The user explicitly supplied these public image URLs for ingestion. They are
+bundled unchanged in `src/assets/images/`, matching the current imports in
+`src/lib/data.ts` (the `heroes/` and `maps/` subfolders are not the active
+catalog convention). Public availability and the user's request are not an
+open-license claim; artwork rights and printed credits remain with their owners.
+
+All source paths below use the prefix
+`https://yptpnirqgfmxphjvsdjz.supabase.co/storage/v1/object/public/`.
+
+| Catalog entry | Source path | Local filename |
+| --- | --- | --- |
+| Hellboy | `heroes/card-covers/Wb_nEZD6OoYNLOM_WJ1iY.webp` | `Hellboy.webp` |
+| Abe Sapien | `heroes/card-covers/x8CYT3_seLwXQkp0RMYIF.webp` | `Abe_Sapien.webp` |
+| Liz Sherman | `heroes/card-covers/7uiosJNm872H4_jlo0NmL.webp` | `Liz_Sherman.webp` |
+| Baba Yaga | `heroes/card-covers/ps2imoKmDk-7cqiDhtR0R.webp` | `Baba_Yaga.webp` |
+| B.P.R.D. HQ | `maps/wtRlpRTNKejW48QZA7cYe.webp` | `BPRD_HQ.webp` |
+| Pandemonium | `maps/uPBhswD6t81rJ3so8_kxp.webp` | `Pandemonium.webp` |
+
+Hero identities were matched against each linked hero page's `cardBackImage`
+metadata and visually confirmed using the printed names and distinct red
+horned face, aquatic face, flame silhouette, and witch/cemetery designs.
+These are **illustrated card backs, not character-stat scans**. Each is
+375 × 523 pixels. The full originals are retained; existing centered
+`object-cover` hero portraits and square thumbnails crop them at render time.
+No hero-specific image styling or UI redesign is introduced.
+
+Both boards are 2006 × 1299 pixels. The downloaded originals preserve every
+board edge, space, split-color circle, connection, label, and credit. The
+existing map detail and enlarged map views preserve the intrinsic aspect
+ratio; small popularity thumbnails continue using the existing square crop.
+The low-resolution reference photo was not ingested.
+
+Counts were verified visually on the full-resolution supplied boards, not
+inferred from rooms or search summaries:
+
+- **B.P.R.D. HQ: 9 zones, 32 spaces.** Zone colors/patterns are dark blue,
+  pale gray, olive, green, brown, red, pink, ochre, and beige. The upper rooms
+  contain 4 + 2 + 5 = 11 circles, the hallway band has 7, and the two lower
+  bands have 7 each: 11 + 7 + 7 + 7 = 32. In particular, pale gray and brown
+  occur in split circles and must not be omitted or counted as extra spaces.
+- **Pandemonium: 8 zones, 32 spaces.** Colors/patterns are pale blue, purple,
+  brown, beige, yellow, orange, slate blue, and red. A left-to-right inventory
+  gives 7 pale-blue/purple left-edge circles, 6 upper brown/yellow circles,
+  5 lower beige/split circles, 6 central slate/yellow/orange circles, and
+  8 right-edge orange/red circles: 7 + 6 + 5 + 6 + 8 = 32. Split and
+  three-color circles each count once as a space and belong to every
+  represented color. Zigzag connections are not spaces or extra zones.
+
+These observations support the previously unverified catalog totals; only
+now are optional `zones` and `spaces` populated. No gameplay reference text,
+terrain rules, or speculative ability text is added.

@@ -6,6 +6,10 @@ import AncientLeshenImg from '@/assets/images/Ancient_Leshen.webp'
 import AngelImg from '@/assets/images/Angel.webp'
 import AnnieChristmasImg from '@/assets/images/Annie_Christmas.webp'
 import BeowulfImg from '@/assets/images/Beowulf.webp'
+import AbeSapienImg from '@/assets/images/Abe_Sapien.webp'
+import BabaYagaImg from '@/assets/images/Baba_Yaga.webp'
+import HellboyImg from '@/assets/images/Hellboy.webp'
+import LizShermanImg from '@/assets/images/Liz_Sherman.webp'
 import BigfootImg from '@/assets/images/Bigfoot.jpg'
 import BlackPantherImg from '@/assets/images/Black_Panther.webp'
 import BlackWidowImg from '@/assets/images/Black_Widow.webp'
@@ -79,6 +83,8 @@ import GeorgeWashingtonImg from '@/assets/images/George_Washington.webp'
 
 import AzuchiCastle from '@/assets/images/Azuchi_Castle.webp'
 import BaskervilleManor from '@/assets/images/Baskerville_Manor.webp'
+import BPRDHQ from '@/assets/images/BPRD_HQ.webp'
+import Pandemonium from '@/assets/images/Pandemonium.webp'
 import FayrlundForest from '@/assets/images/Fayrlund_Forest.webp'
 import GlobeTheater from '@/assets/images/Globe_Theater.webp'
 import HangingGardens from '@/assets/images/Hanging_Gardens.webp'
@@ -220,11 +226,11 @@ export const HEROES: Hero[] = [
   { id: 'john-henry', name: 'John Henry', hp: 17, move: 2, attack: 'MELEE', set: 'Stars and Stripes', imageUrl: JohnHenryImg, abilityTitle: "STEEL-DRIVING MAN", abilityDescription: "You have 10 track tokens. At the start of your turn, summon a track token in a space in John Henry's zone. When you move John Henry, do not count spaces with track tokens." },
   { id: 'wyatt-earp', name: 'Wyatt Earp', hp: 15, move: 2, attack: 'RANGED', set: 'Stars and Stripes', sidekicks: [{ name: 'Doc Holliday', count: 1, hp: 8, attack: 'RANGED' }], imageUrl: WyattEarpImg, abilityTitle: "SHOWDOWN", abilityDescription: "After you attack and win combat, choose one effect. You cannot choose the same effect twice in a turn. • draw 1 card • gain 1 free action to attack • move your fighter up to 1 space" },
   { id: 'george-washington', name: 'George Washington', hp: 14, move: 2, attack: 'MELEE', set: 'Stars and Stripes', imageUrl: GeorgeWashingtonImg, abilityTitle: "ESPIONAGE", abilityDescription: "You start with 4 ruse tokens. When you attack, you may use a ruse token, placing it next to the card. Before your opponent chooses whether or not to defend, they may discard 1 random card to remove the ruse token." },
-  // Metadata verified against hero cards and unmatched.games/fighters; artwork and unverified token effects omitted.
-  { id: 'hellboy', name: 'Hellboy', hp: 18, move: 2, attack: 'MELEE', set: 'Hellboy', sidekicks: [{ name: 'Lobster Johnson', count: 1, hp: 6, attack: 'RANGED' }] },
-  { id: 'abe-sapien', name: 'Abe Sapien', hp: 13, move: 2, attack: 'RANGED', set: 'Hellboy', sidekicks: [{ name: 'B.P.R.D. Agents', count: 3, hp: 1, attack: 'RANGED' }] },
-  { id: 'liz-sherman', name: 'Liz Sherman', hp: 16, move: 3, attack: 'RANGED', set: 'Hellboy', sidekicks: [] },
-  { id: 'baba-yaga', name: 'Baba Yaga', hp: 13, move: 2, attack: 'RANGED', set: 'Hellboy', sidekicks: [{ name: 'Koschei', count: 1, hp: 3, attack: 'MELEE' }] },
+  // Metadata verified against hero cards and unmatched.games/fighters; unverified token effects omitted.
+  { id: 'hellboy', name: 'Hellboy', hp: 18, move: 2, attack: 'MELEE', set: 'Hellboy', sidekicks: [{ name: 'Lobster Johnson', count: 1, hp: 6, attack: 'RANGED' }], imageUrl: HellboyImg },
+  { id: 'abe-sapien', name: 'Abe Sapien', hp: 13, move: 2, attack: 'RANGED', set: 'Hellboy', sidekicks: [{ name: 'B.P.R.D. Agents', count: 3, hp: 1, attack: 'RANGED' }], imageUrl: AbeSapienImg },
+  { id: 'liz-sherman', name: 'Liz Sherman', hp: 16, move: 3, attack: 'RANGED', set: 'Hellboy', sidekicks: [], imageUrl: LizShermanImg },
+  { id: 'baba-yaga', name: 'Baba Yaga', hp: 13, move: 2, attack: 'RANGED', set: 'Hellboy', sidekicks: [{ name: 'Koschei', count: 1, hp: 3, attack: 'MELEE' }], imageUrl: BabaYagaImg },
 ]
 
 export const MAPS: Map[] = [
@@ -265,9 +271,9 @@ export const MAPS: Map[] = [
   { id: 'new-york-city', name: 'New York City', set: 'Unmatched Adventures: Teenage Mutant Ninja Turtles', minPlayers: 2, maxPlayers: 4 },
   { id: 'the-white-house', name: 'The White House', set: 'Stars and Stripes', minPlayers: 2, maxPlayers: 4 },
   { id: 'the-alamo', name: 'The Alamo', set: 'Stars and Stripes', minPlayers: 2, maxPlayers: 4 },
-  // restorationgames.com/shop/unmatched-hellboy/; player counts: unmatched.games/maps.
-  { id: 'bprd-hq', name: 'B.P.R.D. HQ', set: 'Hellboy', minPlayers: 2, maxPlayers: 4 },
-  { id: 'pandemonium', name: 'Pandemonium', set: 'Hellboy', minPlayers: 2, maxPlayers: 4 },
+  // Board-image counts and artwork provenance: docs/catalog-sources.md.
+  { id: 'bprd-hq', name: 'B.P.R.D. HQ', set: 'Hellboy', minPlayers: 2, maxPlayers: 4, zones: 9, spaces: 32, imageUrl: BPRDHQ },
+  { id: 'pandemonium', name: 'Pandemonium', set: 'Hellboy', minPlayers: 2, maxPlayers: 4, zones: 8, spaces: 32, imageUrl: Pandemonium },
 ]
 
 export function getHeroById(id: string): Hero | undefined {
