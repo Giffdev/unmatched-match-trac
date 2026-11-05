@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Badge } from '@/components/ui/badge'
@@ -24,17 +24,22 @@ export function ImportMatchesDialog({ open, onOpenChange, groupId, onImportCompl
   const [personalMatches, setPersonalMatches] = useState<Match[]>([])
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
   const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState(false)
+  const [loadAttempt, setLoadAttempt] = useState(0)
   const [importing, setImporting] = useState(false)
 
   useEffect(() => {
     if (!open || !user?.uid) return
+    let active = true
     setLoading(true)
+    setLoadError(false)
     setSelectedIds(new Set())
 
     Promise.all([
       getUserMatches(user.uid),
       getGroupMatches(groupId).then(r => r.matches),
     ]).then(([personal, groupMatches]) => {
+      if (!active) return
       // Build set of sourceMatchIds already in group for reliable deduplication
       const importedSourceIds = new Set(
         groupMatches
@@ -51,10 +56,14 @@ export function ImportMatchesDialog({ open, onOpenChange, groupId, onImportCompl
       setPersonalMatches(filtered)
       setLoading(false)
     }).catch(() => {
+      if (!active) return
       toast.error('Failed to load matches')
+      setLoadError(true)
       setLoading(false)
     })
-  }, [open, user?.uid, groupId])
+
+    return () => { active = false }
+  }, [open, user?.uid, groupId, loadAttempt])
 
   const allSelected = personalMatches.length > 0 && selectedIds.size === personalMatches.length
 
@@ -112,13 +121,26 @@ export function ImportMatchesDialog({ open, onOpenChange, groupId, onImportCompl
       <DialogContent className="max-w-lg max-h-[80vh] flex flex-col">
         <DialogHeader>
           <DialogTitle>Import Matches to Group</DialogTitle>
+          <DialogDescription>
+            Choose personal matches to copy to this group’s shared log. Your personal matches are kept.
+          </DialogDescription>
         </DialogHeader>
 
         {loading ? (
           <p className="text-sm text-muted-foreground text-center py-8">Loading your matches...</p>
+        ) : loadError ? (
+          <div className="text-center py-8 space-y-3">
+            <p role="alert" className="text-sm text-destructive">
+              Could not load matches to import. Please try again.
+            </p>
+            <Button variant="outline" className="min-h-11" onClick={() => setLoadAttempt(attempt => attempt + 1)}>
+              Try Again
+            </Button>
+          </div>
         ) : personalMatches.length === 0 ? (
           <p className="text-sm text-muted-foreground text-center py-8">
-            No importable matches found. All your matches are already in this group.
+            No personal matches are available to import. Log a match on the Matches tab,
+            or check whether your matches are already in this group.
           </p>
         ) : (
           <>
@@ -143,8 +165,10 @@ export function ImportMatchesDialog({ open, onOpenChange, groupId, onImportCompl
                     onClick={() => toggleMatch(match.id)}
                   >
                     <Checkbox
+                      aria-label={`Select match: ${heroes.join(' vs ')} on ${date}`}
                       checked={selectedIds.has(match.id)}
                       onCheckedChange={() => toggleMatch(match.id)}
+                      onClick={(event) => event.stopPropagation()}
                       className="mt-0.5"
                     />
                     <div className="flex-1 min-w-0">

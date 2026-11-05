@@ -9,6 +9,7 @@ import { MemberList } from './MemberList'
 import { InviteMemberDialog } from './InviteMemberDialog'
 import { GroupSettingsDialog } from './GroupSettingsDialog'
 import { ImportMatchesDialog } from './ImportMatchesDialog'
+import { GroupsHelp } from './GroupsHelp'
 
 type GroupViewProps = {
   groupId: string
@@ -68,6 +69,8 @@ export function GroupView({ groupId, onBack }: GroupViewProps) {
           </Button>
         )}
       </div>
+
+      <GroupsHelp />
 
       {group.description && (
         <p className="text-sm text-muted-foreground px-1">{group.description}</p>

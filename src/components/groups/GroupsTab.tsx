@@ -8,6 +8,7 @@ import { useAuth } from '@/hooks/use-auth'
 import { GroupView } from './GroupView'
 import { CreateGroupDialog } from './CreateGroupDialog'
 import { PendingInvites } from './PendingInvites'
+import { GroupsHelp } from './GroupsHelp'
 import type { UserGroupMembership } from '@/lib/group-types'
 
 export function GroupsTab() {
@@ -39,6 +40,8 @@ export function GroupsTab() {
           Create Group
         </Button>
       </div>
+
+      <GroupsHelp />
 
       {inviteCount > 0 && (
         <PendingInvites

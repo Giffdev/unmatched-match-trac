@@ -9,13 +9,14 @@
  */
 import { describe, it, expect, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { MatchesTab } from '../MatchesTab'
 import { AuthContext } from '@/hooks/use-auth'
 import type { Match } from '@/lib/types'
 
 // Mock child components that are heavy or have side effects
 vi.mock('../LogMatchDialog', () => ({
-  LogMatchDialog: () => null,
+  LogMatchDialog: ({ open }: { open: boolean }) => open ? <div role="dialog" aria-label="Log Match" /> : null,
 }))
 vi.mock('../EditMatchDialog', () => ({
   EditMatchDialog: () => null,
@@ -90,6 +91,23 @@ describe('MatchesTab', () => {
       })
       // The selector renders "My Matches" as the personal option
       expect(screen.getByText('My Matches')).toBeInTheDocument()
+    })
+
+    it('opens ongoing groups help next to the context selector without changing context', async () => {
+      const user = userEvent.setup()
+      const onDataContextChange = vi.fn()
+      renderMatchesTab({
+        groups: [{ id: 'group-1', name: 'Home Group' }],
+        dataContext: 'personal',
+        onDataContextChange,
+      })
+
+      expect(screen.getByRole('combobox', { name: 'Match data source' })).toBeInTheDocument()
+      await user.click(screen.getByRole('button', { name: 'How groups work' }))
+      expect(screen.getByRole('dialog', { name: 'How groups work' })).toBeInTheDocument()
+      await user.click(screen.getByRole('button', { name: 'Got it' }))
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+      expect(onDataContextChange).not.toHaveBeenCalled()
     })
   })
 
@@ -190,6 +208,20 @@ describe('MatchesTab', () => {
   })
 
   describe('edge cases', () => {
+    it('opens the logger from the group empty state instead of sending users to Groups to log', async () => {
+      const user = userEvent.setup()
+      renderMatchesTab({
+        dataContext: 'group-empty',
+        groups: [{ id: 'group-empty', name: 'Empty Group' }],
+        onDataContextChange: vi.fn(),
+        dataSource: { label: 'Empty Group', matches: [] },
+      })
+
+      expect(screen.getByText(/Use Log Match above/)).toBeInTheDocument()
+      await user.click(screen.getByRole('button', { name: /log match/i }))
+      expect(screen.getByRole('dialog', { name: 'Log Match' })).toBeInTheDocument()
+    })
+
     it('shows empty state when group has no matches', () => {
       renderMatchesTab({
         dataContext: 'group-empty',
@@ -202,6 +234,10 @@ describe('MatchesTab', () => {
       expect(
         screen.getByText(/0 matches/i) || screen.getByText(/no matches/i)
       ).toBeInTheDocument()
+      expect(screen.getByText(/Use Log Match above/)).toHaveTextContent(
+        /Also log to group\(s\).*Groups tab to Import Matches/
+      )
+      expect(screen.getByRole('button', { name: /log match/i })).toBeInTheDocument()
     })
 
     it('shows the "Log Match" button in personal context', () => {

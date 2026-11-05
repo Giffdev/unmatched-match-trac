@@ -77,7 +77,7 @@ export function MatchesTab({ matches, setMatches, onHeroClick, dataSource, group
               <h3 className="text-lg font-semibold mb-2">No matches yet</h3>
               <p className="text-muted-foreground mb-4">
                 {isGroupContext
-                  ? 'No matches in this group yet. Log matches from the Groups tab.'
+                  ? 'No matches in this group yet. Use Log Match above and select “Also log to group(s)”, or open this group on the Groups tab to Import Matches.'
                   : 'Start tracking your Unmatched games to see statistics and insights'}
               </p>
               {!isGroupContext && (
