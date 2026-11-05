@@ -123,6 +123,7 @@ export const UNMATCHED_SETS: SetInfo[] = [
   { name: 'Jurassic Park – InGen vs. Raptors', franchise: 'Jurassic Park' },
   { name: 'Jurassic Park – Sattler vs. T‑Rex', franchise: 'Jurassic Park' },
   { name: 'Buffy the Vampire Slayer', franchise: 'Buffy' },
+  { name: 'Hellboy', franchise: 'Hellboy' },
   { name: 'Deadpool', franchise: 'Marvel' },
   { name: 'Redemption Row', franchise: 'Marvel' },
   { name: 'Hell\'s Kitchen', franchise: 'Marvel' },
@@ -219,6 +220,11 @@ export const HEROES: Hero[] = [
   { id: 'john-henry', name: 'John Henry', hp: 17, move: 2, attack: 'MELEE', set: 'Stars and Stripes', imageUrl: JohnHenryImg, abilityTitle: "STEEL-DRIVING MAN", abilityDescription: "You have 10 track tokens. At the start of your turn, summon a track token in a space in John Henry's zone. When you move John Henry, do not count spaces with track tokens." },
   { id: 'wyatt-earp', name: 'Wyatt Earp', hp: 15, move: 2, attack: 'RANGED', set: 'Stars and Stripes', sidekicks: [{ name: 'Doc Holliday', count: 1, hp: 8, attack: 'RANGED' }], imageUrl: WyattEarpImg, abilityTitle: "SHOWDOWN", abilityDescription: "After you attack and win combat, choose one effect. You cannot choose the same effect twice in a turn. • draw 1 card • gain 1 free action to attack • move your fighter up to 1 space" },
   { id: 'george-washington', name: 'George Washington', hp: 14, move: 2, attack: 'MELEE', set: 'Stars and Stripes', imageUrl: GeorgeWashingtonImg, abilityTitle: "ESPIONAGE", abilityDescription: "You start with 4 ruse tokens. When you attack, you may use a ruse token, placing it next to the card. Before your opponent chooses whether or not to defend, they may discard 1 random card to remove the ruse token." },
+  // Metadata verified against hero cards and unmatched.games/fighters; artwork and unverified token effects omitted.
+  { id: 'hellboy', name: 'Hellboy', hp: 18, move: 2, attack: 'MELEE', set: 'Hellboy', sidekicks: [{ name: 'Lobster Johnson', count: 1, hp: 6, attack: 'RANGED' }] },
+  { id: 'abe-sapien', name: 'Abe Sapien', hp: 13, move: 2, attack: 'RANGED', set: 'Hellboy', sidekicks: [{ name: 'B.P.R.D. Agents', count: 3, hp: 1, attack: 'RANGED' }] },
+  { id: 'liz-sherman', name: 'Liz Sherman', hp: 16, move: 3, attack: 'RANGED', set: 'Hellboy', sidekicks: [] },
+  { id: 'baba-yaga', name: 'Baba Yaga', hp: 13, move: 2, attack: 'RANGED', set: 'Hellboy', sidekicks: [{ name: 'Koschei', count: 1, hp: 3, attack: 'MELEE' }] },
 ]
 
 export const MAPS: Map[] = [
@@ -244,7 +250,7 @@ export const MAPS: Map[] = [
   { id: 'sherwood-forest', name: 'Sherwood Forest', set: 'Robin Hood vs Bigfoot', minPlayers: 2, maxPlayers: 2, zones: 7, spaces: 30, imageUrl: SherwoodForest },
   { id: 'yukon', name: 'Yukon', set: 'Robin Hood vs Bigfoot', minPlayers: 2, maxPlayers: 2, zones: 7, spaces: 31, imageUrl: Yukon },
   // Separate accessory variant; keep the original ID and ownership link for saved matches.
-  // Sources and intentionally omitted Hellboy records: docs/catalog-sources.md.
+  // Accessory source: docs/catalog-sources.md.
   { id: 'yukon-1900', name: 'Yukon 1900', set: 'Neoprene Battlefields: Sherwood Forest / Yukon 1900', minPlayers: 2, maxPlayers: 2, zones: 7, spaces: 31, imageUrl: Yukon1900 },
   { id: 'globe-theatre', name: 'Globe Theatre', set: 'Slings & Arrows', minPlayers: 2, maxPlayers: 4, zones: 10, spaces: 32, imageUrl: GlobeTheater },
   { id: 'azuchi-castle', name: 'Azuchi Castle', set: 'Sun\'s Origin', minPlayers: 2, maxPlayers: 2, zones: 8, spaces: 31, imageUrl: AzuchiCastle },
@@ -259,6 +265,9 @@ export const MAPS: Map[] = [
   { id: 'new-york-city', name: 'New York City', set: 'Unmatched Adventures: Teenage Mutant Ninja Turtles', minPlayers: 2, maxPlayers: 4 },
   { id: 'the-white-house', name: 'The White House', set: 'Stars and Stripes', minPlayers: 2, maxPlayers: 4 },
   { id: 'the-alamo', name: 'The Alamo', set: 'Stars and Stripes', minPlayers: 2, maxPlayers: 4 },
+  // restorationgames.com/shop/unmatched-hellboy/; player counts: unmatched.games/maps.
+  { id: 'bprd-hq', name: 'B.P.R.D. HQ', set: 'Hellboy', minPlayers: 2, maxPlayers: 4 },
+  { id: 'pandemonium', name: 'Pandemonium', set: 'Hellboy', minPlayers: 2, maxPlayers: 4 },
 ]
 
 export function getHeroById(id: string): Hero | undefined {

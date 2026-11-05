@@ -26,3 +26,25 @@ describe('map-only collection accessories', () => {
     expect(setOwnedSets.mock.calls[1][0](updated)).toEqual(owned)
   })
 })
+
+describe('Hellboy collection integration', () => {
+  it('filters to the new franchise and toggles the complete set without losing existing ownership', async () => {
+    const setOwnedSets = vi.fn()
+    const owned = ['Cobble & Fog']
+    render(<CollectionTab ownedSets={owned} setOwnedSets={setOwnedSets} />)
+
+    await userEvent.click(screen.getByRole('button', { name: 'Hellboy' }))
+    const card = screen.getByText('4 heroes').closest('[data-slot="card"]') as HTMLElement
+    for (const name of ['Hellboy', 'Abe Sapien', 'Liz Sherman', 'Baba Yaga']) {
+      expect(within(card).getAllByText(name).length).toBeGreaterThan(0)
+    }
+    expect(screen.queryByText('Sherlock Holmes')).not.toBeInTheDocument()
+
+    await userEvent.click(within(card).getByRole('checkbox'))
+    const updated = setOwnedSets.mock.calls[0][0](owned)
+    expect(updated).toEqual(['Cobble & Fog', 'Hellboy'])
+    await userEvent.click(within(card).getByRole('checkbox'))
+    expect(setOwnedSets.mock.calls[1][0](updated)).toEqual(owned)
+    expect(owned).toEqual(['Cobble & Fog'])
+  })
+})

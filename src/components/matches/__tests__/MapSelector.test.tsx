@@ -21,3 +21,18 @@ describe('Yukon variants in match selection', () => {
     expect(onChange).toHaveBeenCalledExactlyOnceWith('yukon-1900')
   })
 })
+
+describe('Hellboy maps in match selection', () => {
+  it.each([
+    ['bprd-hq', 'B.P.R.D. HQ'],
+    ['pandemonium', 'Pandemonium'],
+  ])('finds %s by set name and selects its stable ID for four players', async (id, name) => {
+    const onChange = vi.fn()
+    render(<MapSelector value="" onChange={onChange} availableMaps={getMapsByPlayerCount(4)} />)
+    await userEvent.click(screen.getByRole('combobox'))
+    await userEvent.type(screen.getByPlaceholderText('Search maps...'), 'Hellboy')
+    expect(screen.getAllByRole('option')).toHaveLength(2)
+    await userEvent.click(screen.getByRole('option', { name: new RegExp(name.replace(/\./g, '\\.')) }))
+    expect(onChange).toHaveBeenCalledExactlyOnceWith(id)
+  })
+})

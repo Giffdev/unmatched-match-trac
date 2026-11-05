@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import {
   HEROES, MAPS, UNMATCHED_SETS, getCooperativeMaps, getHeroById,
   getHeroesBySet, getMapById, getMapsByPlayerCount, getMapsBySet,
-  getSetsByFranchise,
+  getSelectableHeroes, getSetsByFranchise,
 } from '../data'
 import { calculateMapPopularity } from '../stats'
 import type { Match } from '../types'
@@ -79,11 +79,50 @@ describe('Yukon 1900 catalog addition', () => {
   })
 })
 
-describe('Hellboy evidence gate', () => {
-  it('does not expose unverified heroes or an empty owned set', () => {
-    for (const id of ['hellboy', 'abe-sapien', 'liz-sherman', 'baba-yaga']) {
-      expect(getHeroById(id)).toBeUndefined()
+describe('Hellboy catalog addition', () => {
+  const heroIds = ['hellboy', 'abe-sapien', 'liz-sherman', 'baba-yaga']
+  const mapIds = ['bprd-hq', 'pandemonium']
+
+  it.each([
+    { id: 'hellboy', name: 'Hellboy', hp: 18, move: 2, attack: 'MELEE', sidekicks: [{ name: 'Lobster Johnson', count: 1, hp: 6, attack: 'RANGED' }] },
+    { id: 'abe-sapien', name: 'Abe Sapien', hp: 13, move: 2, attack: 'RANGED', sidekicks: [{ name: 'B.P.R.D. Agents', count: 3, hp: 1, attack: 'RANGED' }] },
+    { id: 'liz-sherman', name: 'Liz Sherman', hp: 16, move: 3, attack: 'RANGED', sidekicks: [] },
+    { id: 'baba-yaga', name: 'Baba Yaga', hp: 13, move: 2, attack: 'RANGED', sidekicks: [{ name: 'Koschei', count: 1, hp: 3, attack: 'MELEE' }] },
+  ])('resolves verified hero and sidekick metadata for $name', (hero) => {
+    expect(getHeroById(hero.id)).toEqual({ ...hero, set: 'Hellboy' })
+  })
+
+  it('links the complete roster and maps to one discoverable franchise set', () => {
+    expect(getSetsByFranchise('Hellboy')).toEqual([{ name: 'Hellboy', franchise: 'Hellboy' }])
+    expect(getHeroesBySet('Hellboy').map(hero => hero.id)).toEqual(heroIds)
+    expect(getMapsBySet('Hellboy').map(map => map.id)).toEqual(mapIds)
+    expect(UNMATCHED_SETS.filter(set => set.name === 'Hellboy')).toHaveLength(1)
+  })
+
+  it('includes the fighters in unrestricted and owned-set pools without changing prior ownership', () => {
+    expect(getSelectableHeroes().map(hero => hero.id)).toEqual(expect.arrayContaining(heroIds))
+    const owned = ['Robin Hood vs Bigfoot']
+    const heroPool = (sets: string[]) => sets.flatMap(getHeroesBySet).map(hero => hero.id)
+    const mapPool = (sets: string[]) => getMapsByPlayerCount(2)
+      .filter(map => sets.includes(map.set)).map(map => map.id)
+    expect(heroPool(owned).filter(id => heroIds.includes(id))).toEqual([])
+    expect(mapPool(owned)).toEqual(['sherwood-forest', 'yukon'])
+    expect(heroPool([...owned, 'Hellboy'])).toEqual([...heroPool(owned), ...heroIds])
+    expect(mapPool([...owned, 'Hellboy'])).toEqual([...mapPool(owned), ...mapIds])
+    expect(owned).toEqual(['Robin Hood vs Bigfoot'])
+  })
+
+  it.each([
+    ['bprd-hq', 'B.P.R.D. HQ'],
+    ['pandemonium', 'Pandemonium'],
+  ])('makes %s eligible for 2–4 players without speculative board metadata', (id, name) => {
+    expect(getMapById(id)).toEqual({ id, name, set: 'Hellboy', minPlayers: 2, maxPlayers: 4 })
+    for (const count of [2, 3, 4]) {
+      expect(getMapsByPlayerCount(count).map(map => map.id)).toContain(id)
     }
-    expect(UNMATCHED_SETS.some(set => /hellboy/i.test(set.name))).toBe(false)
+    for (const count of [1, 5]) {
+      expect(getMapsByPlayerCount(count).map(map => map.id)).not.toContain(id)
+    }
+    expect(getCooperativeMaps().map(map => map.id)).not.toContain(id)
   })
 })
