@@ -9,6 +9,7 @@ import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, Command
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
+import { Checkbox } from '@/components/ui/checkbox'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { CaretUpDown, Check } from '@phosphor-icons/react'
 import { cn } from '@/lib/utils'
@@ -27,6 +28,68 @@ type MapStats = {
   globalTotalMatches: number
   heroPerformance: HeroMapPerformance[]
   recentMatches: Match[]
+}
+
+function matchesPlayerCount(
+  map: { minPlayers: number; maxPlayers: number },
+  playerCount: string,
+  onlyPlayerCount: boolean,
+) {
+  if (playerCount === 'all') return true
+  const count = Number(playerCount)
+  return onlyPlayerCount
+    ? map.minPlayers === count && map.maxPlayers === count
+    : map.minPlayers <= count && count <= map.maxPlayers
+}
+
+function matchesSearch(map: { name: string; set: string }, search: string) {
+  const query = search.toLowerCase()
+  return map.name.toLowerCase().includes(query) || map.set.toLowerCase().includes(query)
+}
+
+function MapRankingRow({ mapId, count, map, rank, onSelect }: {
+  mapId: string
+  count: number
+  map: ReturnType<typeof getMapById>
+  rank: number
+  onSelect: (mapId: string) => void
+}) {
+  const content = (
+    <>
+      <span className="text-xs font-bold text-muted-foreground w-5 text-right">{rank}.</span>
+      {map?.imageUrl ? (
+        <img src={map.imageUrl} alt="" className="w-8 h-8 rounded object-cover flex-shrink-0 border border-border" />
+      ) : (
+        <span className="w-8 h-8 rounded flex-shrink-0 bg-muted flex items-center justify-center border border-dashed border-border">
+          <MapTrifold className="w-4 h-4 text-muted-foreground opacity-50" />
+        </span>
+      )}
+      <span className="flex-1 min-w-0">
+        <span className="block text-sm font-medium truncate">{map?.name ?? mapId}</span>
+        <span className="block text-xs text-muted-foreground">{map?.set ?? ''}</span>
+      </span>
+      <Badge variant="secondary" className="text-xs flex-shrink-0">
+        {count} {count === 1 ? 'match' : 'matches'}
+      </Badge>
+    </>
+  )
+
+  return (
+    <li>
+      {map ? (
+        <button
+          type="button"
+          onClick={() => onSelect(mapId)}
+          aria-label={`Select ${map.name}`}
+          className="flex min-h-11 w-full items-center gap-3 rounded text-left cursor-pointer hover:bg-muted/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        >
+          {content}
+        </button>
+      ) : (
+        <div className="flex min-h-11 items-center gap-3">{content}</div>
+      )}
+    </li>
+  )
 }
 
 function calculateHeroPerformanceOnMap(
@@ -98,6 +161,7 @@ export function MapsTab({ matches }: MapsTabProps) {
   const [open, setOpen] = useState(false)
   const [search, setSearch] = useState('')
   const [playerCount, setPlayerCount] = useState('all')
+  const [onlyPlayerCount, setOnlyPlayerCount] = useState(false)
   const [allMatches, setAllMatches] = useState<Match[]>([])
   const [isLoadingGlobal, setIsLoadingGlobal] = useState(true)
   const { user } = useAuth()
@@ -132,12 +196,11 @@ export function MapsTab({ matches }: MapsTabProps) {
   }, [])
 
   const filteredMaps = useMemo(() => {
-    const searchLower = search.toLowerCase()
     return sortedMaps.filter(m =>
-      (playerCount === 'all' || (m.minPlayers <= Number(playerCount) && Number(playerCount) <= m.maxPlayers)) &&
-      (!search || m.name.toLowerCase().includes(searchLower) || m.set.toLowerCase().includes(searchLower))
+      matchesPlayerCount(m, playerCount, onlyPlayerCount) &&
+      matchesSearch(m, search)
     )
-  }, [search, sortedMaps, playerCount])
+  }, [search, sortedMaps, playerCount, onlyPlayerCount])
 
   // Precompute match counts per map for badges
   const matchCountByMap = useMemo(() => {
@@ -173,14 +236,36 @@ export function MapsTab({ matches }: MapsTabProps) {
   )
 
   const selectedMapData = getMapById(selectedMap)
+  const handleSearchChange = (value: string) => {
+    setSearch(value)
+    if (selectedMapData && !matchesSearch(selectedMapData, value)) {
+      setSelectedMap('')
+    }
+  }
+
+  const selectRankedMap = (mapId: string) => {
+    const map = getMapById(mapId)
+    if (!map) return
+    if (!matchesSearch(map, search)) setSearch('')
+    if (!matchesPlayerCount(map, playerCount, onlyPlayerCount)) {
+      setOnlyPlayerCount(false)
+      if (!matchesPlayerCount(map, playerCount, false)) setPlayerCount('all')
+    }
+    setSelectedMap(mapId)
+    setOpen(false)
+  }
+
+  const emptyMapMessage = onlyPlayerCount && playerCount !== 'all' && !search
+    ? `No maps support only ${playerCount} players. Try another count or turn off the checkbox.`
+    : 'No map found.'
 
   const playerCountFilter = (
-    <div className="max-w-md w-full space-y-2 mb-3">
+    <div className="max-w-md w-full space-y-2 mt-3">
       <Label htmlFor="map-player-count">Supported player count</Label>
       <Select value={playerCount} onValueChange={value => {
         setPlayerCount(value)
-        if (value !== 'all' && selectedMapData &&
-            (Number(value) < selectedMapData.minPlayers || Number(value) > selectedMapData.maxPlayers)) {
+        if (value === 'all') setOnlyPlayerCount(false)
+        if (selectedMapData && !matchesPlayerCount(selectedMapData, value, onlyPlayerCount)) {
           setSelectedMap('')
         }
       }}>
@@ -196,6 +281,27 @@ export function MapsTab({ matches }: MapsTabProps) {
           ))}
         </SelectContent>
       </Select>
+      <Label
+        htmlFor="map-only-player-count"
+        className={cn(
+          'min-h-11 w-full cursor-pointer font-normal',
+          playerCount === 'all' && 'cursor-not-allowed opacity-50'
+        )}
+      >
+        <Checkbox
+          id="map-only-player-count"
+          checked={onlyPlayerCount}
+          disabled={playerCount === 'all'}
+          onCheckedChange={checked => {
+            const only = checked === true
+            setOnlyPlayerCount(only)
+            if (selectedMapData && !matchesPlayerCount(selectedMapData, playerCount, only)) {
+              setSelectedMap('')
+            }
+          }}
+        />
+        Only this player count
+      </Label>
     </div>
   )
 
@@ -204,7 +310,6 @@ export function MapsTab({ matches }: MapsTabProps) {
       <div className="space-y-6">
         <div>
           <h2 className="text-2xl font-semibold mb-4">Map Explorer</h2>
-          {playerCountFilter}
           <Popover open={open} onOpenChange={setOpen}>
             <PopoverTrigger asChild>
               <Button
@@ -223,10 +328,10 @@ export function MapsTab({ matches }: MapsTabProps) {
                 <CommandInput
                   placeholder="Search maps..."
                   value={search}
-                  onValueChange={setSearch}
+                  onValueChange={handleSearchChange}
                 />
                 <CommandList>
-                  <CommandEmpty>No map found.</CommandEmpty>
+                  <CommandEmpty>{emptyMapMessage}</CommandEmpty>
                   <CommandGroup>
                     {filteredMaps.map(m => (
                       <CommandItem
@@ -262,6 +367,7 @@ export function MapsTab({ matches }: MapsTabProps) {
               </Command>
             </PopoverContent>
           </Popover>
+          {playerCountFilter}
         </div>
         {/* Most Popular Maps */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -279,23 +385,7 @@ export function MapsTab({ matches }: MapsTabProps) {
             ) : (
               <ol className="space-y-2">
                 {userMapRankings.map(({ mapId, count, map }, i) => (
-                  <li key={mapId} className="flex items-center gap-3">
-                    <span className="text-xs font-bold text-muted-foreground w-5 text-right">{i + 1}.</span>
-                    {map?.imageUrl ? (
-                      <img src={map.imageUrl} alt={map.name} className="w-8 h-8 rounded object-cover flex-shrink-0 border border-border" />
-                    ) : (
-                      <div className="w-8 h-8 rounded flex-shrink-0 bg-muted flex items-center justify-center border border-dashed border-border">
-                        <MapTrifold className="w-4 h-4 text-muted-foreground opacity-50" />
-                      </div>
-                    )}
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium truncate">{map?.name ?? mapId}</p>
-                      <p className="text-xs text-muted-foreground">{map?.set ?? ''}</p>
-                    </div>
-                    <Badge variant="secondary" className="text-xs flex-shrink-0">
-                      {count} {count === 1 ? 'match' : 'matches'}
-                    </Badge>
-                  </li>
+                  <MapRankingRow key={mapId} mapId={mapId} count={count} map={map} rank={i + 1} onSelect={selectRankedMap} />
                 ))}
               </ol>
             )}
@@ -329,23 +419,7 @@ export function MapsTab({ matches }: MapsTabProps) {
             ) : (
               <ol className="space-y-2">
                 {globalMapRankings.map(({ mapId, count, map }, i) => (
-                  <li key={mapId} className="flex items-center gap-3">
-                    <span className="text-xs font-bold text-muted-foreground w-5 text-right">{i + 1}.</span>
-                    {map?.imageUrl ? (
-                      <img src={map.imageUrl} alt={map.name} className="w-8 h-8 rounded object-cover flex-shrink-0 border border-border" />
-                    ) : (
-                      <div className="w-8 h-8 rounded flex-shrink-0 bg-muted flex items-center justify-center border border-dashed border-border">
-                        <MapTrifold className="w-4 h-4 text-muted-foreground opacity-50" />
-                      </div>
-                    )}
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium truncate">{map?.name ?? mapId}</p>
-                      <p className="text-xs text-muted-foreground">{map?.set ?? ''}</p>
-                    </div>
-                    <Badge variant="secondary" className="text-xs flex-shrink-0">
-                      {count} {count === 1 ? 'match' : 'matches'}
-                    </Badge>
-                  </li>
+                  <MapRankingRow key={mapId} mapId={mapId} count={count} map={map} rank={i + 1} onSelect={selectRankedMap} />
                 ))}
               </ol>
             )}
@@ -373,7 +447,6 @@ export function MapsTab({ matches }: MapsTabProps) {
     <div className="space-y-6">
       <div>
         <h2 className="text-2xl font-semibold mb-4">Map Explorer</h2>
-        {playerCountFilter}
         <Popover open={open} onOpenChange={setOpen}>
           <PopoverTrigger asChild>
             <Button
@@ -399,10 +472,10 @@ export function MapsTab({ matches }: MapsTabProps) {
               <CommandInput
                 placeholder="Search maps..."
                 value={search}
-                onValueChange={setSearch}
+                onValueChange={handleSearchChange}
               />
               <CommandList>
-                <CommandEmpty>No map found.</CommandEmpty>
+                <CommandEmpty>{emptyMapMessage}</CommandEmpty>
                 <CommandGroup>
                   {filteredMaps.map(m => (
                     <CommandItem
@@ -438,6 +511,7 @@ export function MapsTab({ matches }: MapsTabProps) {
             </Command>
           </PopoverContent>
         </Popover>
+        {playerCountFilter}
       </div>
 
       {mapData && stats && (
