@@ -8,6 +8,8 @@ import { MapTrifold, UsersThree, SquaresFour, Trophy, Sword, Globe, User as User
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Button } from '@/components/ui/button'
+import { Label } from '@/components/ui/label'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { CaretUpDown, Check } from '@phosphor-icons/react'
 import { cn } from '@/lib/utils'
 import { normalizeHeroId } from '@/lib/utils'
@@ -95,6 +97,7 @@ export function MapsTab({ matches }: MapsTabProps) {
   const [selectedMap, setSelectedMap] = useState('')
   const [open, setOpen] = useState(false)
   const [search, setSearch] = useState('')
+  const [playerCount, setPlayerCount] = useState('all')
   const [allMatches, setAllMatches] = useState<Match[]>([])
   const [isLoadingGlobal, setIsLoadingGlobal] = useState(true)
   const { user } = useAuth()
@@ -118,16 +121,23 @@ export function MapsTab({ matches }: MapsTabProps) {
     return [...MAPS].sort((a, b) => a.name.localeCompare(b.name))
   }, [])
 
+  const supportedPlayerCounts = useMemo(() => {
+    const counts = new Set<number>()
+    for (const map of MAPS) {
+      for (let count = map.minPlayers; count <= map.maxPlayers; count++) {
+        counts.add(count)
+      }
+    }
+    return [...counts].sort((a, b) => a - b)
+  }, [])
+
   const filteredMaps = useMemo(() => {
     const searchLower = search.toLowerCase()
-    return search
-      ? sortedMaps.filter(
-          m =>
-            m.name.toLowerCase().includes(searchLower) ||
-            m.set.toLowerCase().includes(searchLower)
-        )
-      : sortedMaps
-  }, [search, sortedMaps])
+    return sortedMaps.filter(m =>
+      (playerCount === 'all' || (m.minPlayers <= Number(playerCount) && Number(playerCount) <= m.maxPlayers)) &&
+      (!search || m.name.toLowerCase().includes(searchLower) || m.set.toLowerCase().includes(searchLower))
+    )
+  }, [search, sortedMaps, playerCount])
 
   // Precompute match counts per map for badges
   const matchCountByMap = useMemo(() => {
@@ -164,16 +174,43 @@ export function MapsTab({ matches }: MapsTabProps) {
 
   const selectedMapData = getMapById(selectedMap)
 
+  const playerCountFilter = (
+    <div className="max-w-md w-full space-y-2 mb-3">
+      <Label htmlFor="map-player-count">Supported player count</Label>
+      <Select value={playerCount} onValueChange={value => {
+        setPlayerCount(value)
+        if (value !== 'all' && selectedMapData &&
+            (Number(value) < selectedMapData.minPlayers || Number(value) > selectedMapData.maxPlayers)) {
+          setSelectedMap('')
+        }
+      }}>
+        <SelectTrigger id="map-player-count" className="w-full min-h-11">
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="all" className="min-h-11">All players</SelectItem>
+          {supportedPlayerCounts.map(count => (
+            <SelectItem key={count} value={String(count)} className="min-h-11">
+              {count} {count === 1 ? 'player' : 'players'}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    </div>
+  )
+
   if (!selectedMap) {
     return (
       <div className="space-y-6">
         <div>
           <h2 className="text-2xl font-semibold mb-4">Map Explorer</h2>
+          {playerCountFilter}
           <Popover open={open} onOpenChange={setOpen}>
             <PopoverTrigger asChild>
               <Button
                 variant="outline"
                 role="combobox"
+                aria-label="Select map"
                 aria-expanded={open}
                 className="max-w-md w-full justify-between"
               >
@@ -181,7 +218,7 @@ export function MapsTab({ matches }: MapsTabProps) {
                 <CaretUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
               </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-[400px] p-0" align="start">
+            <PopoverContent className="w-[400px] max-w-[calc(100vw-2rem)] p-0" align="start">
               <Command shouldFilter={false}>
                 <CommandInput
                   placeholder="Search maps..."
@@ -336,11 +373,13 @@ export function MapsTab({ matches }: MapsTabProps) {
     <div className="space-y-6">
       <div>
         <h2 className="text-2xl font-semibold mb-4">Map Explorer</h2>
+        {playerCountFilter}
         <Popover open={open} onOpenChange={setOpen}>
           <PopoverTrigger asChild>
             <Button
               variant="outline"
               role="combobox"
+              aria-label="Select map"
               aria-expanded={open}
               className="max-w-md w-full justify-between"
             >
@@ -355,7 +394,7 @@ export function MapsTab({ matches }: MapsTabProps) {
               <CaretUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
             </Button>
           </PopoverTrigger>
-          <PopoverContent className="w-[400px] p-0" align="start">
+          <PopoverContent className="w-[400px] max-w-[calc(100vw-2rem)] p-0" align="start">
             <Command shouldFilter={false}>
               <CommandInput
                 placeholder="Search maps..."
