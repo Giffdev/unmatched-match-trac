@@ -118,16 +118,13 @@ describe('MapsTab', () => {
     vi.mocked(getAllUserMatches).mockResolvedValue([match('global', 'duel')])
     render(<MapsTab matches={[]} />)
     await chooseCount(user, '4 players')
-    await user.click(screen.getByRole('checkbox', { name: 'Only this player count' }))
     await openMaps(user)
     await user.type(screen.getByPlaceholderText('Search maps...'), 'team')
     await user.keyboard('{Escape}')
     await user.click(await screen.findByRole('button', { name: 'Select Duel Arena' }))
     expect(screen.getByRole('combobox', { name: 'Select map' })).toHaveTextContent('Duel Arena')
     expect(screen.getByRole('combobox', { name: 'Supported player count' })).toHaveTextContent('All players')
-    const checkbox = screen.getByRole('checkbox', { name: 'Only this player count' })
-    expect(checkbox).not.toBeChecked()
-    expect(checkbox).toBeDisabled()
+    expect(screen.queryByRole('checkbox', { name: 'Only this player count' })).not.toBeInTheDocument()
     const list = await openMaps(user)
     expect(screen.getByPlaceholderText('Search maps...')).toHaveValue('')
     expect(within(list).getByRole('option', { name: /Duel Arena/ })).toBeInTheDocument()
@@ -193,10 +190,10 @@ describe('MapsTab', () => {
   it('defaults to inclusive ranges and toggles exact player count with the keyboard', async () => {
     const user = userEvent.setup()
     render(<MapsTab matches={[]} />)
+    expect(screen.queryByRole('checkbox', { name: 'Only this player count' })).not.toBeInTheDocument()
+    await chooseCount(user, '2 players')
     const checkbox = screen.getByRole('checkbox', { name: 'Only this player count' })
     expect(checkbox).not.toBeChecked()
-    expect(checkbox).toBeDisabled()
-    await chooseCount(user, '2 players')
     await user.tab()
     expect(checkbox).toHaveFocus()
     await user.keyboard(' ')
@@ -207,33 +204,49 @@ describe('MapsTab', () => {
     expect(within(list).queryByRole('option', { name: /Group Arena/ })).not.toBeInTheDocument()
   })
 
-  it.each(['3 players', '4 players'])('shows an informative empty list for exact %s, not wider ranges', async count => {
+  it.each(['3 players', '4 players'])('hides the exact-count control for %s and shows inclusive maps', async count => {
     const user = userEvent.setup()
     render(<MapsTab matches={[]} />)
     await chooseCount(user, count)
-    await user.click(screen.getByText('Only this player count'))
+    expect(screen.queryByText('Only this player count')).not.toBeInTheDocument()
+    expect(screen.queryByRole('checkbox', { name: 'Only this player count' })).not.toBeInTheDocument()
     const list = await openMaps(user)
-    expect(within(list).queryAllByRole('option')).toHaveLength(0)
-    expect(within(list).getByText(
-      `No maps support only ${count}. Try another count or turn off the checkbox.`
-    )).toBeInTheDocument()
+    expect(within(list).getAllByRole('option')).toHaveLength(3)
+    expect(within(list).getByRole('option', { name: /Group Arena/ })).toBeInTheDocument()
+    expect(within(list).queryByRole('option', { name: /Duel Arena/ })).not.toBeInTheDocument()
   })
 
-  it('clears exact mode on All players and keeps it off when choosing another count', async () => {
+  it.each([
+    ['All players', 4],
+    ['3 players', 3],
+    ['4 players', 3],
+  ])('clears exact mode on %s and keeps it off when returning to two players', async (count, mapCount) => {
     const user = userEvent.setup()
     render(<MapsTab matches={[]} />)
     await chooseCount(user, '2 players')
     await user.click(screen.getByRole('checkbox', { name: 'Only this player count' }))
-    await chooseCount(user, 'All players')
-    const checkbox = screen.getByRole('checkbox', { name: 'Only this player count' })
-    expect(checkbox).not.toBeChecked()
-    expect(checkbox).toBeDisabled()
+    await openMaps(user)
+    await user.click(screen.getByRole('option', { name: /Duel Arena/ }))
+    await chooseCount(user, count)
+    expect(screen.queryByRole('checkbox', { name: 'Only this player count' })).not.toBeInTheDocument()
+    expect(screen.getByRole('combobox', { name: 'Select map' })).toHaveTextContent(
+      count === 'All players' ? 'Duel Arena' : 'Select map...'
+    )
+    expect(screen.queryByText('Hero Performance on This Map') !== null).toBe(count === 'All players')
     let list = await openMaps(user)
-    expect(within(list).getAllByRole('option')).toHaveLength(4)
-    await user.keyboard('{Escape}')
-    await chooseCount(user, '3 players')
-    expect(checkbox).not.toBeChecked()
-    expect(checkbox).toBeEnabled()
+    expect(within(list).getAllByRole('option')).toHaveLength(mapCount)
+    expect(within(list).getByRole('option', { name: /Group Arena/ })).toBeInTheDocument()
+    if (count !== 'All players') {
+      await user.click(within(list).getByRole('option', { name: /Group Arena/ }))
+      expect(screen.getByText('Hero Performance on This Map')).toBeInTheDocument()
+    } else {
+      await user.keyboard('{Escape}')
+    }
+    await chooseCount(user, '2 players')
+    expect(screen.getByRole('checkbox', { name: 'Only this player count' })).not.toBeChecked()
+    expect(screen.getByRole('combobox', { name: 'Select map' })).toHaveTextContent(
+      count === 'All players' ? 'Duel Arena' : 'Group Arena'
+    )
     list = await openMaps(user)
     expect(within(list).getAllByRole('option')).toHaveLength(3)
   })

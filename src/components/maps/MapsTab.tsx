@@ -263,9 +263,10 @@ export function MapsTab({ matches }: MapsTabProps) {
     <div className="max-w-md w-full space-y-2 mt-3">
       <Label htmlFor="map-player-count">Supported player count</Label>
       <Select value={playerCount} onValueChange={value => {
+        const only = value === '2' && onlyPlayerCount
         setPlayerCount(value)
-        if (value === 'all') setOnlyPlayerCount(false)
-        if (selectedMapData && !matchesPlayerCount(selectedMapData, value, onlyPlayerCount)) {
+        setOnlyPlayerCount(only)
+        if (selectedMapData && !matchesPlayerCount(selectedMapData, value, only)) {
           setSelectedMap('')
         }
       }}>
@@ -281,17 +282,13 @@ export function MapsTab({ matches }: MapsTabProps) {
           ))}
         </SelectContent>
       </Select>
-      <Label
+      {playerCount === '2' && <Label
         htmlFor="map-only-player-count"
-        className={cn(
-          'min-h-11 w-full cursor-pointer font-normal',
-          playerCount === 'all' && 'cursor-not-allowed opacity-50'
-        )}
+        className="min-h-11 w-full cursor-pointer font-normal"
       >
         <Checkbox
           id="map-only-player-count"
           checked={onlyPlayerCount}
-          disabled={playerCount === 'all'}
           onCheckedChange={checked => {
             const only = checked === true
             setOnlyPlayerCount(only)
@@ -301,7 +298,7 @@ export function MapsTab({ matches }: MapsTabProps) {
           }}
         />
         Only this player count
-      </Label>
+      </Label>}
     </div>
   )
 
