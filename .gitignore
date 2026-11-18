@@ -32,11 +32,13 @@ pids
 .file-manifest
 .devcontainer/
 .vercel
+.playwright-mcp/
 # Squad: ignore runtime state (logs, inbox, sessions)
 .squad/orchestration-log/
 .squad/log/
 .squad/decisions/inbox/
 .squad/sessions/
 .squad/.scratch/
+precheck.json
 # Squad: SubSquad activation file (local to this machine)
 .squad-workstream
