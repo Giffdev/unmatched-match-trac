@@ -148,3 +148,17 @@ describe('Hellboy catalog addition', () => {
     expect(getCooperativeMaps().map(map => map.id)).not.toContain(id)
   })
 })
+
+describe('catalog set links', () => {
+  // Ownership filters and Collection boxes match set names exactly, so any
+  // spelling or encoding drift silently drops a hero or map from its box.
+  const setNames = new Set(UNMATCHED_SETS.map(set => set.name))
+
+  it('links every hero to a set in UNMATCHED_SETS', () => {
+    expect(HEROES.filter(hero => !setNames.has(hero.set)).map(hero => `${hero.id}: ${hero.set}`)).toEqual([])
+  })
+
+  it('links every map to a set in UNMATCHED_SETS', () => {
+    expect(MAPS.filter(map => !setNames.has(map.set)).map(map => `${map.id}: ${map.set}`)).toEqual([])
+  })
+})
