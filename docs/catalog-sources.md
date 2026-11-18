@@ -54,8 +54,9 @@ use its unchanged `Yukon.webp` asset.
 
 The following describes the initial omission, not the current catalog. The
 separately reviewed metadata release subsequently added all four heroes and
-both competitive maps. The artwork follow-up below leaves those verified
-hero stats, sidekicks, IDs, ownership links, and classification unchanged.
+both competitive maps. The artwork and special-ability follow-ups below leave
+those verified hero stats, sidekicks, IDs, ownership links, and classification
+unchanged.
 
 The [publisher's official product page](https://restorationgames.com/shop/unmatched-hellboy/)
 confirms the official set and these four heroes:
@@ -142,3 +143,45 @@ inferred from rooms or search summaries:
 These observations support the previously unverified catalog totals; only
 now are optional `zones` and `spaces` populated. No gameplay reference text,
 terrain rules, or speculative ability text is added.
+
+### Hellboy special abilities — verified 2026-11-18
+
+Each Hellboy-set hero's `abilityTitle` and `abilityDescription` is transcribed
+from the official printed character card, read visually at
+`https://www.unmatched.games/cards-3x/{slug}/_character.webp` for the slugs
+`hellboy`, `abe-sapien`, `liz-sherman`, and `baba-yaga`.
+
+Hellboy's card says only to place his Special Ability Token OCCULT DETECTIVE
+side up, so his description also transcribes both token sides, joined with the
+inline ` ● ` bullets used by other multi-part abilities. The sides were read
+from the token images linked by
+[The Unmatched Club's Hellboy page](https://www.the-unmatched.club/heroes/hellboy),
+using the storage prefix from the artwork table above:
+
+| Token side | Source path |
+| --- | --- |
+| OCCULT DETECTIVE | `heroes/tokens/pyvjmhse-_GIo34kgulrY.webp` |
+| ANUNG UN RAMA | `heroes/tokens/D9gNPRAnkcS-jhHsJ8qyx.webp` |
+
+Both sides print MOVE 2, so Hellboy's catalog movement is unchanged.
+
+The text was cross-checked against The Unmatched Club hero pages and
+[ivanlhz/unmatched-sparring](https://github.com/ivanlhz/unmatched-sparring)
+(`data/heroes/*.json` and `data/heroes/effects/hellboy.json` at commit
+`ea97c04`), which is transcribed from the Tabletop Simulator save "Unmatched
+Official Tournament Table October 2026 (Hellboy)". That repository's Hellboy
+`ability.text` matches the card and both token sides word for word (ignoring
+bullets), and its rules model agrees: ANUNG UN RAMA at 6 or more destiny cards
+in the discard pile and OCCULT DETECTIVE at 5 or fewer, the start-of-turn
+effects of each side, and +2 to Hellboy's attacks while ANUNG UN RAMA.
+Discrepancies were resolved in favor of the printed cards:
+
+- The Unmatched Club titles Baba Yaga's ability “FATEFUL BARGAINS!”; the card
+  has no exclamation mark.
+- Both secondary sources render Liz Sherman's “At the start of your turn” as
+  “At start of your turn”.
+
+Typographic apostrophes are normalized to straight apostrophes, matching the
+rest of the catalog. The 2026-11-05 statement above remains accurate for that
+artwork and board-inspection change; this section adds only card-verified
+ability text.

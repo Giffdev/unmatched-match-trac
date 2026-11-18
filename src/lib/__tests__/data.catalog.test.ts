@@ -90,11 +90,27 @@ describe('Hellboy catalog addition', () => {
   const mapIds = ['bprd-hq', 'pandemonium']
 
   it.each([
-    { id: 'hellboy', name: 'Hellboy', hp: 18, move: 2, attack: 'MELEE', sidekicks: [{ name: 'Lobster Johnson', count: 1, hp: 6, attack: 'RANGED' }], imageUrl: Hellboy },
-    { id: 'abe-sapien', name: 'Abe Sapien', hp: 13, move: 2, attack: 'RANGED', sidekicks: [{ name: 'B.P.R.D. Agents', count: 3, hp: 1, attack: 'RANGED' }], imageUrl: AbeSapien },
-    { id: 'liz-sherman', name: 'Liz Sherman', hp: 16, move: 3, attack: 'RANGED', sidekicks: [], imageUrl: LizSherman },
-    { id: 'baba-yaga', name: 'Baba Yaga', hp: 13, move: 2, attack: 'RANGED', sidekicks: [{ name: 'Koschei', count: 1, hp: 3, attack: 'MELEE' }], imageUrl: BabaYaga },
-  ])('resolves verified metadata and the matching bundled artwork for $name', (hero) => {
+    {
+      id: 'hellboy', name: 'Hellboy', hp: 18, move: 2, attack: 'MELEE', sidekicks: [{ name: 'Lobster Johnson', count: 1, hp: 6, attack: 'RANGED' }], imageUrl: Hellboy,
+      abilityTitle: "AHH CRAP!",
+      abilityDescription: "At the start of the game, place the Hellboy Special Ability Token over this card with the OCCULT DETECTIVE side up. ● OCCULT DETECTIVE: At the start of your turn, if Hellboy is in an opponent's starting space, you may draw 2 cards. When you have 6 or more destiny cards in your discard pile, switch to ANUNG UN RAMA. ● ANUNG UN RAMA: At the start of your turn, discard 1 card. Move Hellboy a number of spaces up to its BOOST value. Add +2 to Hellboy's attacks. When you have 5 or fewer destiny cards in your discard pile, switch to OCCULT DETECTIVE.",
+    },
+    {
+      id: 'abe-sapien', name: 'Abe Sapien', hp: 13, move: 2, attack: 'RANGED', sidekicks: [{ name: 'B.P.R.D. Agents', count: 3, hp: 1, attack: 'RANGED' }], imageUrl: AbeSapien,
+      abilityTitle: "UNCANNY INTUITION",
+      abilityDescription: "You have two Intuition tokens. When Abe deals combat damage to an adjacent fighter, activate a token. When Abe is attacked, if you have an active token, deactivate it, then draw 1 card, and the attack is played face up.",
+    },
+    {
+      id: 'liz-sherman', name: 'Liz Sherman', hp: 16, move: 3, attack: 'RANGED', sidekicks: [], imageUrl: LizSherman,
+      abilityTitle: "WILDFIRE",
+      abilityDescription: "Whenever you discard a burning card from your hand or deck, put it into your hand. At the start of your turn, discard the bottom card of your deck. If it's a burning card, deal 1 damage to another fighter in Liz's zone. Otherwise, move Liz up to 2 spaces.",
+    },
+    {
+      id: 'baba-yaga', name: 'Baba Yaga', hp: 13, move: 2, attack: 'RANGED', sidekicks: [{ name: 'Koschei', count: 1, hp: 3, attack: 'MELEE' }], imageUrl: BabaYaga,
+      abilityTitle: "FATEFUL BARGAINS",
+      abilityDescription: "If Baba Yaga and Koschei share a zone and Baba Yaga would take effect damage, you may have Koschei take that damage instead.",
+    },
+  ])('resolves verified metadata, special ability, and the matching bundled artwork for $name', (hero) => {
     expect(getHeroById(hero.id)).toEqual({ ...hero, set: 'Hellboy' })
   })
 
