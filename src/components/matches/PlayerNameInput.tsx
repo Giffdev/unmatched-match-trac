@@ -1,7 +1,6 @@
 import { useState, useEffect, useMemo, useRef } from 'react'
 import { Input } from '@/components/ui/input'
 import { Command, CommandGroup, CommandItem, CommandList } from '@/components/ui/command'
-import { cn } from '@/lib/utils'
 import type { Match } from '@/lib/types'
 
 type PlayerNameInputProps = {

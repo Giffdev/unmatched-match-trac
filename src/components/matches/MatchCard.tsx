@@ -4,7 +4,7 @@ import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Trash, Trophy, MapPin, Pencil } from '@phosphor-icons/react'
-import { getHeroById, getMapById } from '@/lib/data'
+import { getMapById } from '@/lib/data'
 import { getHeroDisplayName } from '@/lib/utils'
 import { format } from 'date-fns'
 import { EditMatchDialog } from './EditMatchDialog'
@@ -31,8 +31,6 @@ const MODE_LABELS: Record<string, string> = {
 export function MatchCard({ match, onDelete, onEdit, onHeroClick, onMapClick, existingMatches = [], subtitle }: MatchCardProps) {
   const [editDialogOpen, setEditDialogOpen] = useState(false)
   const map = getMapById(match.mapId)
-  const winner = match.players.find(p => p.heroId === match.winnerId)
-  const winnerHero = winner ? getHeroById(winner.heroId) : null
 
 
   const formatMatchDate = (dateString: string): string => {
@@ -94,7 +92,6 @@ export function MatchCard({ match, onDelete, onEdit, onHeroClick, onMapClick, ex
             {match.players
               .sort((a, b) => a.turnOrder - b.turnOrder)
               .map((player) => {
-                const hero = getHeroById(player.heroId)
                 const isWinner = player.heroId === match.winnerId
                 
                 return (

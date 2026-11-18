@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect } from 'react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
@@ -94,7 +94,7 @@ export function ImportMatchesDialog({ open, onOpenChange, groupId, onImportCompl
       toast.success(`Imported ${result.imported} match${result.imported !== 1 ? 'es' : ''} to group`)
       onImportComplete?.()
       onOpenChange(false)
-    } catch (err) {
+    } catch {
       toast.error('Failed to import matches')
     } finally {
       setImporting(false)

@@ -32,8 +32,8 @@ function createMatch(overrides: Partial<Match> = {}): Match {
     mode: '1v1',
     mapId: 'soho',
     players: [
-      { playerName: 'Devin', heroId: 'sinbad' },
-      { playerName: 'Opponent', heroId: 'medusa' },
+      { playerName: 'Devin', heroId: 'sinbad', turnOrder: 1 },
+      { playerName: 'Opponent', heroId: 'medusa', turnOrder: 2 },
     ],
     winnerId: 'sinbad',
     isDraw: false,
@@ -146,9 +146,6 @@ describe('MatchesTab', () => {
       // So no icon-only buttons (size="icon") should appear for edit/delete
       // Only buttons should be the DataContextSelector trigger (if rendered)
       const allButtons = container.querySelectorAll('button[data-slot="button"]')
-      const iconButtons = Array.from(allButtons).filter(btn => 
-        btn.textContent?.trim() === '' || btn.querySelector('svg')
-      )
       // Should have no edit/delete icon buttons on the match cards
       // (Log Match is also hidden, DataContextSelector has a trigger)
       // In group context with 1 match: 0 edit + 0 delete + 0 Log Match

@@ -15,7 +15,6 @@ import { CaretUpDown, Check } from '@phosphor-icons/react'
 import { cn } from '@/lib/utils'
 import { normalizeHeroId } from '@/lib/utils'
 import { getAllUserMatches } from '@/lib/firestore'
-import { useAuth } from '@/hooks/use-auth'
 import { calculateMapPopularity, compareHeroMapPerformance } from '@/lib/stats'
 import type { HeroMapPerformance } from '@/lib/stats'
 
@@ -164,7 +163,6 @@ export function MapsTab({ matches }: MapsTabProps) {
   const [onlyPlayerCount, setOnlyPlayerCount] = useState(false)
   const [allMatches, setAllMatches] = useState<Match[]>([])
   const [isLoadingGlobal, setIsLoadingGlobal] = useState(true)
-  const { user } = useAuth()
 
   useEffect(() => {
     const loadGlobalMatches = async () => {
@@ -660,7 +658,6 @@ export function MapsTab({ matches }: MapsTabProps) {
                   const winner = match.isDraw
                     ? null
                     : match.players.find(p => normalizeHeroId(p.heroId) === normalizeHeroId(match.winnerId || ''))
-                  const winnerHero = match.winnerId ? getHeroById(normalizeHeroId(match.winnerId)) : null
 
                   return (
                     <div

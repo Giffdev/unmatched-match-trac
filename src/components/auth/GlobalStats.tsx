@@ -6,7 +6,6 @@ import { Trophy, Target, MapPin, TrendUp } from '@phosphor-icons/react'
 import { getHeroById, getMapById } from '@/lib/data'
 import { getAllUserMatches } from '@/lib/firestore'
 import { countCommunityMembers } from '@/lib/stats'
-import type { Match } from '@/lib/types'
 
 type HeroStat = {
   heroId: string

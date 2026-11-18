@@ -1,6 +1,5 @@
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
 import { ArrowLeft, GearSix, Plus, DownloadSimple } from '@phosphor-icons/react'
 import { useGroup } from '@/hooks/use-groups'
 import { useAuth } from '@/hooks/use-auth'

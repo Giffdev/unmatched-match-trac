@@ -427,57 +427,6 @@ export function getBalancedMatchupScored(
   }
 }
 
-// Keep old functions for backward compat but they're no longer used by randomizer
-export function getBalancedRandomHero(
-  availableHeroes: string[],
-  targetWinRate: number,
-  communityData: CommunityData,
-  tolerance: number = 10
-): string {
-  const candidates = availableHeroes.filter(heroId => {
-    const stats = communityData.heroStats[heroId]
-    if (!stats || stats.totalGames < 3) return true
-    return Math.abs(stats.winRate - targetWinRate) <= tolerance
-  })
-
-  if (candidates.length === 0) return availableHeroes[Math.floor(Math.random() * availableHeroes.length)]
-  return candidates[Math.floor(Math.random() * candidates.length)]
-}
-
-export function getBalancedMatchupHero(
-  availableHeroes: string[],
-  opponentHeroId: string,
-  communityData: CommunityData,
-  minGamesThreshold: number = 2
-): string {
-  const opponentStats = communityData.heroStats[opponentHeroId]
-  
-  if (!opponentStats) {
-    return availableHeroes[Math.floor(Math.random() * availableHeroes.length)]
-  }
-
-  const candidates = availableHeroes.filter(heroId => {
-    const heroStats = communityData.heroStats[heroId]
-    if (!heroStats) return false
-    
-    const heroVsOpponentData = heroStats.vsMatchups[opponentHeroId]
-    
-    if (!heroVsOpponentData || heroVsOpponentData.total < minGamesThreshold) {
-      return false
-    }
-    
-    const heroWinRate = (heroVsOpponentData.wins / heroVsOpponentData.total) * 100
-    
-    return heroWinRate >= 40 && heroWinRate <= 60
-  })
-
-  if (candidates.length === 0) {
-    return availableHeroes[Math.floor(Math.random() * availableHeroes.length)]
-  }
-  
-  return candidates[Math.floor(Math.random() * candidates.length)]
-}
-
 /**
  * Counts how many matches were played on each map and returns a ranked list
  * sorted by count descending. Ties are broken alphabetically by mapId (ascending)

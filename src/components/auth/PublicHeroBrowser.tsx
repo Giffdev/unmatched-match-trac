@@ -8,153 +8,6 @@ import type { Match } from '@/lib/types'
 import { HeroImage } from '@/components/heroes/HeroImage'
 import { Heart, ArrowRight, ArrowLeft, Sword, Trophy, Target, MapPin, Users, ChartBar } from '@phosphor-icons/react'
 import { cn } from '@/lib/utils'
-import AchillesImg from '@/assets/images/Achilles.gif'
-import AliceImg from '@/assets/images/Alice.png'
-import AncientLeshenImg from '@/assets/images/Ancient_Leshen.webp'
-import AngelImg from '@/assets/images/Angel.webp'
-import AnnieChristmasImg from '@/assets/images/Annie_Christmas.webp'
-import BeowulfImg from '@/assets/images/Beowulf.webp'
-import BigfootImg from '@/assets/images/Bigfoot.jpg'
-import BlackPantherImg from '@/assets/images/Black_Panther.webp'
-import BlackWidowImg from '@/assets/images/Black_Widow.webp'
-import BlackbeardImg from '@/assets/images/Blackbeard.webp'
-import BloodyMaryImg from '@/assets/images/Bloody_Mary.gif'
-import BruceLeeImg from '@/assets/images/Bruce_Lee.jpg'
-import BuffyImg from '@/assets/images/Buffy.webp'
-import BullseyeImg from '@/assets/images/Bullseye.webp'
-import ChupacabraImg from '@/assets/images/Chupacabra.webp'
-import CiriImg from '@/assets/images/Ciri.webp'
-import CloakDaggerImg from '@/assets/images/Cloak_Dagger.webp'
-import DaredevilImg from '@/assets/images/Daredevil.webp'
-import DeadpoolImg from '@/assets/images/Deadpool.webp'
-import DoctorStrangeImg from '@/assets/images/Doctor_Strange.webp'
-import DonatelloImg from '@/assets/images/Donatello.webp'
-import DrSattlerImg from '@/assets/images/Dr._Sattler.webp'
-import DrJekyllImg from '@/assets/images/Dr_Jeykll.png'
-import DrJillTrentImg from '@/assets/images/Dr_Jill_Trent.webp'
-import DraculaImg from '@/assets/images/Dracula.png'
-import ElektraImg from '@/assets/images/Elektra.webp'
-import EredinImg from '@/assets/images/Eredin.webp'
-import GeraltImg from '@/assets/images/Geralt.webp'
-import GhostRiderImg from '@/assets/images/Ghost_Rider.webp'
-import GoldenBatImg from '@/assets/images/Golden_Bat.webp'
-import HamletImg from '@/assets/images/Hamlet.webp'
-import HoudiniImg from '@/assets/images/Houdini.webp'
-import InvisibleManImg from '@/assets/images/Invisible_Man.png'
-import KingArthurImg from '@/assets/images/King_Arthur.png'
-import LeonardoImg from '@/assets/images/Leonardo.avif'
-import LokiImg from '@/assets/images/Loki.webp'
-import LukeCageImg from '@/assets/images/Luke_Cage.webp'
-import MedusaImg from '@/assets/images/Medusa.png'
-import MichaelangeloImg from '@/assets/images/Michaelangelo.webp'
-import MoonKnightImg from '@/assets/images/Moon_Knight.webp'
-import MsMarvelImg from '@/assets/images/Ms_Marvel.webp'
-import NikolaTeslaImg from '@/assets/images/Nikola_Tesla.webp'
-import OdaNobunagaImg from '@/assets/images/Oda_Nobunaga.webp'
-import PandoraImg from '@/assets/images/Pandora.webp'
-import PhilippaImg from '@/assets/images/Philippa.webp'
-import RaphaelImg from '@/assets/images/Raphael.webp'
-import RaptorsImg from '@/assets/images/Raptors.webp'
-import RedRidingHoodImg from '@/assets/images/Red_Riding_Hood.webp'
-import RobertMuldoonImg from '@/assets/images/Robert_Muldoon.webp'
-import RobinHoodImg from '@/assets/images/Robin_Hood.jpg'
-import ShakespeareImg from '@/assets/images/Shakespeare.webp'
-import SheHulkImg from '@/assets/images/She-Hulk.webp'
-import SherlockHolmesImg from '@/assets/images/Sherlock_Holmes.png'
-import SinbadImg from '@/assets/images/Sinbad.png'
-import SpiderManImg from '@/assets/images/Spider-Man.webp'
-import SpikeImg from '@/assets/images/Spike.webp'
-import SquirrelGirlImg from '@/assets/images/Squirrel_Girl.webp'
-import SunWukongImg from '@/assets/images/Sun_Wukong.jpg'
-import TRexImg from '@/assets/images/T_Rex.webp'
-import TheGenieImg from '@/assets/images/The_Genie.webp'
-import TheWaywardSistersImg from '@/assets/images/The_Wayward_Sisters.webp'
-import TitaniaImg from '@/assets/images/Titania.webp'
-import TomoeGozenImg from '@/assets/images/Tomoe_Gozen.webp'
-import TrissImg from '@/assets/images/Triss.webp'
-import WillowImg from '@/assets/images/Willow.webp'
-import WinterSoldierImg from '@/assets/images/Winter_Soldier.webp'
-import YenneferImg from '@/assets/images/Yennefer.webp'
-import YennengaImg from '@/assets/images/Yennenga.jpg'
-
-
-const localHeroImages: Record<string, string> = {
-  'achilles': AchillesImg,
-  'alice': AliceImg,
-  'ancient-leshen': AncientLeshenImg,
-  'angel': AngelImg,
-  'annie-christmas': AnnieChristmasImg,
-  'beowulf': BeowulfImg,
-  'bigfoot': BigfootImg,
-  'black-panther': BlackPantherImg,
-  'black-widow': BlackWidowImg,
-  'blackbeard': BlackbeardImg,
-  'bloody-mary': BloodyMaryImg,
-  'bruce-lee': BruceLeeImg,
-  'bruce-lee-ali': BruceLeeImg,
-  'buffy': BuffyImg,
-  'bullseye': BullseyeImg,
-  'chupacabra': ChupacabraImg,
-  'ciri': CiriImg,
-  'cloak-dagger': CloakDaggerImg,
-  'daredevil': DaredevilImg,
-  'deadpool': DeadpoolImg,
-  'doctor-strange': DoctorStrangeImg,
-  'donatello': DonatelloImg,
-  'dr-ellie-sattler': DrSattlerImg,
-  'dr-jill-trent': DrJillTrentImg,
-  'dracula': DraculaImg,
-  'elektra': ElektraImg,
-  'eredin': EredinImg,
-  'geralt': GeraltImg,
-  'ghost-rider': GhostRiderImg,
-  'golden-bat': GoldenBatImg,
-  'hamlet': HamletImg,
-  'houdini': HoudiniImg,
-  'invisible-man': InvisibleManImg,
-  'jekyll-hyde': DrJekyllImg,
-  'king-arthur': KingArthurImg,
-  'leonardo': LeonardoImg,
-
-  'little-red': RedRidingHoodImg,
-  'loki': LokiImg,
-  'luke-cage': LukeCageImg,
-  'medusa': MedusaImg,
-  'michaelangelo': MichaelangeloImg,
-  'michelangelo': MichaelangeloImg,
-  'moon-knight': MoonKnightImg,
-  'ms-marvel': MsMarvelImg,
-  'muhammad-ali': BruceLeeImg,
-  'nikola-tesla': NikolaTeslaImg,
-  'oda-nobunaga': OdaNobunagaImg,
-  'pandora': PandoraImg,
-  'philippa': PhilippaImg,
-  'raphael': RaphaelImg,
-  'raptors': RaptorsImg,
-  'red-riding-hood': RedRidingHoodImg,
-  'robin-hood': RobinHoodImg,
-  'ingen': RobertMuldoonImg,
-  'shakespeare': ShakespeareImg,
-  'sherlock-holmes': SherlockHolmesImg,
-  'sinbad': SinbadImg,
-  'spike': SpikeImg,
-  'spider-man': SpiderManImg,
-  'she-hulk': SheHulkImg,
-  'squirrel-girl': SquirrelGirlImg,
-  'sun-wukong': SunWukongImg,
-  'triss': TrissImg,
-  't-rex': TRexImg,
-  'the-genie': TheGenieImg,
-  'titania': TitaniaImg,
-  'tomoe-gozen': TomoeGozenImg,
-  'wayward-sisters': TheWaywardSistersImg,
-  'willow': WillowImg,
-  'william-shakespeare': ShakespeareImg,
-  'winter-soldier': WinterSoldierImg,
-  'yennefer': YenneferImg,
-  'yennefer-triss': YenneferImg,
-  'yennenga': YennengaImg,
-}
 
 type PublicHeroBrowserProps = {
   selectedHeroId?: string | null
@@ -460,10 +313,6 @@ export function PublicHeroBrowser({ selectedHeroId: initialSelectedHeroId }: Pub
                 />
               </div>
               {filteredHeroes.map((hero) => {
-                const heroImage = localHeroImages[hero.id]
-                const hasLocalImage = heroImage && heroImage !== ''
-                const hasRemoteImage = hero.imageUrl && hero.imageUrl !== ''
-                
                 return (
                 <button
                   key={hero.id}
@@ -482,16 +331,7 @@ export function PublicHeroBrowser({ selectedHeroId: initialSelectedHeroId }: Pub
                         <Sword className="w-5 h-5 text-muted-foreground" />
                         <span className="text-[10px] text-muted-foreground mt-0.5 font-medium">{hero.name.charAt(0)}</span>
                       </div>
-                      {hasLocalImage ? (
-                        <img 
-                          src={heroImage} 
-                          alt={hero.name}
-                          className="absolute inset-0 w-full h-full object-cover"
-                          onError={(e) => {
-                            e.currentTarget.remove()
-                          }}
-                        />
-                      ) : hasRemoteImage ? (
+                      {hero.imageUrl ? (
                         <img 
                           src={hero.imageUrl} 
                           alt={hero.name}

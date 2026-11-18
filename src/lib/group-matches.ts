@@ -1,7 +1,6 @@
 import {
   doc,
   getDoc,
-  setDoc,
   updateDoc,
   deleteDoc,
   collection,
@@ -37,52 +36,6 @@ export type GetGroupMatchesOptions = {
 export type GetGroupMatchesResult = {
   matches: GroupMatch[]
   lastDoc: QueryDocumentSnapshot | null
-}
-
-/**
- * Log a match to a group. If the group's autoAddToPersonal setting is true,
- * also writes to the user's personal matches with a groupRef back-link.
- */
-export async function logGroupMatch(
-  groupId: string,
-  match: Match,
-  userId: string,
-  userName: string
-): Promise<string> {
-  const matchRef = doc(collection(db, 'groups', groupId, 'matches'))
-
-  const groupMatch: GroupMatch = {
-    ...match,
-    id: matchRef.id,
-    groupId,
-    loggedBy: userId,
-    loggedByName: userName,
-  }
-
-  await setDoc(matchRef, stripUndefined(groupMatch))
-
-  // Check group settings for autoAddToPersonal
-  const groupSnap = await getDoc(doc(db, 'groups', groupId))
-  if (groupSnap.exists()) {
-    const groupData = groupSnap.data()
-    if (groupData.settings?.autoAddToPersonal) {
-      // Write to user's personal matches doc with groupRef
-      const personalMatch = {
-        ...match,
-        id: matchRef.id,
-        groupRef: { groupId, groupMatchId: matchRef.id },
-      }
-      const userMatchesRef = doc(db, 'users', userId, 'data', 'matches')
-      const userMatchesSnap = await getDoc(userMatchesRef)
-      const existingMatches: Match[] = userMatchesSnap.exists()
-        ? (userMatchesSnap.data().matches || [])
-        : []
-      existingMatches.push(personalMatch as Match)
-      await setDoc(userMatchesRef, { matches: stripUndefined(existingMatches) }, { merge: true })
-    }
-  }
-
-  return matchRef.id
 }
 
 /**

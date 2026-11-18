@@ -4,10 +4,6 @@ import {
   signInWithPopup,
   GoogleAuthProvider,
   signOut,
-  onAuthStateChanged,
-  linkWithCredential,
-  EmailAuthProvider,
-  fetchSignInMethodsForEmail,
   sendPasswordResetEmail,
   type User as FirebaseUser,
 } from 'firebase/auth'
@@ -22,12 +18,6 @@ export interface User {
   createdAt: string
   authProvider?: 'email' | 'google'
   displayName?: string
-}
-
-export interface AuthSession {
-  userId: string
-  email: string
-  authProvider?: 'email' | 'google'
 }
 
 async function createUserDoc(firebaseUser: FirebaseUser, provider: 'email' | 'google') {
@@ -68,37 +58,6 @@ export async function signInWithGoogle() {
 
 export async function signOutUser() {
   await signOut(auth)
-}
-
-export function getCurrentSession(): Promise<AuthSession | null> {
-  return new Promise((resolve) => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      unsubscribe()
-      if (user) {
-        resolve({
-          userId: user.uid,
-          email: user.email || '',
-          authProvider: user.providerData[0]?.providerId === 'google.com' ? 'google' : 'email',
-        })
-      } else {
-        resolve(null)
-      }
-    })
-  })
-}
-
-export async function linkEmailPassword(password: string) {
-  const user = auth.currentUser
-  if (!user || !user.email) throw new Error('No authenticated user')
-
-  const credential = EmailAuthProvider.credential(user.email, password)
-  await linkWithCredential(user, credential)
-}
-
-export function getLinkedProviders(): string[] {
-  const user = auth.currentUser
-  if (!user) return []
-  return user.providerData.map((p) => p.providerId)
 }
 
 export async function resetPassword(email: string) {

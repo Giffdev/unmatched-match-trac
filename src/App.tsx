@@ -94,23 +94,6 @@ function App() {
     setMatches((currentMatches) => [...(currentMatches || []), ...newMatches])
   }
 
-  const handleReplaceAllMatches = async () => {
-    if (!currentUserId) return
-    const confirmation = prompt('This will REPLACE ALL your matches. Type "REPLACE ALL" to confirm:')
-    if (confirmation !== 'REPLACE ALL') {
-      if (confirmation !== null) alert('Import cancelled — confirmation text did not match.')
-      return
-    }
-    try {
-      const { getImportMatchesV2 } = await import('@/lib/import-matches-v2')
-      const newMatches = getImportMatchesV2().map(m => ({ ...m, userId: currentUserId }))
-      setMatches(() => newMatches)
-      alert(`Replaced all matches with ${newMatches.length} matches`)
-    } catch (err) {
-      alert('Import failed: ' + err)
-    }
-  }
-
   // Scroll to top when switching tabs (fixes mobile nav not resetting scroll position)
   // On iOS Safari, window.scrollTo alone may not work — the actual scroll element
   // can be document.documentElement or document.body depending on the browser.
@@ -308,7 +291,7 @@ function App() {
 
             <TabsContent value="randomizer">
               <ErrorBoundary fallbackTitle="Something went wrong in Randomizer">
-                <RandomizerTab ownedSets={ownedSetsData} matches={matchesData} setMatches={setMatches} />
+                <RandomizerTab ownedSets={ownedSetsData} setMatches={setMatches} />
               </ErrorBoundary>
             </TabsContent>
           </Tabs>

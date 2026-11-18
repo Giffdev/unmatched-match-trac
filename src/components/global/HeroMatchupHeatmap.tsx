@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
 import type { Match } from '@/lib/types'
-import { getSelectableHeroes, getHeroById } from '@/lib/data'
+import { getSelectableHeroes } from '@/lib/data'
 import { cn } from '@/lib/utils'
 
 type HeroMatchupHeatmapProps = {

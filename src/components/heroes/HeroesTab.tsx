@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect } from 'react'
-import type { Match, User } from '@/lib/types'
+import type { Match } from '@/lib/types'
 import { Card } from '@/components/ui/card'
 import { getSelectableHeroes, getHeroById } from '@/lib/data'
 import { calculateHeroStats, calculateUserHeroStats, mergeMatchupRows } from '@/lib/stats'

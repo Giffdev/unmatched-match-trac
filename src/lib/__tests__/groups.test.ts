@@ -103,8 +103,6 @@ describe('groups — CRUD operations', () => {
     it('sets correct fields with creator as owner in memberUids', async () => {
       // Expected behavior: createGroup(userId, name, description?) creates a group doc
       // with the creator's UID in memberUids[] and creates a member subcollection doc
-      const { setDoc, doc, writeBatch } = await import('firebase/firestore')
-
       const group = createGroup()
 
       // Verify expected data structure
@@ -215,7 +213,7 @@ describe('groups — CRUD operations', () => {
 
   describe('updateGroupSettings', () => {
     it('only owner can update group settings', async () => {
-      const { updateDoc, doc } = await import('firebase/firestore')
+      const { updateDoc } = await import('firebase/firestore')
       const group = createGroup()
       const callerUid = 'user-1' // owner
 
@@ -239,7 +237,7 @@ describe('groups — CRUD operations', () => {
 
   describe('deleteGroup', () => {
     it('removes group doc and subcollections', async () => {
-      const { deleteDoc, getDocs, writeBatch } = await import('firebase/firestore')
+      const { writeBatch } = await import('firebase/firestore')
 
       // Simulate deleting group + all subcollection docs (members, matches)
       const batch = writeBatch({} as any)

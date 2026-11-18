@@ -17,7 +17,6 @@ import { MapImageDialog } from '@/components/players/MapImageDialog'
 
 type RandomizerTabProps = {
   ownedSets: string[]
-  matches: Match[]
   setMatches: (updater: (matches: Match[]) => Match[]) => void
 }
 
@@ -28,7 +27,7 @@ type RandomizerResult = {
   balancedResults?: BalancedResult[]
 }
 
-export function RandomizerTab({ ownedSets, matches, setMatches }: RandomizerTabProps) {
+export function RandomizerTab({ ownedSets, setMatches }: RandomizerTabProps) {
   const radioId = useId()
   const [mode, setMode] = useState<GameMode>('1v1')
   const [randomizationType, setRandomizationType] = useState<'true' | 'balanced'>('true')
@@ -162,7 +161,7 @@ export function RandomizerTab({ ownedSets, matches, setMatches }: RandomizerTabP
     }
 
     let newHeroId: string
-    let updatedHeroStats = result.heroStats ? { ...result.heroStats } : undefined
+    const updatedHeroStats = result.heroStats ? { ...result.heroStats } : undefined
     let updatedBalancedResults = result.balancedResults ? [...result.balancedResults] : undefined
 
     if (randomizationType === 'balanced' && mode === '1v1' && globalCommunityData) {

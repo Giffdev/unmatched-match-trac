@@ -129,7 +129,7 @@ describe('user-discovery — search by playerName', () => {
   })
 
   it('prefix match works for playerName search', async () => {
-    const { getDocs, query, where, orderBy, startAt, endAt, collection } = await import('firebase/firestore')
+    const { getDocs, query, orderBy, startAt, endAt, collection } = await import('firebase/firestore')
     const searchPrefix = 'Ali'
 
     const matchedUsers = [
@@ -158,7 +158,7 @@ describe('user-discovery — search by playerName', () => {
   })
 
   it('case-insensitive search via normalized field', async () => {
-    const { getDocs, query, where, orderBy, startAt, endAt, collection } = await import('firebase/firestore')
+    const { getDocs, query, orderBy, startAt, endAt, collection } = await import('firebase/firestore')
 
     // Implementation should store a lowercased version for searching
     const searchPrefix = 'ali' // lowercase input
@@ -334,7 +334,7 @@ describe('user-discovery — edge cases', () => {
   })
 
   it('search by partial email does NOT match (email is exact only)', async () => {
-    const { getDocs, where } = await import('firebase/firestore')
+    const { getDocs } = await import('firebase/firestore')
 
     // Firestore where('==') requires exact match
     vi.mocked(getDocs).mockResolvedValueOnce({
