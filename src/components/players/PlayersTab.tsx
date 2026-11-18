@@ -11,6 +11,7 @@ import { Progress } from '@/components/ui/progress'
 import { Badge } from '@/components/ui/badge'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { MapImageDialog } from './MapImageDialog'
+import { useAuth } from '@/hooks/use-auth'
 
 import { DataContextSelector } from '@/components/shared/DataContextSelector'
 
@@ -29,18 +30,31 @@ type PlayersTabProps = {
   onDataContextChange?: (value: string) => void
 }
 
+// Returns the player name as it appears in the match data, preferring an exact match
+function findProfilePlayer(playerNames: string[], profileName?: string): string | undefined {
+  const target = profileName?.trim()
+  if (!target) return undefined
+  const lowerTarget = target.toLowerCase()
+  return playerNames.find(name => name.trim() === target)
+    ?? playerNames.find(name => name.trim().toLowerCase() === lowerTarget)
+}
+
 export function PlayersTab({ matches, ownedSets = [], onHeroClick, dataSource, groups = [], dataContext = 'personal', onDataContextChange }: PlayersTabProps) {
+  const { user } = useAuth()
   const effectiveMatches = dataSource ? dataSource.matches : (matches || [])
-  const playerNames = getAllPlayerNames(effectiveMatches)
-  const [selectedPlayer, setSelectedPlayer] = useState(playerNames[0] || '')
+  const playerNames = useMemo(() => getAllPlayerNames(effectiveMatches), [effectiveMatches])
+  const defaultPlayer = findProfilePlayer(playerNames, user?.playerName) ?? playerNames[0] ?? ''
+  // Derived so the default follows matches and the profile as they load, unless a player was picked by hand
+  const [pickedPlayer, setPickedPlayer] = useState<string | null>(null)
+  const selectedPlayer = pickedPlayer !== null && playerNames.includes(pickedPlayer) ? pickedPlayer : defaultPlayer
   const [showOnlyOwnedHeroes, setShowOnlyOwnedHeroes] = useState(false)
 
-  // Reset selectedPlayer when available players change (e.g. group context switch)
+  // Forget a hand-picked player once they leave the list (e.g. group context switch)
   useEffect(() => {
-    if (playerNames.length > 0 && !playerNames.includes(selectedPlayer)) {
-      setSelectedPlayer(playerNames[0])
+    if (pickedPlayer !== null && playerNames.length > 0 && !playerNames.includes(pickedPlayer)) {
+      setPickedPlayer(null)
     }
-  }, [playerNames, selectedPlayer])
+  }, [playerNames, pickedPlayer])
   const [showOnlyOwnedMaps, setShowOnlyOwnedMaps] = useState(false)
   const [selectedMap, setSelectedMap] = useState<Map | null>(null)
   const [isMapDialogOpen, setIsMapDialogOpen] = useState(false)
@@ -103,7 +117,7 @@ export function PlayersTab({ matches, ownedSets = [], onHeroClick, dataSource, g
       />
       <div>
         <h2 className="text-xl md:text-2xl font-semibold mb-3 md:mb-4">Player Statistics</h2>
-        <Select value={selectedPlayer} onValueChange={setSelectedPlayer}>
+        <Select value={selectedPlayer} onValueChange={setPickedPlayer}>
           <SelectTrigger className="w-full md:max-w-xs">
             <SelectValue />
           </SelectTrigger>
