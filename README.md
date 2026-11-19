@@ -27,6 +27,8 @@ Open the app and scroll past the sign-in form. Three tabs are ready to explore:
 - **Community Stats:** See which heroes people play most, which have the
   highest recorded win rates, and which maps make it to the table most often.
 
+<img src="docs/screenshots/hero-browser.webp" width="760" alt="Hero Browser filtered to Battle of Legends, with Alice selected and her health, movement, sidekick, and ability shown beside the fighter list.">
+
 ### From the shelf to the scorebook
 
 Sign in with Google or email and password to save your own games and collection.
@@ -48,6 +50,11 @@ the bottom, within reach at the table.
    draw for a duel, 2v2, or three- or four-player free-for-all; for a cooperative
    game, record whether the table won or lost. You can edit or delete games in
    your personal history.
+
+<img src="docs/screenshots/match-randomizer.webp" width="620" alt="Randomizer result: Bigfoot goes first against Robin Hood on Sherwood Forest, with separate reroll buttons and a Log This Match button.">
+
+*A draw from the Robin Hood vs Bigfoot box. Keep the fighters and reroll just
+Sherwood Forest, or take this lineup straight to the match log.*
 
 Already track games in a spreadsheet? Choose **Import from CSV** in your
 profile menu. The importer suggests columns for the map, fighters, players,
