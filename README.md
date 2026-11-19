@@ -4,38 +4,74 @@
 [![Tests](https://github.com/Giffdev/unmatched-match-trac/actions/workflows/tests.yml/badge.svg)](https://github.com/Giffdev/unmatched-match-trac/actions/workflows/tests.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-Unmatched Tracker is a responsive web app for recording games of
-[Unmatched](https://restorationgames.com/unmatched/), exploring personal and
-community results, and choosing what to play next.
+Does Medusa always beat Alice at your table, or do you just remember the last
+game? Unmatched Tracker is a companion to the [Unmatched board game](https://restorationgames.com/unmatched/).
+Keep a record of who played whom and where, see how your results compare with
+other tables, or let the tracker pick tonight's fighters from the boxes you own.
 
-**Try it at [unmatched-tracker.vercel.app](https://unmatched-tracker.vercel.app).**
-Community statistics, the hero browser, and the matchup heatmap are available
-before signing in; an account is required to save personal data.
+**[Open Unmatched Tracker](https://unmatched-tracker.vercel.app)** · [Run it locally](#local-development)
 
 ## Features
 
-- **Match history** — Log, edit, and delete competitive 1v1, 2v2, three- or
-  four-player free-for-all, and cooperative games, including the date, map,
-  fighters, turn order, and result.
-- **Player, hero, and map analysis** — Review records, win rates, frequently
-  played and unplayed content, head-to-head matchups, map popularity, and
-  personal results alongside community data.
-- **Community insights** — Browse aggregate hero and map statistics, inspect
-  hero details, and explore a global matchup heatmap.
-- **Match randomizer** — Generate heroes and maps for supported player counts,
-  reroll individual choices, restrict results to owned sets, or use community
-  results to suggest a balanced 1v1 matchup.
-- **Collection tracking** — Record owned sets, filter by franchise, and use the
-  collection to constrain randomizer choices and collection-aware statistics.
-- **Groups** — Create play groups, invite members by link, email, or
-  player search, share group match histories, and import existing personal
-  matches into a group. Match, player, and hero views can switch to group data
-  where supported.
-- **Accounts and data import** — Sign in with email/password or Google, recover
-  an email/password account, choose a player name, and import match history
-  from CSV.
-- **Mobile-friendly navigation** — The dashboard adapts from desktop tabs to a
-  persistent bottom navigation bar on smaller screens.
+### Try it without an account
+
+Open the app and scroll past the sign-in form. Three tabs are ready to explore:
+
+- **Hero Browser:** Search for a fighter or a set. Open Alice to see her health,
+  movement, and melee attack, meet the Jabberwock, and read how her ability
+  changes when she's big or small.
+- **Matchup Heatmap:** Read from the row fighter to the column opponent. Where
+  Alice's row meets Medusa's column, the percentage is *Alice's* win rate in
+  logged 1v1 games. Hover over a cell on desktop to see the wins and total
+  games behind it: one win in one duel tells a different story than ten in ten.
+- **Community Stats:** See which heroes people play most, which have the
+  highest recorded win rates, and which maps make it to the table most often.
+
+### From the shelf to the scorebook
+
+Sign in with Google or email and password to save your own games and collection.
+Set your player name in your profile to match the one you use in the log;
+**Players** will open on your record. On a phone, the dashboard tabs run along
+the bottom, within reach at the table.
+
+1. **Pick the boxes.** In **Manage Collection** (**Collection** on mobile),
+   check the sets and battlefield accessories you own. Filter by franchise if
+   you're looking for a particular box.
+2. **Draw a matchup.** In **Randomizer**, choose a game mode and generate
+   fighters and a map for that player count. Stick to your collection or use the
+   full catalog. Like the fighters but not the battlefield? Reroll just the map.
+   For a duel, **Balanced** uses community 1v1 results to suggest a close
+   matchup and shows how confident the suggestion is.
+3. **Record the result.** Choose **Log This Match** to keep the generated
+   fighters, map, and mode, or start from **Matches → Log Match** for a game you
+   set up yourself. Record the date, players, and turn order. Log a winner or
+   draw for a duel, 2v2, or three- or four-player free-for-all; for a cooperative
+   game, record whether the table won or lost. You can edit or delete games in
+   your personal history.
+
+Already track games in a spreadsheet? Choose **Import from CSV** in your
+profile menu. The importer suggests columns for the map, fighters, players,
+and result. You can adjust the mappings, preview rows, and review errors
+before adding anything to your history.
+
+### What can your match history tell you?
+
+| At the table | Where to look |
+| --- | --- |
+| Which fighters are still sitting in my boxes? | **Players** lists the heroes and maps a player has never played. Filter those lists to owned sets, or check the player's most-played picks and head-to-head records. |
+| Is Alice struggling against Medusa everywhere, or just here? | **Heroes** breaks down a fighter's results by opponent, with your record alongside the community's. |
+| We've got four players tonight. Which board should we try? | **Maps** filters battlefields by supported player count. Open one to see recent games and how each hero has fared on that map at your table and across the community. |
+
+### Keep a shared game-night log
+
+Create a group and invite friends with a link, or search for them by email or
+player name. When logging a new game, select **Also log to group(s)** to keep
+it in your history and add it to the group's. For games you've already played,
+open the group and choose **Import Matches** to copy just the ones you want.
+
+On **Matches**, **Players**, and **Heroes**, switch from **My Matches** to the
+group name to see that table's shared history and stats. Joining a group
+doesn't copy your back catalog or pool everyone's collections.
 
 ## Technology
 
@@ -43,7 +79,6 @@ before signing in; an account is required to save personal data.
 - Vite 7 with SWC
 - Tailwind CSS 4 and Radix UI components
 - Firebase Authentication and Cloud Firestore
-- TanStack Query, React Hook Form, Zod, Recharts, and D3
 - Vitest, Testing Library, and Firebase Emulator Suite rules tests
 - Vercel hosting
 
@@ -99,11 +134,10 @@ addition to the normal project dependencies.
 
 ## Data and deployment
 
-Authentication and application data are provided by Firebase. Personal match
-and collection writes are scoped to the signed-in user by Firestore security
-rules. Match data used for community statistics is readable across users;
-group features operate within the authenticated app rather than as a private,
-invite-enforced data boundary.
+Firebase handles sign-in and stores the game records. Only you can change your
+personal match log and collection, but the match records used for community
+statistics are publicly readable. Adding a game to a group doesn't make the
+original record private.
 
 The production site is deployed to Vercel. `vercel.json` rewrites application
 routes to the SPA entry point, and the repository includes a manually
