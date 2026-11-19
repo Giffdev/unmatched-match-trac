@@ -39,7 +39,7 @@ the bottom, within reach at the table.
 1. **Manage your collection.** In **Manage Collection** (**Collection** on mobile),
    check the sets and battlefield accessories you own. Filter by franchise if
    you're looking for a particular box.
-2. **Draw a matchup.** In **Randomizer**, choose a game mode and generate
+2. **Randomize your matchup.** In **Randomizer**, choose a game mode and generate
    fighters and a map for that player count. Stick to your collection or use the
    full catalog. Like the fighters but not the battlefield? Reroll just the map.
    For a duel, **Balanced** uses community 1v1 results to suggest a close
