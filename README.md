@@ -36,7 +36,7 @@ Set your player name in your profile to match the one you use in the log;
 **Players** will open on your record. On a phone, the dashboard tabs run along
 the bottom, within reach at the table.
 
-1. **Pick the boxes.** In **Manage Collection** (**Collection** on mobile),
+1. **Manage your collection.** In **Manage Collection** (**Collection** on mobile),
    check the sets and battlefield accessories you own. Filter by franchise if
    you're looking for a particular box.
 2. **Draw a matchup.** In **Randomizer**, choose a game mode and generate
