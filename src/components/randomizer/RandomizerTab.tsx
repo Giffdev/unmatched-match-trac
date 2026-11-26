@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useId } from 'react'
+import { useState, useEffect, useMemo, useId, useRef } from 'react'
 import type { Match, GameMode, PlayerAssignment, HeroStats, Map, BalancedResult, CommunityData } from '@/lib/types'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -36,8 +36,24 @@ function MatchupLockButton({ name, kind, locked, onToggle }: {
   onToggle: () => void
 }) {
   const helpId = useId()
+  const [showHelp, setShowHelp] = useState(false)
+  const holdTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const held = useRef(false)
+  const pressOrigin = useRef<{ x: number; y: number } | null>(null)
+
+  const dismissHelp = () => {
+    if (holdTimer.current) clearTimeout(holdTimer.current)
+    holdTimer.current = null
+    pressOrigin.current = null
+    setShowHelp(false)
+  }
+
+  useEffect(() => () => {
+    if (holdTimer.current) clearTimeout(holdTimer.current)
+  }, [])
+
   return (
-    <div className="relative group shrink-0">
+    <div className="relative shrink-0">
       <Button
         variant={locked ? 'secondary' : 'outline'}
         size="icon"
@@ -45,8 +61,33 @@ function MatchupLockButton({ name, kind, locked, onToggle }: {
         aria-pressed={locked}
         aria-label={`${locked ? 'Unlock' : 'Lock'} ${name}`}
         aria-describedby={helpId}
-        onClick={(event) => {
-          event.currentTarget.focus()
+        onPointerEnter={(event) => {
+          if (event.pointerType === 'mouse') setShowHelp(true)
+        }}
+        onPointerDown={(event) => {
+          dismissHelp()
+          held.current = false
+          if (event.pointerType !== 'touch' && event.pointerType !== 'pen') return
+          pressOrigin.current = { x: event.clientX, y: event.clientY }
+          holdTimer.current = setTimeout(() => {
+            held.current = true
+            setShowHelp(true)
+          }, 500)
+        }}
+        onPointerMove={(event) => {
+          const origin = pressOrigin.current
+          if (origin && Math.hypot(event.clientX - origin.x, event.clientY - origin.y) > 10) dismissHelp()
+        }}
+        onPointerUp={dismissHelp}
+        onPointerCancel={dismissHelp}
+        onPointerLeave={dismissHelp}
+        onBlur={dismissHelp}
+        onContextMenu={(event) => event.preventDefault()}
+        onClick={() => {
+          if (held.current) {
+            held.current = false
+            return
+          }
           onToggle()
         }}
       >
@@ -55,7 +96,8 @@ function MatchupLockButton({ name, kind, locked, onToggle }: {
       <span
         id={helpId}
         role="tooltip"
-        className="absolute bottom-full right-0 z-50 hidden w-56 rounded-md border bg-popover p-2 text-xs text-popover-foreground shadow-md group-hover:block group-focus-within:block"
+        hidden={!showHelp}
+        className="absolute bottom-full right-0 z-50 w-56 rounded-md border bg-popover p-2 text-xs text-popover-foreground shadow-md pointer-events-none"
       >
         {locked
           ? `Locked: this ${kind} stays when generating a new matchup. Tap to unlock.`

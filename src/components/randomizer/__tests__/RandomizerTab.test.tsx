@@ -1,5 +1,5 @@
 import { beforeAll, beforeEach, afterEach, describe, expect, it, vi } from 'vitest'
-import { render, screen, waitFor, fireEvent } from '@testing-library/react'
+import { render, screen, waitFor, fireEvent, act } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { RandomizerTab } from '../RandomizerTab'
 import { getHeroById, getMapById } from '@/lib/data'
@@ -58,7 +58,7 @@ async function lockSlot(user: ReturnType<typeof userEvent.setup>, slot: number) 
 }
 
 describe('Randomizer locks and set pool', () => {
-  it('uses accessible icon-only lock buttons with focus/tap explanations and toggle state', async () => {
+  it('uses accessible icon-only lock buttons without showing help on normal taps or focus', async () => {
     const user = setup()
     await user.click(generate())
     const name = getHeroById(generated().players[0].heroId)!.name
@@ -68,15 +68,54 @@ describe('Randomizer locks and set pool', () => {
     expect(lock).toHaveAttribute('aria-pressed', 'false')
     expect(lock).toHaveAccessibleDescription('Unlocked: this hero can be randomized. Tap to lock it for new matchups.')
     await user.click(lock)
-    expect(lock).toHaveFocus()
     expect(lock).toHaveAccessibleName(`Unlock ${name}`)
     expect(lock).toHaveAttribute('aria-pressed', 'true')
     expect(lock).toHaveAccessibleDescription('Locked: this hero stays when generating a new matchup. Tap to unlock.')
     expect(screen.getByRole('button', { name: `Reroll ${name}` })).toBeDisabled()
+    expect(screen.queryByRole('tooltip')).not.toBeInTheDocument()
+    lock.focus()
+    expect(screen.queryByRole('tooltip')).not.toBeInTheDocument()
     await user.keyboard(' ')
     expect(lock).toHaveAccessibleName(`Lock ${name}`)
     expect(lock).toHaveAttribute('aria-pressed', 'false')
     expect(screen.getByRole('button', { name: `Reroll ${name}` })).toBeEnabled()
+  })
+
+  it.each(['hero', 'map'])('shows %s lock help only on desktop hover or touch hold, without toggling on a hold', async (kind) => {
+    const user = setup()
+    await user.click(generate())
+    const name = kind === 'map' ? getMapById(generated().mapId)!.name : getHeroById(generated().players[0].heroId)!.name
+    const lock = screen.getByRole('button', { name: `Lock ${name}` })
+    expect(screen.queryByRole('tooltip')).not.toBeInTheDocument()
+    fireEvent.pointerEnter(lock, { pointerType: 'mouse' })
+    expect(screen.getByRole('tooltip')).toHaveTextContent(`this ${kind} can be randomized`)
+    fireEvent.pointerLeave(lock, { pointerType: 'mouse' })
+    expect(screen.queryByRole('tooltip')).not.toBeInTheDocument()
+    vi.useFakeTimers()
+    try {
+      fireEvent.pointerEnter(lock, { pointerType: 'touch' })
+      fireEvent.pointerDown(lock, { pointerType: 'touch', clientX: 10, clientY: 10 })
+      act(() => vi.advanceTimersByTime(499))
+      expect(screen.queryByRole('tooltip')).not.toBeInTheDocument()
+      act(() => vi.advanceTimersByTime(1))
+      expect(screen.getByRole('tooltip')).toBeInTheDocument()
+      fireEvent.pointerUp(lock, { pointerType: 'touch' })
+      fireEvent.click(lock)
+      expect(lock).toHaveAttribute('aria-pressed', 'false')
+      expect(screen.queryByRole('tooltip')).not.toBeInTheDocument()
+      fireEvent.pointerDown(lock, { pointerType: 'touch', clientX: 10, clientY: 10 })
+      fireEvent.pointerMove(lock, { pointerType: 'touch', clientX: 30, clientY: 10 })
+      act(() => vi.advanceTimersByTime(500))
+      expect(screen.queryByRole('tooltip')).not.toBeInTheDocument()
+      fireEvent.pointerCancel(lock, { pointerType: 'touch' })
+      fireEvent.pointerDown(lock, { pointerType: 'touch' })
+      fireEvent.pointerUp(lock, { pointerType: 'touch' })
+      fireEvent.click(lock)
+      expect(lock).toHaveAttribute('aria-pressed', 'true')
+      expect(screen.queryByRole('tooltip')).not.toBeInTheDocument()
+    } finally {
+      vi.useRealTimers()
+    }
   })
 
   it('collapses the pool by default, retains selections when collapsed, and only shows locks on results', async () => {

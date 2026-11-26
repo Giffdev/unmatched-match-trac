@@ -49,7 +49,8 @@ the bottom, within reach at the table.
    selected pool; changing game mode clears locks. Empty pools, too few
    distinct fighters, or no suitable map show an error instead of using
    excluded sets.
-   Hover, focus, or tap the lock icon for an explanation of its current state.
+   Hover on desktop or press and hold on mobile for a lock explanation.
+   A normal tap toggles the lock without showing a tooltip.
    For a duel, **Balanced** uses community 1v1 results to suggest a close
    matchup and shows how confident the suggestion is.
 3. **Record the result.** Choose **Log This Match** to keep the generated
