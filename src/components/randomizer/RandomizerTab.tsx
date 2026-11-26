@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
-import { Shuffle, DiceSix, Sparkle, ArrowsClockwise, Info } from '@phosphor-icons/react'
+import { Shuffle, DiceSix, Sparkle, ArrowsClockwise, Info, LockSimple, LockSimpleOpen } from '@phosphor-icons/react'
 import { getHeroById, getMapById, getHeroesBySet, getMapsByPlayerCount, getSelectableHeroes } from '@/lib/data'
 import { aggregateCommunityData, getBalancedMatchupScored } from '@/lib/stats'
 import { getAllUserMatches } from '@/lib/firestore'
@@ -84,7 +84,6 @@ export function RandomizerTab({ ownedSets, setMatches }: RandomizerTabProps) {
 
   const updatePool = (excluded: string[]) => {
     setExcludedSets(excluded)
-    setResult(null)
   }
 
   const pickRandomMap = (count: number) => {
@@ -290,62 +289,35 @@ export function RandomizerTab({ ownedSets, setMatches }: RandomizerTabProps) {
                 </div>
                 {useCollectionOnly && ownedSets.length > 0 && (
                   <div className="space-y-3">
-                    <div className="flex flex-wrap items-center justify-between gap-2">
-                      <Label>Randomization pool</Label>
+                    <details className="space-y-3">
+                      <summary className="cursor-pointer text-sm font-medium">
+                        Randomization pool ({poolSets.length} of {ownedSets.length} sets selected)
+                      </summary>
                       <div className="flex gap-2">
                         <Button variant="outline" size="sm" onClick={() => updatePool([])}>Select All Sets</Button>
                         <Button variant="outline" size="sm" onClick={() => updatePool([...ownedSets])}>Clear Sets</Button>
                       </div>
-                    </div>
-                    <p className="text-xs text-muted-foreground">
-                      Selected sets apply to both random heroes and maps. Locked heroes stay fixed, even outside this pool.
-                    </p>
-                    <div className="grid gap-3 sm:grid-cols-2">
-                      {ownedSets.map((set, index) => (
-                        <div key={set} className="flex items-center gap-2">
-                          <Checkbox
-                            id={`${radioId}-pool-${index}`}
-                            checked={poolSets.includes(set)}
-                            onCheckedChange={(checked) => updatePool(checked
-                              ? excludedSets.filter(s => s !== set)
-                              : [...excludedSets, set])}
-                          />
-                          <Label htmlFor={`${radioId}-pool-${index}`} className="font-normal cursor-pointer">{set}</Label>
-                        </div>
-                      ))}
-                    </div>
+                      <p className="text-xs text-muted-foreground">
+                        Selected sets apply to future random heroes and maps. Locked heroes stay fixed, even outside this pool.
+                      </p>
+                      <div className="grid gap-3 sm:grid-cols-2">
+                        {ownedSets.map((set, index) => (
+                          <div key={set} className="flex items-center gap-2">
+                            <Checkbox
+                              id={`${radioId}-pool-${index}`}
+                              checked={poolSets.includes(set)}
+                              onCheckedChange={(checked) => updatePool(checked
+                                ? excludedSets.filter(s => s !== set)
+                                : [...excludedSets, set])}
+                            />
+                            <Label htmlFor={`${radioId}-pool-${index}`} className="font-normal cursor-pointer">{set}</Label>
+                          </div>
+                        ))}
+                      </div>
+                    </details>
                     {poolSets.length === 0 && <p role="alert" className="text-sm text-destructive">Select at least one set in the randomization pool.</p>}
                   </div>
                 )}
-              </div>
-
-              <div className="space-y-3">
-                <Label>Lock characters</Label>
-                <p className="text-xs text-muted-foreground">Choose a character to lock its slot, or leave it random. Changing game mode clears locks.</p>
-                <div className="grid gap-3 sm:grid-cols-2">
-                  {Array.from({ length: playerCount }, (_, index) => {
-                    const lockedId = lockedHeroes[index]
-                    const choices = availableHeroes.filter(hero => !lockedHeroes.some((id, slot) => slot !== index && id === hero.id))
-                    return (
-                      <div key={index} className="space-y-2">
-                        <Label htmlFor={`${radioId}-hero-${index}`}>Player {index + 1}</Label>
-                        <Select value={lockedId ?? 'random'} onValueChange={(value) => {
-                          setLockedHeroes(current => current.map((id, slot) => slot === index ? (value === 'random' ? null : value) : id))
-                          setResult(null)
-                        }}>
-                          <SelectTrigger id={`${radioId}-hero-${index}`}><SelectValue /></SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="random">Random (unlocked)</SelectItem>
-                            {lockedId && !choices.some(hero => hero.id === lockedId) && (
-                              <SelectItem value={lockedId}>{getHeroById(lockedId)?.name} (locked)</SelectItem>
-                            )}
-                            {choices.map(hero => <SelectItem key={hero.id} value={hero.id}>{hero.name}</SelectItem>)}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    )
-                  })}
-                </div>
               </div>
 
               {randomizationType === 'balanced' && loadingGlobal && (
@@ -442,11 +414,31 @@ export function RandomizerTab({ ownedSets, setMatches }: RandomizerTabProps) {
                             )}
                           </div>
                         </div>
-                        <Button variant="outline" size="sm" aria-pressed={!!lockedHeroes[index]} aria-label={`${lockedHeroes[index] ? 'Unlock' : 'Lock'} ${hero?.name}`} onClick={() => {
-                          setLockedHeroes(current => current.map((id, slot) => slot === index ? (id ? null : player.heroId) : id))
-                        }}>
-                          {lockedHeroes[index] ? 'Unlock' : 'Lock'}
-                        </Button>
+                        <div className="relative group shrink-0">
+                          <Button
+                            variant={lockedHeroes[index] ? 'secondary' : 'outline'}
+                            size="icon"
+                            className="h-11 w-11"
+                            aria-pressed={!!lockedHeroes[index]}
+                            aria-label={`${lockedHeroes[index] ? 'Unlock' : 'Lock'} ${hero?.name}`}
+                            aria-describedby={`${radioId}-lock-help-${index}`}
+                            onClick={(event) => {
+                              event.currentTarget.focus()
+                              setLockedHeroes(current => current.map((id, slot) => slot === index ? (id ? null : player.heroId) : id))
+                            }}
+                          >
+                            {lockedHeroes[index] ? <LockSimple size={20} aria-hidden="true" /> : <LockSimpleOpen size={20} aria-hidden="true" />}
+                          </Button>
+                          <span
+                            id={`${radioId}-lock-help-${index}`}
+                            role="tooltip"
+                            className="absolute bottom-full right-0 z-50 hidden w-56 rounded-md border bg-popover p-2 text-xs text-popover-foreground shadow-md group-hover:block group-focus-within:block"
+                          >
+                            {lockedHeroes[index]
+                              ? 'Locked: this hero stays when generating a new matchup. Tap to unlock.'
+                              : 'Unlocked: this hero can be randomized. Tap to lock it for new matchups.'}
+                          </span>
+                        </div>
                         <Button variant="outline" size="sm" aria-label={`Reroll ${hero?.name}`} disabled={!!lockedHeroes[index]} onClick={() => rerollHero(index)}>
                           <ArrowsClockwise className="mr-1" size={16} />
                           Reroll
