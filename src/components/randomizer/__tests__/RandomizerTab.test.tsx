@@ -94,7 +94,7 @@ describe('Randomizer locks and set pool', () => {
     expect(summary).toHaveTextContent('1 of 2 sets selected')
     await user.click(generate())
     expect(generated().players.every(p => getHeroById(p.heroId)?.set === legends)).toBe(true)
-    expect(screen.getAllByRole('button', { name: /^Lock / })).toHaveLength(2)
+    expect(screen.getAllByRole('button', { name: /^Lock / })).toHaveLength(3)
   })
 
   it('uses the entire collection by default and allows the full catalog with an empty collection', async () => {
@@ -108,6 +108,44 @@ describe('Randomizer locks and set pool', () => {
     expect(getMapById(generated().mapId)).toBeDefined()
   })
 
+  it('locks the generated map across new matchups and pool changes, then unlocks for rerolls', async () => {
+    const user = setup()
+    vi.spyOn(Math, 'random').mockReturnValue(0)
+    await user.click(generate())
+    const original = generated()
+    const mapName = getMapById(original.mapId)!.name
+    const lock = screen.getByRole('button', { name: `Lock ${mapName}` })
+    expect(lock).toHaveAccessibleDescription('Unlocked: this map can be randomized. Tap to lock it for new matchups.')
+    await user.click(lock)
+    expect(lock).toHaveAccessibleName(`Unlock ${mapName}`)
+    expect(screen.getByRole('button', { name: 'Reroll' })).toBeDisabled()
+    await user.click(screen.getByRole('button', { name: 'Generate New' }))
+    expect(generated().mapId).toBe(original.mapId)
+    await expandPool(user)
+    await user.click(screen.getByRole('checkbox', { name: legends }))
+    await user.click(generate())
+    expect(generated().mapId).toBe(original.mapId)
+    expect(generated().players.every(p => getHeroById(p.heroId)?.set === fog)).toBe(true)
+    await user.click(screen.getByRole('button', { name: `Unlock ${mapName}` }))
+    const players = generated().players
+    await user.click(screen.getByRole('button', { name: 'Reroll' }))
+    expect(getMapById(generated().mapId)?.set).toBe(fog)
+    expect(generated().players).toEqual(players)
+  })
+
+  it('clears the map lock on mode changes and generates a suitable map for the new player count', async () => {
+    const user = setup(['Robin Hood vs Bigfoot', legends])
+    vi.spyOn(Math, 'random').mockReturnValue(0.99)
+    await user.click(generate())
+    const name = getMapById(generated().mapId)!.name
+    await user.click(screen.getByRole('button', { name: `Lock ${name}` }))
+    await pick(user, 'Game Mode', '4 Player Free For All')
+    await user.click(generate())
+    expect(getMapById(generated().mapId)!.maxPlayers).toBeGreaterThanOrEqual(4)
+    expect(screen.queryByRole('button', { name: /^Unlock / })).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Reroll' })).toBeEnabled()
+  })
+
   it('defaults all owned sets to selected and applies a narrower pool to generation and rerolls', async () => {
     const user = setup()
     await expandPool(user)
@@ -119,6 +157,8 @@ describe('Randomizer locks and set pool', () => {
       expect(generated().players.every(p => getHeroById(p.heroId)?.set === legends)).toBe(true)
       expect(getMapById(generated().mapId)?.set).toBe(legends)
     }
+    await user.click(screen.getByRole('button', { name: 'Generate New' }))
+    expect(toast.success).not.toHaveBeenCalled()
     const previous = generated()
     await user.click(screen.getByRole('button', { name: `Reroll ${getHeroById(previous.players[0].heroId)?.name}` }))
     const rerolled = generated()
@@ -267,6 +307,7 @@ describe('Randomizer locks and set pool', () => {
     expect(getHeroById(generated().players[slot === 1 ? 1 : 0].heroId)?.set).toBe(remaining)
     expect(getMapById(generated().mapId)?.set).toBe(remaining)
     expect(screen.getByText(/confidence$/)).toBeInTheDocument()
+    expect(toast.success).not.toHaveBeenCalled()
     const opponentName = getHeroById(generated().players[slot === 1 ? 1 : 0].heroId)!.name
     await user.click(screen.getByRole('button', { name: `Reroll ${opponentName}` }))
     expect(generated().players[slot - 1]).toEqual(locked)

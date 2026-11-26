@@ -44,8 +44,8 @@ the bottom, within reach at the table.
    full catalog. Like the fighters but not the battlefield? Reroll just the map.
    Expand **Randomization pool** to choose a subset of owned sets and filter
    both random fighters and maps without changing your collection.
-   Use the lock icon on a generated fighter to keep it
-   while generating the others. Locked fighters stay fixed even outside the
+   Use the lock icon on a generated fighter or map to keep it
+   while generating the others. Locked fighters and maps stay fixed even outside the
    selected pool; changing game mode clears locks. Empty pools, too few
    distinct fighters, or no suitable map show an error instead of using
    excluded sets.

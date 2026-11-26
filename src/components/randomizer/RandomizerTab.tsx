@@ -29,6 +29,42 @@ type RandomizerResult = {
   balancedResults?: BalancedResult[]
 }
 
+function MatchupLockButton({ name, kind, locked, onToggle }: {
+  name: string
+  kind: 'hero' | 'map'
+  locked: boolean
+  onToggle: () => void
+}) {
+  const helpId = useId()
+  return (
+    <div className="relative group shrink-0">
+      <Button
+        variant={locked ? 'secondary' : 'outline'}
+        size="icon"
+        className="h-11 w-11"
+        aria-pressed={locked}
+        aria-label={`${locked ? 'Unlock' : 'Lock'} ${name}`}
+        aria-describedby={helpId}
+        onClick={(event) => {
+          event.currentTarget.focus()
+          onToggle()
+        }}
+      >
+        {locked ? <LockSimple size={16} className="size-4" aria-hidden="true" /> : <LockSimpleOpen size={16} className="size-4" aria-hidden="true" />}
+      </Button>
+      <span
+        id={helpId}
+        role="tooltip"
+        className="absolute bottom-full right-0 z-50 hidden w-56 rounded-md border bg-popover p-2 text-xs text-popover-foreground shadow-md group-hover:block group-focus-within:block"
+      >
+        {locked
+          ? `Locked: this ${kind} stays when generating a new matchup. Tap to unlock.`
+          : `Unlocked: this ${kind} can be randomized. Tap to lock it for new matchups.`}
+      </span>
+    </div>
+  )
+}
+
 export function RandomizerTab({ ownedSets, setMatches }: RandomizerTabProps) {
   const radioId = useId()
   const [mode, setMode] = useState<GameMode>('1v1')
@@ -42,6 +78,7 @@ export function RandomizerTab({ ownedSets, setMatches }: RandomizerTabProps) {
   const [loadingGlobal, setLoadingGlobal] = useState(false)
   const [excludedSets, setExcludedSets] = useState<string[]>([])
   const [lockedHeroes, setLockedHeroes] = useState<(string | null)[]>([null, null, null, null])
+  const [lockedMapId, setLockedMapId] = useState<string | null>(null)
   const playerCount = mode === '1v1' ? 2 : mode === 'ffa3' ? 3 : 4
 
   // Fetch global matches on mount for balanced mode
@@ -111,7 +148,7 @@ export function RandomizerTab({ ownedSets, setMatches }: RandomizerTabProps) {
       return
     }
 
-    const randomMap = pickRandomMap(playerCount)
+    const randomMap = lockedMapId ? getMapById(lockedMapId) : pickRandomMap(playerCount)
     if (!randomMap) return
     const balancedData = randomizationType === 'balanced' && mode === '1v1' ? globalCommunityData : null
     const balancedResults: BalancedResult[] = []
@@ -141,7 +178,6 @@ export function RandomizerTab({ ownedSets, setMatches }: RandomizerTabProps) {
     }
 
     setResult({ mapId: randomMap.id, players, heroStats: balancedData ? heroStats : undefined, balancedResults })
-    toast.success(balancedData ? 'Balanced matchup generated!' : 'Random matchup generated!')
   }
 
   const rerollHero = (index: number) => {
@@ -193,7 +229,7 @@ export function RandomizerTab({ ownedSets, setMatches }: RandomizerTabProps) {
   }
 
   const rerollMap = () => {
-    if (!result) return
+    if (!result || lockedMapId) return
     const randomMap = pickRandomMap(playerCount)
     if (!randomMap) return
     setResult({ ...result, mapId: randomMap.id })
@@ -237,6 +273,7 @@ export function RandomizerTab({ ownedSets, setMatches }: RandomizerTabProps) {
                   setMode(v as GameMode)
                   setResult(null)
                   setLockedHeroes([null, null, null, null])
+                  setLockedMapId(null)
                 }}>
                   <SelectTrigger id={`${radioId}-mode`}>
                     <SelectValue />
@@ -343,8 +380,8 @@ export function RandomizerTab({ ownedSets, setMatches }: RandomizerTabProps) {
               </div>
 
               <div className="space-y-6">
-                <div className="flex items-center justify-between p-4 bg-card rounded-lg border">
-                  <div>
+                <div className="flex gap-2 items-center justify-between p-3 sm:p-4 bg-card rounded-lg border">
+                  <div className="min-w-0 flex-1 break-words">
                     <p className="text-sm text-muted-foreground mb-1">Map</p>
                     <p 
                       className="font-semibold cursor-pointer hover:text-primary transition-colors"
@@ -363,10 +400,18 @@ export function RandomizerTab({ ownedSets, setMatches }: RandomizerTabProps) {
                       {getMapById(result.mapId)?.zones} zones, {getMapById(result.mapId)?.spaces} spaces
                     </p>
                   </div>
-                  <Button variant="outline" size="sm" onClick={rerollMap}>
-                    <ArrowsClockwise className="mr-1" size={16} />
-                    Reroll
-                  </Button>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <MatchupLockButton
+                      name={getMapById(result.mapId)?.name ?? 'map'}
+                      kind="map"
+                      locked={!!lockedMapId}
+                      onToggle={() => setLockedMapId(current => current ? null : result.mapId)}
+                    />
+                    <Button variant="outline" size="sm" className="h-11" onClick={rerollMap} disabled={!!lockedMapId}>
+                      <ArrowsClockwise className="size-4" size={16} />
+                      Reroll
+                    </Button>
+                  </div>
                 </div>
 
                 <div className="space-y-3">
@@ -391,12 +436,12 @@ export function RandomizerTab({ ownedSets, setMatches }: RandomizerTabProps) {
                     }
                     
                     return (
-                      <div key={index} className="flex flex-wrap gap-3 items-center justify-between p-4 bg-card rounded-lg border">
-                        <div className="flex items-center gap-3 flex-1">
-                          <Badge variant="outline" className="w-8 h-8 rounded-full flex items-center justify-center p-0">
+                      <div key={index} className="flex gap-2 items-center justify-between p-3 sm:p-4 bg-card rounded-lg border">
+                        <div className="flex items-center gap-2 min-w-0 flex-1">
+                          <Badge variant="outline" className="w-8 h-8 shrink-0 rounded-full flex items-center justify-center p-0">
                             {player.turnOrder}
                           </Badge>
-                          <div className="flex-1">
+                          <div className="min-w-0 flex-1 break-words">
                             <p className="font-semibold">{hero?.name}</p>
                             <p className="text-xs text-muted-foreground">{hero?.set}</p>
                             {randomizationType === 'balanced' && stats && stats.totalGames > 0 && (
@@ -414,35 +459,20 @@ export function RandomizerTab({ ownedSets, setMatches }: RandomizerTabProps) {
                             )}
                           </div>
                         </div>
-                        <div className="relative group shrink-0">
-                          <Button
-                            variant={lockedHeroes[index] ? 'secondary' : 'outline'}
-                            size="icon"
-                            className="h-11 w-11"
-                            aria-pressed={!!lockedHeroes[index]}
-                            aria-label={`${lockedHeroes[index] ? 'Unlock' : 'Lock'} ${hero?.name}`}
-                            aria-describedby={`${radioId}-lock-help-${index}`}
-                            onClick={(event) => {
-                              event.currentTarget.focus()
+                        <div className="flex items-center gap-2 shrink-0">
+                          <MatchupLockButton
+                            name={hero?.name ?? 'hero'}
+                            kind="hero"
+                            locked={!!lockedHeroes[index]}
+                            onToggle={() => {
                               setLockedHeroes(current => current.map((id, slot) => slot === index ? (id ? null : player.heroId) : id))
                             }}
-                          >
-                            {lockedHeroes[index] ? <LockSimple size={20} aria-hidden="true" /> : <LockSimpleOpen size={20} aria-hidden="true" />}
+                          />
+                          <Button variant="outline" size="sm" className="h-11" aria-label={`Reroll ${hero?.name}`} disabled={!!lockedHeroes[index]} onClick={() => rerollHero(index)}>
+                            <ArrowsClockwise className="size-4" size={16} />
+                            Reroll
                           </Button>
-                          <span
-                            id={`${radioId}-lock-help-${index}`}
-                            role="tooltip"
-                            className="absolute bottom-full right-0 z-50 hidden w-56 rounded-md border bg-popover p-2 text-xs text-popover-foreground shadow-md group-hover:block group-focus-within:block"
-                          >
-                            {lockedHeroes[index]
-                              ? 'Locked: this hero stays when generating a new matchup. Tap to unlock.'
-                              : 'Unlocked: this hero can be randomized. Tap to lock it for new matchups.'}
-                          </span>
                         </div>
-                        <Button variant="outline" size="sm" aria-label={`Reroll ${hero?.name}`} disabled={!!lockedHeroes[index]} onClick={() => rerollHero(index)}>
-                          <ArrowsClockwise className="mr-1" size={16} />
-                          Reroll
-                        </Button>
                       </div>
                     )
                   })}
