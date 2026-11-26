@@ -42,6 +42,13 @@ the bottom, within reach at the table.
 2. **Randomize your matchup.** In **Randomizer**, choose a game mode and generate
    fighters and a map for that player count. Stick to your collection or use the
    full catalog. Like the fighters but not the battlefield? Reroll just the map.
+   Choose a subset of owned sets in **Randomization pool** to filter both
+   random fighters and maps without changing your collection. Choose a
+   character for a player slot, or **Lock** a generated fighter, to keep it
+   while generating the others. Locked fighters stay fixed even outside the
+   selected pool; changing game mode clears locks. Empty pools, too few
+   distinct fighters, or no suitable map show an error instead of using
+   excluded sets.
    For a duel, **Balanced** uses community 1v1 results to suggest a close
    matchup and shows how confident the suggestion is.
 3. **Record the result.** Choose **Log This Match** to keep the generated

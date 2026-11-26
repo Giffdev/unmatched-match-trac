@@ -13,7 +13,9 @@ import { LogMatchDialog } from '@/components/matches/LogMatchDialog'
 import { toast } from 'sonner'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { Switch } from '@/components/ui/switch'
+import { Checkbox } from '@/components/ui/checkbox'
 import { MapImageDialog } from '@/components/players/MapImageDialog'
+import { normalizeHeroId } from '@/lib/utils'
 
 type RandomizerTabProps = {
   ownedSets: string[]
@@ -38,6 +40,9 @@ export function RandomizerTab({ ownedSets, setMatches }: RandomizerTabProps) {
   const [isMapDialogOpen, setIsMapDialogOpen] = useState(false)
   const [globalMatches, setGlobalMatches] = useState<Match[]>([])
   const [loadingGlobal, setLoadingGlobal] = useState(false)
+  const [excludedSets, setExcludedSets] = useState<string[]>([])
+  const [lockedHeroes, setLockedHeroes] = useState<(string | null)[]>([null, null, null, null])
+  const playerCount = mode === '1v1' ? 2 : mode === 'ffa3' ? 3 : 4
 
   // Fetch global matches on mount for balanced mode
   useEffect(() => {
@@ -70,87 +75,78 @@ export function RandomizerTab({ ownedSets, setMatches }: RandomizerTabProps) {
     }
   }
 
-  const availableHeroes = useCollectionOnly 
-    ? ownedSets.flatMap(set => getHeroesBySet(set))
-    : getSelectableHeroes()
+  const poolSets = ownedSets.filter(set => !excludedSets.includes(set))
+  const availableHeroes = (useCollectionOnly
+    ? poolSets.flatMap(set => getHeroesBySet(set))
+    : getSelectableHeroes())
+    .map(hero => ({ ...hero, id: normalizeHeroId(hero.id) }))
+    .filter((hero, index, heroes) => heroes.findIndex(h => h.id === hero.id) === index)
 
-  const pickRandomMap = (playerCount: number) => {
-    let suitableMaps = getMapsByPlayerCount(playerCount)
-    if (useCollectionOnly) {
-      suitableMaps = suitableMaps.filter(map => ownedSets.includes(map.set))
-    }
+  const updatePool = (excluded: string[]) => {
+    setExcludedSets(excluded)
+    setResult(null)
+  }
+
+  const pickRandomMap = (count: number) => {
+    const suitableMaps = getMapsByPlayerCount(count).filter(map =>
+      !useCollectionOnly || poolSets.includes(map.set)
+    )
     if (suitableMaps.length === 0) {
-      toast.error(`No maps available for ${playerCount} players`)
+      toast.error(`No maps available for ${count} players in the selected pool`)
       return null
     }
     return suitableMaps[Math.floor(Math.random() * suitableMaps.length)]
   }
 
   const handleRandomize = () => {
-    if (availableHeroes.length === 0) {
-      toast.error(useCollectionOnly ? 'Please select some sets in your collection first' : 'No heroes available')
+    if (useCollectionOnly && poolSets.length === 0) {
+      toast.error('Select at least one set in the randomization pool')
       return
     }
 
-    const playerCount = mode === '1v1' ? 2 : mode === '2v2' ? 4 : mode === 'ffa3' ? 3 : mode === 'ffa4' ? 4 : 2
-
-    if (availableHeroes.length < playerCount) {
-      toast.error(`You need at least ${playerCount} heroes for this mode`)
+    const selectedHeroes = lockedHeroes.slice(0, playerCount)
+    const lockedIds = selectedHeroes.filter((id): id is string => id !== null)
+    const candidates = availableHeroes.filter(hero => !lockedIds.includes(hero.id))
+    if (candidates.length < playerCount - lockedIds.length) {
+      toast.error(`Not enough heroes in the selected pool for ${playerCount} players. Add sets or unlock a hero.`)
       return
-    }
-
-    const selectedHeroes: string[] = []
-    const players: PlayerAssignment[] = []
-    let heroStats: Record<string, HeroStats> | undefined
-
-    if (randomizationType === 'balanced' && mode === '1v1' && globalCommunityData) {
-      heroStats = {}
-      const balancedResults: BalancedResult[] = []
-
-      const available = availableHeroes.map(h => h.id)
-      const firstHeroId = available[Math.floor(Math.random() * available.length)]
-      selectedHeroes.push(firstHeroId)
-      
-      const firstStats = globalCommunityData.heroStats[firstHeroId]
-      if (firstStats) heroStats[firstHeroId] = firstStats
-
-      players.push({ playerName: '', heroId: firstHeroId, turnOrder: 1 })
-
-      const remainingAvailable = available.filter(h => h !== firstHeroId)
-      const balancedResult = getBalancedMatchupScored(remainingAvailable, firstHeroId, globalCommunityData, heroDataLookup)
-      selectedHeroes.push(balancedResult.heroId)
-      balancedResults.push(balancedResult)
-      
-      const secondStats = globalCommunityData.heroStats[balancedResult.heroId]
-      if (secondStats) heroStats[balancedResult.heroId] = secondStats
-
-      players.push({ playerName: '', heroId: balancedResult.heroId, turnOrder: 2 })
-
-      const randomMap = pickRandomMap(playerCount)
-      if (!randomMap) return
-
-      setResult({ mapId: randomMap.id, players, heroStats, balancedResults })
-      toast.success('Balanced matchup generated!')
-      return
-    }
-
-    // True random or non-1v1 balanced fallback
-    for (let i = 0; i < playerCount; i++) {
-      const available = availableHeroes.filter(h => !selectedHeroes.includes(h.id))
-      const randomHero = available[Math.floor(Math.random() * available.length)]
-      selectedHeroes.push(randomHero.id)
-      players.push({ playerName: '', heroId: randomHero.id, turnOrder: i + 1 })
     }
 
     const randomMap = pickRandomMap(playerCount)
     if (!randomMap) return
+    const balancedData = randomizationType === 'balanced' && mode === '1v1' ? globalCommunityData : null
+    const balancedResults: BalancedResult[] = []
+    if (balancedData && !selectedHeroes.some(Boolean)) {
+      selectedHeroes[0] = candidates[Math.floor(Math.random() * candidates.length)].id
+    }
 
-    setResult({ mapId: randomMap.id, players, heroStats })
-    toast.success('Random matchup generated!')
+    const players: PlayerAssignment[] = []
+    const heroStats: Record<string, HeroStats> = {}
+    for (let i = 0; i < playerCount; i++) {
+      let heroId = selectedHeroes[i]
+      if (!heroId) {
+        const available = availableHeroes.filter(h => !selectedHeroes.includes(h.id))
+        const opponentId = selectedHeroes[i === 0 ? 1 : 0]
+        if (balancedData && opponentId) {
+          const balancedResult = getBalancedMatchupScored(available.map(h => h.id), opponentId, balancedData, heroDataLookup)
+          heroId = balancedResult.heroId
+          balancedResults.push(balancedResult)
+        } else {
+          heroId = available[Math.floor(Math.random() * available.length)].id
+        }
+        selectedHeroes[i] = heroId
+      }
+      players.push({ playerName: '', heroId, turnOrder: i + 1 })
+      const stats = balancedData?.heroStats[heroId]
+      if (stats) heroStats[heroId] = stats
+    }
+
+    setResult({ mapId: randomMap.id, players, heroStats: balancedData ? heroStats : undefined, balancedResults })
+    toast.success(balancedData ? 'Balanced matchup generated!' : 'Random matchup generated!')
   }
 
   const rerollHero = (index: number) => {
-    if (!result) return
+    if (!result || lockedHeroes[index]) return
 
     const usedHeroIds = result.players.map(p => p.heroId)
     const available = availableHeroes.filter(h => !usedHeroIds.includes(h.id))
@@ -187,7 +183,7 @@ export function RandomizerTab({ ownedSets, setMatches }: RandomizerTabProps) {
     }
 
     const newPlayers = [...result.players]
-    newPlayers[index].heroId = newHeroId
+    newPlayers[index] = { ...newPlayers[index], heroId: newHeroId }
 
     setResult({
       ...result,
@@ -199,7 +195,6 @@ export function RandomizerTab({ ownedSets, setMatches }: RandomizerTabProps) {
 
   const rerollMap = () => {
     if (!result) return
-    const playerCount = mode === '1v1' ? 2 : mode === '2v2' ? 4 : mode === 'ffa3' ? 3 : mode === 'ffa4' ? 4 : 2
     const randomMap = pickRandomMap(playerCount)
     if (!randomMap) return
     setResult({ ...result, mapId: randomMap.id })
@@ -218,7 +213,7 @@ export function RandomizerTab({ ownedSets, setMatches }: RandomizerTabProps) {
         </p>
       </div>
 
-      {availableHeroes.length === 0 ? (
+      {useCollectionOnly && ownedSets.length === 0 && (
         <Card className="p-12 text-center">
           <div className="flex flex-col items-center gap-4">
             <div className="rounded-full bg-primary/10 p-6">
@@ -234,14 +229,17 @@ export function RandomizerTab({ ownedSets, setMatches }: RandomizerTabProps) {
             </div>
           </div>
         </Card>
-      ) : (
-        <>
+      )}
           <Card className="p-6">
             <div className="space-y-6">
               <div className="space-y-2">
-                <Label>Game Mode</Label>
-                <Select value={mode} onValueChange={(v) => setMode(v as GameMode)}>
-                  <SelectTrigger>
+                <Label htmlFor={`${radioId}-mode`}>Game Mode</Label>
+                <Select value={mode} onValueChange={(v) => {
+                  setMode(v as GameMode)
+                  setResult(null)
+                  setLockedHeroes([null, null, null, null])
+                }}>
+                  <SelectTrigger id={`${radioId}-mode`}>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -255,12 +253,15 @@ export function RandomizerTab({ ownedSets, setMatches }: RandomizerTabProps) {
 
               <div className="space-y-3">
                 <Label>Randomization Type</Label>
-                <RadioGroup value={randomizationType} onValueChange={(v) => setRandomizationType(v as 'true' | 'balanced')}>
+                <RadioGroup value={randomizationType} onValueChange={(v) => {
+                  setRandomizationType(v as 'true' | 'balanced')
+                  setResult(null)
+                }}>
                   <div className="flex items-center gap-2">
                     <RadioGroupItem value="true" id={`${radioId}-true-random`} />
                     <Label htmlFor={`${radioId}-true-random`} className="cursor-pointer font-normal flex items-center gap-2">
                       <DiceSix className="text-primary" />
-                      True Random - Any heroes from collection
+                      True Random - Any heroes from the selected pool
                     </Label>
                   </div>
                   <div className="flex items-center gap-2">
@@ -281,8 +282,69 @@ export function RandomizerTab({ ownedSets, setMatches }: RandomizerTabProps) {
                   <Switch 
                     id="collection-only" 
                     checked={useCollectionOnly}
-                    onCheckedChange={setUseCollectionOnly}
+                    onCheckedChange={(checked) => {
+                      setUseCollectionOnly(checked)
+                      setResult(null)
+                    }}
                   />
+                </div>
+                {useCollectionOnly && ownedSets.length > 0 && (
+                  <div className="space-y-3">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <Label>Randomization pool</Label>
+                      <div className="flex gap-2">
+                        <Button variant="outline" size="sm" onClick={() => updatePool([])}>Select All Sets</Button>
+                        <Button variant="outline" size="sm" onClick={() => updatePool([...ownedSets])}>Clear Sets</Button>
+                      </div>
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      Selected sets apply to both random heroes and maps. Locked heroes stay fixed, even outside this pool.
+                    </p>
+                    <div className="grid gap-3 sm:grid-cols-2">
+                      {ownedSets.map((set, index) => (
+                        <div key={set} className="flex items-center gap-2">
+                          <Checkbox
+                            id={`${radioId}-pool-${index}`}
+                            checked={poolSets.includes(set)}
+                            onCheckedChange={(checked) => updatePool(checked
+                              ? excludedSets.filter(s => s !== set)
+                              : [...excludedSets, set])}
+                          />
+                          <Label htmlFor={`${radioId}-pool-${index}`} className="font-normal cursor-pointer">{set}</Label>
+                        </div>
+                      ))}
+                    </div>
+                    {poolSets.length === 0 && <p role="alert" className="text-sm text-destructive">Select at least one set in the randomization pool.</p>}
+                  </div>
+                )}
+              </div>
+
+              <div className="space-y-3">
+                <Label>Lock characters</Label>
+                <p className="text-xs text-muted-foreground">Choose a character to lock its slot, or leave it random. Changing game mode clears locks.</p>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  {Array.from({ length: playerCount }, (_, index) => {
+                    const lockedId = lockedHeroes[index]
+                    const choices = availableHeroes.filter(hero => !lockedHeroes.some((id, slot) => slot !== index && id === hero.id))
+                    return (
+                      <div key={index} className="space-y-2">
+                        <Label htmlFor={`${radioId}-hero-${index}`}>Player {index + 1}</Label>
+                        <Select value={lockedId ?? 'random'} onValueChange={(value) => {
+                          setLockedHeroes(current => current.map((id, slot) => slot === index ? (value === 'random' ? null : value) : id))
+                          setResult(null)
+                        }}>
+                          <SelectTrigger id={`${radioId}-hero-${index}`}><SelectValue /></SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="random">Random (unlocked)</SelectItem>
+                            {lockedId && !choices.some(hero => hero.id === lockedId) && (
+                              <SelectItem value={lockedId}>{getHeroById(lockedId)?.name} (locked)</SelectItem>
+                            )}
+                            {choices.map(hero => <SelectItem key={hero.id} value={hero.id}>{hero.name}</SelectItem>)}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    )
+                  })}
                 </div>
               </div>
 
@@ -357,7 +419,7 @@ export function RandomizerTab({ ownedSets, setMatches }: RandomizerTabProps) {
                     }
                     
                     return (
-                      <div key={index} className="flex items-center justify-between p-4 bg-card rounded-lg border">
+                      <div key={index} className="flex flex-wrap gap-3 items-center justify-between p-4 bg-card rounded-lg border">
                         <div className="flex items-center gap-3 flex-1">
                           <Badge variant="outline" className="w-8 h-8 rounded-full flex items-center justify-center p-0">
                             {player.turnOrder}
@@ -380,7 +442,12 @@ export function RandomizerTab({ ownedSets, setMatches }: RandomizerTabProps) {
                             )}
                           </div>
                         </div>
-                        <Button variant="outline" size="sm" onClick={() => rerollHero(index)}>
+                        <Button variant="outline" size="sm" aria-pressed={!!lockedHeroes[index]} aria-label={`${lockedHeroes[index] ? 'Unlock' : 'Lock'} ${hero?.name}`} onClick={() => {
+                          setLockedHeroes(current => current.map((id, slot) => slot === index ? (id ? null : player.heroId) : id))
+                        }}>
+                          {lockedHeroes[index] ? 'Unlock' : 'Lock'}
+                        </Button>
+                        <Button variant="outline" size="sm" aria-label={`Reroll ${hero?.name}`} disabled={!!lockedHeroes[index]} onClick={() => rerollHero(index)}>
                           <ArrowsClockwise className="mr-1" size={16} />
                           Reroll
                         </Button>
@@ -428,9 +495,6 @@ export function RandomizerTab({ ownedSets, setMatches }: RandomizerTabProps) {
               </div>
             </Card>
           )}
-        </>
-      )}
-
       {result && (
         <LogMatchDialog
           open={dialogOpen}
